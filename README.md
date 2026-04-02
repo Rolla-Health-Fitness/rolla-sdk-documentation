@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-> **SDK Version:** `0.1.6`
+> **Latest SDK Version:** `0.1.6`
 
 ---
 
