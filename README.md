@@ -1,142 +1,67 @@
 # Rolla SDK Integration Guide
 
-Integration documentation for embedding the Rolla SDK into iOS and Android apps.
+Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-> **Current SDK Version:** `0.1.5`
->
-> **Last Updated:** April 2026
+> **SDK Version:** `0.1.5` · **Last Updated:** April 2026
 
-## Platform Guides
+---
 
-| Platform | Guide |
-|----------|-------|
-| iOS | [iOS Integration Guide](ios/README.md) |
-| iOS Live Activities | [Live Activities Setup](ios/live-activities.md) |
-| Android | [Android Integration Guide](android/README.md) |
+## iOS Integration
+
+[**Go to iOS Guide →**](ios/README.md)
+
+| # | Section | Description |
+|---|---------|-------------|
+| 1 | [Prerequisites](ios/01-prerequisites.md) | iOS version, CocoaPods, Xcode |
+| 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
+| 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
+| 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
+| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, 23 available modules |
+| 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
+| 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
+| 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |
+| 9 | [Live Activities](ios/09-live-activities.md) | Lock Screen & Dynamic Island (iOS 16.1+) |
+| 10 | [API Reference](ios/10-api-reference.md) | Rolla class, delegate, errors, close reasons |
+| 11 | [Troubleshooting](ios/11-troubleshooting.md) | Common issues & support |
+
+---
+
+## Android Integration
+
+[**Go to Android Guide →**](android/README.md)
+
+| # | Section | Description |
+|---|---------|-------------|
+| 1 | [Prerequisites](android/01-prerequisites.md) | Android API level, Android Studio, Gradle |
+| 2 | [Gradle Setup](android/02-gradle-setup.md) | Maven repos, SDK dependency, desugaring |
+| 3 | [Permissions](android/03-permissions.md) | Internet, Mapbox token, manifest merger |
+| 4 | [Code Integration](android/04-code-integration.md) | Import, configure, present, listener |
+| 5 | [Branding & Modules](android/05-branding-and-modules.md) | Custom theming, module configuration |
+| 6 | [Token Management](android/06-token-management.md) | Auth lifecycle, refresh, session clear |
+| 7 | [Engine Lifecycle](android/07-engine-lifecycle.md) | Flutter engine, dismiss, memory |
+| 8 | [API Reference](android/08-api-reference.md) | Rolla class, listener, errors, close reasons |
+| 9 | [Troubleshooting](android/09-troubleshooting.md) | Common issues & support |
 
 ---
 
 ## Overview
 
-The Rolla SDK provides a complete health and fitness experience that can be embedded inside partner apps. The SDK is built on Flutter with native wrappers for iOS (Swift) and Android (Kotlin).
+The Rolla SDK provides a complete health and fitness experience embedded inside partner apps. Built on Flutter with native wrappers for iOS (Swift) and Android (Kotlin), the SDK manages its own UI, Bluetooth band communication, data syncing, and authentication lifecycle.
 
-Partners integrate the SDK by adding it as a dependency, configuring a few permissions, and presenting it with a single method call. The SDK manages its own UI, data syncing, Bluetooth band communication, and authentication lifecycle internally.
+### Integration Flow
 
----
+1. **Register the user** — one-time registration with Rolla's system (name, DOB, weight, height, gender, timezone)
+2. **Obtain a token** — your backend calls Rolla's auth API to get a JWT access token
+3. **Present the SDK** — initialize with the token and call `show()` — the SDK handles everything from there
 
-## Integration Flow
-
-### 1. User Registration
-
-Every user must be registered once in Rolla's system. The following fields are required:
-
-- First and last name
-- Date of birth
-- Weight
-- Height
-- Gender
-- Time zone
-
-A separate endpoint will be provided for passwordless registration without email. *(Details to be discussed during onboarding.)*
-
-### 2. User Login
-
-Before presenting the SDK, your app must retrieve an access token for the user:
-
-1. User logs in to your app
-2. Your backend calls Rolla's auth API to obtain an `access_token` (and optionally `refresh_token`, `expires_in`)
-3. You pass the token into `RollaConfiguration` when initializing the SDK
-
-This process should happen in the background and can be triggered when the user taps the button to open the SDK.
-
-### 3. Present the SDK
-
-Once you have a token, initialize the SDK and present it:
-
-**iOS (Swift):**
-```swift
-let configuration = RollaConfiguration(
-    token: accessToken,
-    partnerId: "your-partner-id",
-    environment: "production"
-)
-let rolla = Rolla(configuration: configuration)
-rolla.delegate = self
-rolla.show(from: self)
-```
-
-**Android (Kotlin):**
-```kotlin
-val configuration = RollaConfiguration(
-    token = accessToken,
-    partnerId = "your-partner-id",
-    environment = "production"
-)
-val rolla = Rolla(configuration)
-rolla.listener = this
-rolla.show(activity)
-```
-
-See the platform-specific guides for full setup instructions.
-
----
-
-## Available Modules
-
-The SDK is organized into modules. Currently, all modules are always enabled — pass `nil` (iOS) or `null` (Android) for the `modules` parameter.
-
-Selective module enablement will be available in a future release.
-
-| Module | Description |
-|--------|-------------|
-| `home` | Main dashboard / home screen |
-| `bandPairing` | Bluetooth band connection setup |
-| `bandSync` | Band data synchronization |
-| `bandFirmware` | Band firmware updates |
-| `activityTracking` | Live workout tracking (includes Live Activities on iOS) |
-| `activityReview` | Past activity review and history |
-| `metrics` | Health metrics overview |
-| `weight` | Weight tracking |
-| `bloodPressure` | Blood pressure monitoring |
-| `goals` | Goal setting and tracking |
-| `insights` | Health insights and recommendations |
-| `scores` | Health and activity scores |
-| `integrations` | External data source integrations (Apple Health, Garmin) |
-| `profile` | User profile management |
-| `settings` | App settings |
-| `branding` | Partner branding and theming |
-| `authentication` | Authentication flows |
-| `consent` | User consent flows |
-| `onboarding` | Onboarding flow |
-| `permissions` | Permissions management |
-| `support` | Help and support |
-| `debugLogs` | Band diagnostics and debug logging |
-| `fabMenu` | Floating action button with quick actions (e.g., start workout) |
-
----
-
-## Branding
-
-Partners can customize the SDK's appearance through `RollaBranding`:
-
-- App name, colors (primary, secondary, accent), brightness, theme mode
-- Default locale, terms URL, privacy URL
-- Partner logo (via `headerLogoAsset`)
-
-**Important:** Image assets (such as partner logos) must be **pre-bundled inside the SDK** at build time — they cannot be transferred from the host app at runtime. During onboarding, coordinate with Rolla to supply your brand assets (SVG format preferred). Rolla will bundle them into the SDK and provide the correct asset path for your `RollaBranding` configuration.
-
----
-
-## Environments
-
-The SDK supports two environments:
+### Environments
 
 | Environment | Value | Use |
 |-------------|-------|-----|
-| Production | `"production"` | Live / release builds |
-| Development | `"rnd"` | Development and QA testing |
+| Production | `"production"` | Release builds |
+| Development | `"rnd"` | Development and QA |
 
-If omitted, the environment defaults to `"rnd"`.
+If omitted, defaults to `"rnd"`.
 
 ---
 

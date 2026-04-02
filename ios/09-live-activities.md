@@ -1,8 +1,8 @@
-# Live Activities Setup (iOS 16.1+)
-
-> Back to [iOS Integration Guide](README.md)
+# Live Activities (iOS 16.1+)
 
 The SDK supports iOS Live Activities for real-time workout tracking on the Lock Screen and Dynamic Island (iPhone 14 Pro and later).
+
+> Back to [iOS Integration Guide](README.md)
 
 ## Table of Contents
 
@@ -628,3 +628,7 @@ To verify: select the file in Xcode → File Inspector (right sidebar) → check
 - **Widget shows blank/crashes:** Verify `LiveWorkoutAttributes.swift` is in both targets. Clean build and reinstall.
 - **"No provisioning profile" error:** Enable Push Notifications for both App IDs in Apple Developer Portal, then refresh signing profiles in Xcode.
 - **"Cycle inside Runner" build error:** Move "Embed Foundation Extensions" build phase before CocoaPods script phases.
+
+---
+
+**Previous:** [Engine Lifecycle](08-engine-lifecycle.md) | **Next:** [API Reference](10-api-reference.md) | **Home:** [README](README.md)
