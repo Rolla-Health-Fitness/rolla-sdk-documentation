@@ -17,7 +17,7 @@ target 'YourApp' do
   use_frameworks!
 
   # Add Rolla SDK
-  pod 'RollaSDK', '~> 0.1.5'
+  pod 'RollaSDK', '~> 0.1.6'
 end
 ```
 
