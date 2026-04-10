@@ -44,15 +44,30 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ---
 
+## Backend / Server-Side Integration
+
+[**Go to Backend Guide →**](backend/README.md)
+
+| # | Section | Description |
+|---|---------|-------------|
+| 1 | [Overview](backend/01-overview.md) | Partner API overview, base URL, credentials, onboarding |
+| 2 | [Authentication](backend/02-authentication.md) | OAuth 2.0 Client Credentials, token management |
+| 3 | [User Management](backend/03-user-management.md) | Register, authenticate, check status, disconnect users |
+| 4 | [Data Endpoints](backend/04-data-endpoints.md) | Activities, goals, health data, weight, blood pressure, insights |
+| 5 | [Error Handling](backend/05-error-handling.md) | Error format, status codes, retry strategies, checklist |
+
+---
+
 ## Overview
 
 The Rolla SDK provides a complete health and fitness experience embedded inside partner apps. Built on Flutter with native wrappers for iOS (Swift) and Android (Kotlin), the SDK manages its own UI, Bluetooth band communication, data syncing, and authentication lifecycle.
 
 ### Integration Flow
 
-1. **Register the user** — one-time registration with Rolla's system (name, DOB, weight, height, gender, timezone)
-2. **Obtain a token** — your backend calls Rolla's auth API to get a JWT access token
-3. **Present the SDK** — initialize with the token and call `show()` — the SDK handles everything from there
+1. **Obtain partner credentials** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` and `partner_secret` during onboarding
+2. **Register the user** — your backend calls `POST /partners/v1/users/register` with `user_id` and `email` only. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI, not at registration time.
+3. **Obtain a token** — your backend calls Rolla's auth API (`POST /partners/v1/token`) to get a JWT access token
+4. **Present the SDK** — initialize with the token and call `show()` — the SDK handles everything from there
 
 ### Environments
 
