@@ -45,33 +45,33 @@ Selective module enablement will be available in a future release. Once you see 
 
 ### Available Modules
 
-The SDK contains 23 modules providing comprehensive fitness and health tracking functionality:
+The SDK is organized into the following modules. Module names are **camelCase** strings and must match exactly if passed in the `modules` list.
 
 | Module | Description |
 |--------|-------------|
-| activity | Activity tracking, workout types (walk, run, cycling, cardio), activity history |
-| metrics | Health metrics display (heart rate, HRV, steps, active energy, distance, speed, cadence, power) |
-| integrations | Third-party health data integrations (Apple Health, Bluetooth devices, band sync) |
-| nutrition | Nutrition tracking (meals, calories, macro/micronutrients, barcode scanning) |
-| hydration | Hydration tracking and reminders |
-| sleep | Sleep tracking, analysis, and recommendations |
-| mindfulness | Guided meditation, breathing exercises, relaxation sessions |
-| challenges | Social challenges, leaderboards, achievement tracking |
-| community | Social feed, activity sharing, friend interactions |
-| profile | User profile management, preferences, settings |
-| devices | Connected device management (bands, watches, scale) |
-| goals | Goal setting, tracking, and progress visualization |
-| insights | Personalized health insights and recommendations |
-| workout-details | Detailed workout analytics and breakdown |
-| heart-health | Cardiovascular metrics and analysis |
-| body-composition | Weight tracking, body metrics, composition analysis |
-| recovery | Recovery tracking and recommendations |
-| training-plans | Guided training programs and plans |
-| social-sharing | Share workouts and metrics across social platforms |
-| notifications | In-app and push notifications for activity alerts |
-| dashboard | Customizable home dashboard and overview |
-| settings | App settings and SDK configuration interface |
-| onboarding | User onboarding flow and initial setup |
+| `metrics` | Health metrics dashboard (heart rate, HRV, steps, calories, distance) |
+| `weight` | Weight tracking with BMI and targets |
+| `bloodPressure` | Blood pressure tracking and manual logging |
+| `activityTracking` | Live activity tracking with GPS and heart rate |
+| `activityReview` | Activity history and detailed review |
+| `goals` | Daily health goals (steps, sleep, active points) |
+| `insights` | AI-generated personalized health insights |
+| `scores` | Readiness and activity scores |
+| `profile` | User profile management |
+| `bandPairing` | Bluetooth band discovery and pairing |
+| `bandSync` | Band data synchronization |
+| `bandFirmware` | Band firmware update management |
+| `settings` | App settings (theme, language, units, permissions) |
+| `authentication` | User authentication and session management |
+| `branding` | App branding and theming |
+| `consent` | User consent management |
+| `fabMenu` | Floating action button menu |
+| `home` | Home dashboard |
+| `onboarding` | User onboarding flow and initial setup |
+| `permissions` | Runtime permissions management |
+| `support` | Support and help |
+| `integrations` | External integrations (Apple Health, Garmin, Oura) |
+| `debugLogs` | Band diagnostic logs |
 
 ---
 

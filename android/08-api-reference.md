@@ -35,7 +35,7 @@ The `RollaConfiguration` class defines all parameters for SDK initialization. Se
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `token` | `String` | Yes | — | JWT access token issued by the Partner API |
+| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
 | `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
 | `refreshToken` | `String?` | No | `null` | Refresh token for automatic credential renewal |
 | `tokenExpiresIn` | `Int?` | No | `null` | Token lifetime in seconds. Note: iOS uses `TimeInterval` (Double) for this parameter |

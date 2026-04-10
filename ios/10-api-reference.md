@@ -34,7 +34,7 @@ The `RollaConfiguration` struct defines all parameters for SDK initialization. S
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
-| `token` | `String` | Yes | — | JWT access token issued by the Partner API |
+| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
 | `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
 | `refreshToken` | `String?` | No | `nil` | Refresh token for automatic credential renewal |
 | `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
