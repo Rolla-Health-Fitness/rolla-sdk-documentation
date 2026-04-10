@@ -23,6 +23,8 @@ Use the sandbox environment during development. Switch to production for release
 4. **Initialize the SDK** — pass the access token, refresh token, and expiry to `RollaConfiguration` and call `show()`.
 5. **Handle token refresh** — when the token expires, the SDK notifies your app via a callback. Your app calls `POST /api/refresh_token` to get a fresh token and pushes it back to the SDK via `updateToken()`.
 
+> For detailed request/response schemas for each endpoint, see [Authentication](02-authentication.md).
+
 ---
 
 ## Partner ID
