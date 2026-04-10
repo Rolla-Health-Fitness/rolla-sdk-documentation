@@ -60,6 +60,33 @@ sealed class RollaCloseReason {
 }
 ```
 
+## Error Recovery Guide
+
+Recommended host app actions for each `RollaError` subclass:
+
+| Error Class | Code | Meaning | Host App Recovery |
+|-------------|------|---------|-------------------|
+| `EngineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
+| `InitializationFailed(details)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
+| `FlutterError(errorCode, errorMessage)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
+| `AlreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
+| `InvalidContext` | `INVALID_CONTEXT` | Activity/Fragment not in a valid state | Ensure the Activity is resumed or the Fragment is attached before calling `show()`. |
+| `Underlying(Throwable)` | `UNDERLYING_ERROR` | Wraps a platform-native error | Inspect the wrapped throwable. Handle based on underlying cause. |
+| `Unknown(details?)` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
+
+## Close Reason Reference
+
+When each `RollaCloseReason` subclass is triggered:
+
+| Close Reason | When Triggered |
+|-------------|----------------|
+| `FlutterRequested(reason)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `HostNavigationBack` | User pressed the system back button. |
+| `HostModalDismiss` | User dismissed the modal via gesture or system action. |
+| `Programmatic` | Host app called `dismiss()` programmatically. |
+| `HostStackReplaced` | Host app replaced the navigation/activity stack while SDK was presenting. |
+| `Unknown` | Close reason could not be determined. |
+
 ---
 
 **Previous:** [Engine Lifecycle](07-engine-lifecycle.md) | **Next:** [Troubleshooting](09-troubleshooting.md) | **Home:** [README](README.md)

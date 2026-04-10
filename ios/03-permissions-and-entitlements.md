@@ -87,6 +87,22 @@ This adds to the entitlements file:
 
 > **Note:** The HealthKit entitlement requires the app to be registered on an Apple Developer account.
 
+## Permission Summary
+
+| Permission | Declared by | When Prompted | On Denial |
+|------------|------------|---------------|-----------|
+| Bluetooth Always (`NSBluetoothAlwaysUsageDescription`) | Host app (`Info.plist`) | User initiates band pairing in SDK | Band sync unavailable |
+| Bluetooth Peripheral (`NSBluetoothPeripheralUsageDescription`) | Host app (`Info.plist`) | User initiates band pairing in SDK | Band sync unavailable (legacy key, still recommended) |
+| Location When In Use (`NSLocationWhenInUseUsageDescription`) | Host app (`Info.plist`) | User starts an outdoor activity | Route tracking unavailable |
+| Location Always (`NSLocationAlwaysAndWhenInUseUsageDescription`) | Host app (`Info.plist`) | Upgrade prompt after When In Use granted | Background route tracking unavailable |
+| HealthKit Read (`NSHealthShareUsageDescription`) | Host app (`Info.plist`) | User navigates to integrations in SDK | Apple Health data not available; health data limited to band only |
+| HealthKit Entitlement | Host app (`.entitlements`) | N/A (build-time) | App Store rejection if HealthKit APIs called |
+| Bluetooth Central Entitlement | Host app (`.entitlements`) | N/A (build-time) | Bluetooth unavailable |
+| Background Mode: `location` | Host app (`Info.plist`) | N/A | Background route tracking unavailable |
+| Background Mode: `bluetooth-central` | Host app (`Info.plist`) | N/A | Background band sync unavailable |
+
+> **Note:** The host app must declare all permissions. The SDK triggers system prompts at the appropriate time but does not declare permissions itself.
+
 ---
 
 **Previous:** [CocoaPods Setup](02-cocoapods-setup.md) | **Next:** [Code Integration](04-code-integration.md) | **Home:** [README](README.md)

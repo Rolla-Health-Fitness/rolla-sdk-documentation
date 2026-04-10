@@ -59,6 +59,33 @@ enum RollaCloseReason {
 }
 ```
 
+## Error Recovery Guide
+
+Recommended host app actions for each `RollaError` case:
+
+| Error Case | Code | Meaning | Host App Recovery |
+|------------|------|---------|-------------------|
+| `.engineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
+| `.initializationFailed(String)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
+| `.flutterError(code:message:)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
+| `.alreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
+| `.invalidPresentationContext` | `INVALID_CONTEXT` | View controller not in window hierarchy | Ensure the view controller is visible and in the hierarchy before calling `show(from:)`. |
+| `.underlying(Error)` | `UNDERLYING_ERROR` | Wraps a native error | Inspect the wrapped error. Handle based on underlying cause. |
+| `.unknown` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
+
+## Close Reason Reference
+
+When each `RollaCloseReason` is triggered:
+
+| Close Reason | When Triggered |
+|-------------|----------------|
+| `.flutterRequested(reason:)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `.hostNavigationBack` | User pressed back gesture or navigation back. |
+| `.hostModalDismiss` | User dismissed the modal via swipe-down gesture. |
+| `.programmatic` | Host app called `dismiss()` programmatically. |
+| `.hostStackReplaced` | Host app replaced the navigation stack while SDK was presenting. |
+| `.unknown` | Close reason could not be determined. |
+
 ---
 
 **Previous:** [Live Activities](09-live-activities.md) | **Next:** [Troubleshooting](11-troubleshooting.md) | **Home:** [README](README.md)
