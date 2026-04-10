@@ -63,6 +63,14 @@ Click "Sync Now" in the Gradle notification bar, or run:
 ./gradlew --refresh-dependencies
 ```
 
+## ProGuard / R8
+
+The SDK bundles consumer ProGuard rules (`consumer-rules.pro`) that are automatically applied to your release build when you enable minification. **No manual ProGuard configuration is required.**
+
+The bundled rules keep the SDK's public API classes, Pigeon-generated bridge code, host API implementations, and Flutter plugin registration intact. You do not need to add any `-keep` rules for the Rolla SDK.
+
+**Testing release builds:** Always verify your release build with `minifyEnabled true` before shipping. While the SDK's consumer rules cover its own classes, conflicts with your app's custom rules or aggressive R8 optimizations can surface only in minified builds. Run through the full SDK flow (show, dismiss, token refresh) in a release build during QA.
+
 ---
 
 **Previous:** [Prerequisites](01-prerequisites.md) | **Next:** [Permissions](03-permissions.md) | **Home:** [README](README.md)

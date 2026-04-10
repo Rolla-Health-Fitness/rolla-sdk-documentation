@@ -41,6 +41,91 @@ Common issues and solutions for integrating and running the Rolla SDK on Android
 - Check your network connection
 - Run: `./gradlew --refresh-dependencies`
 
+### Calling `show()` while the SDK is already presenting
+
+If you call `show(activity)` while the SDK UI is already on screen, the SDK fires an `AlreadyPresenting` error through your listener:
+
+```kotlin
+override fun onRollaError(rolla: Rolla, error: RollaError) {
+    if (error is RollaError.AlreadyPresenting) {
+        // SDK is already showing — no action needed
+    }
+}
+```
+
+Guard your UI so the button or trigger that calls `show()` is disabled while the SDK is visible.
+
+### Configuration changes (rotation, dark mode)
+
+The SDK's Flutter activity handles configuration changes (screen rotation, dark mode toggle, language changes) internally. You do not need to add `android:configChanges` to your manifest — the SDK's activity declaration already includes the necessary flags via manifest merger.
+
+If your **host activity** (the one that calls `show()`) is destroyed and recreated during a configuration change, keep in mind that your `Rolla` instance and listener will be lost. Store the `Rolla` reference in a `ViewModel` or re-attach the listener in `onCreate()`.
+
+### Token-related issues
+
+| Symptom | Likely cause | Fix |
+|---------|-------------|-----|
+| SDK opens then immediately closes or shows an error | Expired access token | Fetch a fresh token from your backend before calling `show()` |
+| `onTokenExpired` fires immediately | Token was already expired at launch | Ensure `tokenExpiresIn` reflects the *remaining* lifetime, not the original TTL |
+| SDK works in `"rnd"` but fails in `"production"` | Token was issued for the wrong environment | Verify your backend issues tokens against the correct Rolla environment |
+| "Unauthorized" or 401-style errors | Wrong partner ID or mismatched credentials | Double-check the `partnerId` passed to `RollaConfiguration` |
+
+### Flutter engine crash recovery
+
+If the Flutter engine crashes (rare, but possible under extreme memory pressure or after prolonged backgrounding), the SDK UI will close and `onRollaClosed` will fire. To recover:
+
+1. Call `Rolla.destroyEngine()` to fully tear down the crashed engine.
+2. Create a new `Rolla` instance with a fresh configuration.
+3. Call `show(activity)` to restart.
+
+```kotlin
+override fun onRollaClosed(rolla: Rolla, reason: RollaCloseReason) {
+    Rolla.destroyEngine()
+    // Re-create and show when ready
+}
+```
+
+See [Engine Lifecycle](07-engine-lifecycle.md) for more on `destroyEngine()`.
+
+### Getting debug logs for support tickets
+
+The SDK logs to Logcat with the tags `RollaEngineManager` and `RollaSdkPlugin`. To capture logs for a support ticket:
+
+```bash
+adb logcat -s RollaEngineManager:* RollaSdkPlugin:* Flutter:*
+```
+
+Reproduce the issue while the log is running, then copy the output and attach it to your ticket. Including the `Flutter` tag captures any underlying Flutter engine errors.
+
+In Android Studio, you can filter Logcat with:
+```
+tag:RollaEngineManager | tag:RollaSdkPlugin | tag:Flutter
+```
+
+### Gradle / Maven resolution issues
+
+**"Could not resolve" or dependency conflict:**
+
+```bash
+# Force Gradle to re-download all dependencies
+./gradlew --refresh-dependencies
+```
+
+**Repository order matters.** Ensure all three Maven repositories are in `settings.gradle.kts` (Rolla SDK, Flutter engine, Mapbox). See [Gradle Setup](02-gradle-setup.md).
+
+**Version conflict with a transitive dependency:**
+If the SDK pulls in a library version that conflicts with your app, use Gradle's `resolutionStrategy` to force a specific version:
+
+```kotlin
+configurations.all {
+    resolutionStrategy {
+        force("com.example:library:1.2.3")
+    }
+}
+```
+
+**Offline builds fail:** The SDK is hosted on a remote Maven repository and cannot be resolved offline. Ensure network access during the first build or when updating versions.
+
 ## Support
 
 For issues or questions, contact Rolla support or refer to the SDK documentation.

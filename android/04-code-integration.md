@@ -111,6 +111,31 @@ The SDK can also be launched from a Fragment:
 rolla.show(fragment)
 ```
 
+## Threading
+
+All public SDK methods dispatch to the main thread internally using `Handler(Looper.getMainLooper())` — you can safely call them from any thread, including background threads or coroutine dispatchers:
+
+| Method | Thread-safe | Notes |
+|--------|:-----------:|-------|
+| `show(activity)` | Yes | Posts to main handler before presenting |
+| `dismiss()` | Yes | Posts to main handler before dismissing |
+| `updateToken(...)` | Yes | Posts to main handler; callback fires on main thread |
+| `clearSession(...)` | Yes | Posts to main handler; callback fires on main thread |
+
+**Listener callbacks** also arrive on the main thread. The SDK explicitly wraps every listener invocation (`onRollaClosed`, `onRollaError`, `onTokenRefreshed`, `onTokenExpired`) in a `mainHandler.post { }` call. You can safely update your UI directly inside listener methods.
+
+**Kotlin coroutines:** The SDK's public API uses callback-based patterns (not coroutines), but you can call SDK methods from any coroutine dispatcher without needing `withContext(Dispatchers.Main)` — the SDK handles the thread switch internally.
+
+> **Summary:** You do not need to wrap any SDK call or listener handler in `runOnUiThread { }` — the SDK handles this for you.
+
+## Cross-Platform Note: `tokenExpiresIn` Type
+
+On Android, `tokenExpiresIn` is an `Int` (seconds). On iOS, it is a `TimeInterval` (`Double`, seconds).
+
+If you maintain a shared backend or cross-platform token logic, be aware of this difference — passing a floating-point value where an integer is expected (or vice versa) can cause subtle bugs. Both platforms interpret the value as **seconds until expiry**.
+
+The same applies to the `expiresIn` parameter in the `onTokenRefreshed` listener callback (`Int?` on Android, `TimeInterval?` on iOS).
+
 ---
 
 **Previous:** [Permissions](03-permissions.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
