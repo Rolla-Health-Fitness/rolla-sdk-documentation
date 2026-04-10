@@ -8,6 +8,7 @@ The SDK supports iOS Live Activities for real-time workout tracking on the Lock 
 
 - [What It Provides](#what-it-provides)
 - [Prerequisites](#prerequisites)
+- [What's Required vs Optional](#whats-required-vs-optional)
 - [Setup Overview](#setup-overview)
 - [Step 1: Create Widget Extension Target](#step-1-create-widget-extension-target)
 - [Step 2: Main App Info.plist](#step-2-main-app-infoplist)
@@ -17,7 +18,9 @@ The SDK supports iOS Live Activities for real-time workout tracking on the Lock 
 - [Step 6: Assets.xcassets (Required)](#step-6-assetsxcassets-required)
 - [Step 7: Configure Target Membership](#step-7-configure-target-membership)
 - [Step 8: Verify Embedding](#step-8-verify-embedding)
+- [Customization](#customization)
 - [Troubleshooting Live Activities](#troubleshooting-live-activities)
+- [Full Implementation Reference](#full-implementation-reference)
 
 ---
 
@@ -42,24 +45,40 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 
 > **Note:** Live Activities require iOS 16.1+ at runtime. Your app can still support older iOS versions — the SDK gracefully skips Live Activities on devices running older iOS.
 
+## What's Required vs Optional
+
+| Component | Required | Notes |
+|-----------|:--------:|-------|
+| Widget Extension target (`liveworkout`) | Yes | Must be named `liveworkout` with iOS 16.1 minimum deployment |
+| `LiveWorkoutAttributes.swift` | Yes | Shared data contract — must compile in **both** app and widget targets |
+| `liveworkoutBundle.swift` | Yes | Widget entry point |
+| `liveworkout.swift` | Yes | Placeholder static widget required by Xcode |
+| `liveworkoutLiveActivity.swift` | Yes | SwiftUI UI for Lock Screen and Dynamic Island |
+| `NSSupportsLiveActivities` in main app Info.plist | Yes | Enables Live Activity support |
+| `NSSupportsLiveActivitiesFrequentUpdates` in main app Info.plist | Yes | Enables high-frequency data updates |
+| Push Notifications capability (both targets) | Yes | Required for activity updates |
+| Assets.xcassets in widget extension | Yes | Widget won't compile without it |
+| Custom SwiftUI styling | Optional | You can modify colors, fonts, and layout in the widget code (see [Customization](#customization)) |
+
 ## Setup Overview
 
 | Step | Action |
 |------|--------|
 | 1 | Create Widget Extension target named `liveworkout` (min deployment iOS 16.1) |
-| 2 | Add the Swift files below to the widget extension |
-| 3 | Set `LiveWorkoutAttributes.swift` target membership to **both** Runner + liveworkout |
-| 4 | Add `NSSupportsLiveActivities` and `NSSupportsLiveActivitiesFrequentUpdates` to main app Info.plist |
+| 2 | Add `NSSupportsLiveActivities` and `NSSupportsLiveActivitiesFrequentUpdates` to main app Info.plist |
+| 3 | Add the Swift files to the widget extension (see [Full Implementation Reference](#full-implementation-reference)) |
+| 4 | Set `LiveWorkoutAttributes.swift` target membership to **both** Runner + liveworkout |
 | 5 | Add Push Notifications capability to both targets |
-| 6 | Verify widget extension is embedded in your app |
-| 7 | Build and test |
+| 6 | Add Assets.xcassets to widget extension |
+| 7 | Verify widget extension is embedded in your app |
+| 8 | Build and test |
 
 ## Step 1: Create Widget Extension Target
 
 1. Open your iOS project in Xcode
 2. Select your project file in the Navigator (top-level blue icon)
 3. Click the **+** button at the bottom of the targets list
-4. Select **Widget Extension** → **Next**
+4. Select **Widget Extension** > **Next**
 5. Configure:
    - Product Name: `liveworkout`
    - Bundle Identifier: `<your.app.bundle.id>.liveworkout`
@@ -84,9 +103,149 @@ Add these keys to your **main app's** `Info.plist`:
 
 ## Step 3: Widget Extension Files
 
-Create the following files in your `liveworkout` widget extension. **Important:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets (your main app and the widget extension). All other files belong to the widget extension only.
+Create the following files in your `liveworkout` widget extension. The full source code for each file is in the [Full Implementation Reference](#full-implementation-reference) section below.
 
-### LiveWorkoutAttributes.swift (Target: Runner + liveworkout)
+| File | Target membership | Purpose |
+|------|-------------------|---------|
+| `LiveWorkoutAttributes.swift` | Runner **+** liveworkout | Shared data contract between app and widget |
+| `liveworkoutBundle.swift` | liveworkout only | Widget bundle entry point (`@main`) |
+| `liveworkout.swift` | liveworkout only | Placeholder static widget required by Xcode |
+| `liveworkoutLiveActivity.swift` | liveworkout only | Lock Screen and Dynamic Island UI |
+
+**`LiveWorkoutAttributes.swift`** defines the data model the SDK uses to communicate workout state to the widget. It includes:
+- `ContentState` — live-updating fields: metrics, heart rate, pause state, band connection status
+- Static attributes — activity ID, workout name, SF Symbol, start date
+
+> **Important:** This file must compile in **both** targets. All other files belong to the widget extension only.
+
+## Step 4: Widget Extension Info.plist
+
+The widget extension's `Info.plist` should contain:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>NSExtension</key>
+    <dict>
+        <key>NSExtensionPointIdentifier</key>
+        <string>com.apple.widgetkit-extension</string>
+    </dict>
+    <key>NSSupportsLiveActivities</key>
+    <true/>
+</dict>
+</plist>
+```
+
+## Step 5: Widget Extension Entitlements
+
+Create `liveworkout.entitlements` with Push Notifications:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>aps-environment</key>
+    <string>development</string>
+</dict>
+</plist>
+```
+
+Also add Push Notifications capability to your **main app** target (Signing & Capabilities > + Capability > Push Notifications).
+
+## Step 6: Assets.xcassets (Required)
+
+The widget extension **must** have an `Assets.xcassets` folder or it will fail to compile. Create the folder with at least these files:
+
+```
+Assets.xcassets/
+├── Contents.json
+├── AccentColor.colorset/
+│   └── Contents.json
+├── AppIcon.appiconset/
+│   └── Contents.json
+└── WidgetBackground.colorset/
+    └── Contents.json
+```
+
+Each `Contents.json` should at minimum contain:
+
+```json
+{
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+```
+
+For `AccentColor.colorset/Contents.json` and `WidgetBackground.colorset/Contents.json`:
+
+```json
+{
+  "colors" : [
+    {
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
+```
+
+## Step 7: Configure Target Membership
+
+**Critical:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets:
+
+| File | Your App Target | liveworkout |
+|------|:---------------:|:-----------:|
+| `LiveWorkoutAttributes.swift` | Yes | Yes |
+| `liveworkoutLiveActivity.swift` | No | Yes |
+| `liveworkout.swift` | No | Yes |
+| `liveworkoutBundle.swift` | No | Yes |
+
+To verify: select the file in Xcode > File Inspector (right sidebar) > check Target Membership.
+
+## Step 8: Verify Embedding
+
+1. Select your main app target > General > Frameworks, Libraries, and Embedded Content
+2. Verify `liveworkout.appex` appears
+3. In Build Phases, verify "Embed Foundation Extensions" contains `liveworkout.appex`
+
+> **Tip:** If you get a "Cycle inside Runner" build error, drag the "Embed Foundation Extensions" phase **before** the CocoaPods script phases in Build Phases.
+
+## Customization
+
+The Live Activity UI is defined entirely in `liveworkoutLiveActivity.swift`, which you own and can modify. Customization options include:
+
+- **Colors:** The default UI uses a dark gradient background (`#1F1F1F` to black). Change the `LinearGradient` stops in the Lock Screen view and the accent/tint colors in the Dynamic Island.
+- **Layout:** Rearrange, resize, or restyle the metric rows, heart rate zone bar, and timer display.
+- **Fonts:** Modify font weights, sizes, and styles on any text element.
+- **Metrics displayed:** The SDK provides heart rate, a secondary metric (distance or active points), elapsed time, and pause/connection state. You choose how and where to display them.
+- **Dynamic Island regions:** Customize what appears in the compact leading/trailing, expanded, and minimal views.
+
+The data contract (`LiveWorkoutAttributes` and `ContentState`) must remain unchanged — the SDK writes to these fields. Everything else in the widget's SwiftUI code is yours to customize.
+
+## Troubleshooting Live Activities
+
+- **Live Activity not appearing:** Check iOS version is 16.1+. Verify `NSSupportsLiveActivities` is in both the widget and main app Info.plist. Check Focus mode isn't hiding Live Activities.
+- **Widget shows blank/crashes:** Verify `LiveWorkoutAttributes.swift` is in both targets. Clean build and reinstall.
+- **"No provisioning profile" error:** Enable Push Notifications for both App IDs in Apple Developer Portal, then refresh signing profiles in Xcode.
+- **"Cycle inside Runner" build error:** Move "Embed Foundation Extensions" build phase before CocoaPods script phases.
+
+---
+
+## Full Implementation Reference
+
+The complete source code for all widget extension files. Copy these into your `liveworkout` target.
+
+### LiveWorkoutAttributes.swift
+
+**Target membership: Runner + liveworkout**
 
 ```swift
 import Foundation
@@ -119,7 +278,9 @@ struct LiveWorkoutAttributes: ActivityAttributes {
 }
 ```
 
-### liveworkoutBundle.swift (Target: liveworkout only)
+### liveworkoutBundle.swift
+
+**Target membership: liveworkout only**
 
 ```swift
 import WidgetKit
@@ -134,9 +295,9 @@ struct liveworkoutBundle: WidgetBundle {
 }
 ```
 
-### liveworkout.swift (Target: liveworkout only)
+### liveworkout.swift
 
-This is a placeholder static widget required by Xcode.
+**Target membership: liveworkout only** — Placeholder static widget required by Xcode.
 
 ```swift
 import WidgetKit
@@ -196,9 +357,9 @@ struct liveworkout: Widget {
 }
 ```
 
-### liveworkoutLiveActivity.swift (Target: liveworkout only)
+### liveworkoutLiveActivity.swift
 
-This is the main SwiftUI widget that renders the Lock Screen and Dynamic Island UI.
+**Target membership: liveworkout only** — Lock Screen and Dynamic Island UI.
 
 ```swift
 import ActivityKit
@@ -521,113 +682,6 @@ private extension Color {
     }
 }
 ```
-
-## Step 4: Widget Extension Info.plist
-
-The widget extension's `Info.plist` should contain:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>NSExtension</key>
-    <dict>
-        <key>NSExtensionPointIdentifier</key>
-        <string>com.apple.widgetkit-extension</string>
-    </dict>
-    <key>NSSupportsLiveActivities</key>
-    <true/>
-</dict>
-</plist>
-```
-
-## Step 5: Widget Extension Entitlements
-
-Create `liveworkout.entitlements` with Push Notifications:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>aps-environment</key>
-    <string>development</string>
-</dict>
-</plist>
-```
-
-Also add Push Notifications capability to your **main app** target (Signing & Capabilities → + Capability → Push Notifications).
-
-## Step 6: Assets.xcassets (Required)
-
-The widget extension **must** have an `Assets.xcassets` folder or it will fail to compile. Create the folder with at least these files:
-
-```
-Assets.xcassets/
-├── Contents.json
-├── AccentColor.colorset/
-│   └── Contents.json
-├── AppIcon.appiconset/
-│   └── Contents.json
-└── WidgetBackground.colorset/
-    └── Contents.json
-```
-
-Each `Contents.json` should at minimum contain:
-
-```json
-{
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
-}
-```
-
-For `AccentColor.colorset/Contents.json` and `WidgetBackground.colorset/Contents.json`:
-
-```json
-{
-  "colors" : [
-    {
-      "idiom" : "universal"
-    }
-  ],
-  "info" : {
-    "author" : "xcode",
-    "version" : 1
-  }
-}
-```
-
-## Step 7: Configure Target Membership
-
-**Critical:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets:
-
-| File | Your App Target | liveworkout |
-|------|:---------------:|:-----------:|
-| `LiveWorkoutAttributes.swift` | Yes | Yes |
-| `liveworkoutLiveActivity.swift` | No | Yes |
-| `liveworkout.swift` | No | Yes |
-| `liveworkoutBundle.swift` | No | Yes |
-
-To verify: select the file in Xcode → File Inspector (right sidebar) → check Target Membership.
-
-## Step 8: Verify Embedding
-
-1. Select your main app target → General → Frameworks, Libraries, and Embedded Content
-2. Verify `liveworkout.appex` appears
-3. In Build Phases, verify "Embed Foundation Extensions" contains `liveworkout.appex`
-
-> **Tip:** If you get a "Cycle inside Runner" build error, drag the "Embed Foundation Extensions" phase **before** the CocoaPods script phases in Build Phases.
-
-## Troubleshooting Live Activities
-
-- **Live Activity not appearing:** Check iOS version is 16.1+. Verify `NSSupportsLiveActivities` is in both the widget and main app Info.plist. Check Focus mode isn't hiding Live Activities.
-- **Widget shows blank/crashes:** Verify `LiveWorkoutAttributes.swift` is in both targets. Clean build and reinstall.
-- **"No provisioning profile" error:** Enable Push Notifications for both App IDs in Apple Developer Portal, then refresh signing profiles in Xcode.
-- **"Cycle inside Runner" build error:** Move "Embed Foundation Extensions" build phase before CocoaPods script phases.
 
 ---
 

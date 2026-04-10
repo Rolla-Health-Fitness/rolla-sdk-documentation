@@ -87,6 +87,29 @@ extension YourViewController: RollaDelegate {
 
 All delegate methods have default empty implementations, so you only need to implement the ones relevant to your use case.
 
+## Threading
+
+All public SDK methods dispatch to the main thread internally — you can safely call them from any thread:
+
+| Method | Thread-safe | Notes |
+|--------|:-----------:|-------|
+| `show(from:)` | Yes | Dispatches to main queue before presenting |
+| `dismiss()` | Yes | Dispatches to main queue before dismissing |
+| `updateToken(...)` | Yes | Dispatches to main queue; completion fires on main thread |
+| `clearSession(...)` | Yes | Dispatches to main queue; completion fires on main thread |
+
+**Delegate callbacks** also arrive on the main thread. Flutter's platform channel delivers messages on the main thread, and the SDK does not re-dispatch to a background queue. You can safely update your UI directly inside delegate methods like `rollaDidClose(_:reason:)` or `rolla(_:didFailWithError:)`.
+
+> **Summary:** You do not need to wrap any SDK call or delegate handler in `DispatchQueue.main.async` — the SDK handles this for you.
+
+## Cross-Platform Note: `tokenExpiresIn` Type
+
+On iOS, `tokenExpiresIn` is a `TimeInterval` (a `Double` representing seconds). On Android, it is an `Int` (seconds).
+
+If you maintain a shared backend or cross-platform token logic, be aware of this difference — passing a floating-point value where an integer is expected (or vice versa) can cause subtle bugs. Both platforms interpret the value as **seconds until expiry**.
+
+The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` delegate callback (`TimeInterval?` on iOS, `Int?` on Android).
+
 ---
 
 **Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
