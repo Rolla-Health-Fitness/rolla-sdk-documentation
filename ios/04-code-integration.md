@@ -23,7 +23,7 @@ The SDK needs a **user access token** (JWT) to identify the user and authorize A
 let configuration = RollaConfiguration(
     token: "your-access-token",
     refreshToken: "your-refresh-token",  // Optional
-    tokenExpiresIn: TimeInterval(3600),  // Optional: token expiry in seconds (TimeInterval)
+    tokenExpiresIn: TimeInterval(1800),  // Optional: token expiry in seconds (TimeInterval)
     userId: "user-id",  // Optional: extracted from JWT if not provided
     partnerId: "your-partner-id",
     environment: "production",  // or "rnd" for development

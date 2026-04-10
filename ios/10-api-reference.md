@@ -28,6 +28,21 @@ This section provides a comprehensive reference of the Rolla SDK's public API, i
 
 All methods have default empty implementations.
 
+## RollaConfiguration
+
+The `RollaConfiguration` struct defines all parameters for SDK initialization. See [Code Integration](04-code-integration.md) for usage examples.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
+| `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
+| `refreshToken` | `String?` | No | `nil` | Refresh token for automatic credential renewal |
+| `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
+| `userId` | `String?` | No | Extracted from JWT | User identifier; defaults to the `sub` claim in the JWT if not provided |
+| `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
+| `modules` | `[String]?` | No | `nil` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
+| `branding` | `RollaBranding?` | No | `nil` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
+
 ## Error Handling
 
 The SDK provides detailed error information through `RollaError`:

@@ -17,7 +17,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
-| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, 23 available modules |
+| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, available modules |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
 | 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
 | 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |
@@ -46,17 +46,17 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ---
 
-## Backend / Server-Side Integration
+## Auth API — SDK Authentication
 
-[**Go to Backend Guide →**](backend/README.md)
+[**Go to Auth API Guide →**](sdk-auth-api/README.md)
 
 | # | Section | Description |
 |---|---------|-------------|
-| 1 | [Overview](backend/01-overview.md) | Partner API overview, base URL, credentials, onboarding |
-| 2 | [Authentication](backend/02-authentication.md) | OAuth 2.0 Client Credentials, token management |
-| 3 | [User Management](backend/03-user-management.md) | Register, authenticate, check status, disconnect users |
-| 4 | [Data Endpoints](backend/04-data-endpoints.md) | Activities, goals, health data, weight, blood pressure, insights |
-| 5 | [Error Handling](backend/05-error-handling.md) | Error format, status codes, retry strategies, checklist |
+| 1 | [Overview](sdk-auth-api/01-overview.md) | Auth architecture, base URLs, environments, onboarding |
+| 2 | [Authentication](sdk-auth-api/02-authentication.md) | Register users, log in, obtain tokens, refresh tokens |
+| 3 | [Error Handling](sdk-auth-api/03-error-handling.md) | Error format, status codes, retry strategies, checklist |
+
+> **Server-to-server data integration:** Rolla also offers a Partner API for backend-to-backend access to user health data, activity data, and user management. This is separate from the SDK integration. Contact [support@rolla.app](mailto:support@rolla.app) for Partner API access.
 
 ---
 
@@ -67,7 +67,7 @@ Feature support comparison between iOS and Android (SDK version `0.1.6`).
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding & Modules (23 modules) | Yes | Yes | All modules currently always enabled |
+| Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
 | **Health Connect** | **No** | **No** | **Not implemented on either platform. Android has no health platform integration — all health data comes from the Rolla band only.** |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
@@ -112,10 +112,12 @@ The Rolla SDK provides a complete health and fitness experience embedded inside 
 
 ### Integration Flow
 
-1. **Obtain partner credentials** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` and `partner_secret` during onboarding
-2. **Register the user** — your backend calls `POST /partners/v1/users/register` with `user_id` and `email` only. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI, not at registration time.
-3. **Obtain a token** — your backend calls Rolla's auth API (`POST /partners/v1/token`) to get a JWT access token
-4. **Present the SDK** — initialize with the token and call `show()` — the SDK handles everything from there
+1. **Obtain your Partner ID** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` during onboarding
+2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI, not at registration time.
+3. **Log in** — your app calls `POST /api/login` with the user's email, password, and `Partner-ID` header to obtain an access token and refresh token
+4. **Present the SDK** — initialize with the tokens and call `show()` — the SDK handles everything from there
+
+See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full details on each endpoint.
 
 ### Environments
 

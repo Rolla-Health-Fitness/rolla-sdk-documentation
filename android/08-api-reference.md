@@ -29,6 +29,21 @@ Complete reference for the Rolla SDK classes, methods, interfaces, error types, 
 
 All methods have default empty implementations.
 
+## RollaConfiguration
+
+The `RollaConfiguration` class defines all parameters for SDK initialization. See [Code Integration](04-code-integration.md) for usage examples.
+
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
+| `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
+| `refreshToken` | `String?` | No | `null` | Refresh token for automatic credential renewal |
+| `tokenExpiresIn` | `Int?` | No | `null` | Token lifetime in seconds. Note: iOS uses `TimeInterval` (Double) for this parameter |
+| `userId` | `String?` | No | Extracted from JWT | User identifier; defaults to the `sub` claim in the JWT if not provided |
+| `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
+| `modules` | `List<String>?` | No | `null` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
+| `branding` | `RollaBranding?` | No | `null` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
+
 ## Error Handling
 
 The SDK provides detailed error information through RollaError:

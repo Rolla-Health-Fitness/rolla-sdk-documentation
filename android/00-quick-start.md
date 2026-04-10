@@ -9,9 +9,9 @@ Get the Rolla SDK running in your Android app in under 10 minutes.
 - **Android API 24+** (Android 7.0) minimum SDK
 - **Android Studio Hedgehog** (2023.1) or later
 - **Gradle 8.0+**
-- **Partner ID and API credentials** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
+- **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 
-Your backend must be set up to obtain access tokens from Rolla's Partner API. See [Backend — Authentication](../backend/02-authentication.md) for details.
+Your app must register users and obtain access tokens from Rolla's authentication API. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
 ## 1. Install the SDK
 
@@ -64,9 +64,10 @@ class YourActivity : AppCompatActivity() {
 
     fun showRolla() {
         val configuration = RollaConfiguration(
-            token = "your-access-token",       // JWT from your backend
+            token = "your-access-token",       // JWT from POST /api/login
             partnerId = "your-partner-id",
-            tokenExpiresIn = 3600,             // Seconds until token expires (Int)
+            refreshToken = "your-refresh-token", // From POST /api/login
+            tokenExpiresIn = 1800,             // Seconds until token expires (Int)
             environment = "rnd"                // Use "production" for release builds
         )
 
@@ -148,7 +149,8 @@ class RollaActivity : AppCompatActivity() {
         val config = RollaConfiguration(
             token = token,
             partnerId = "your-partner-id",
-            tokenExpiresIn = 3600,
+            refreshToken = refreshToken,
+            tokenExpiresIn = 1800,
             environment = "rnd"               // "production" for release builds
         )
 

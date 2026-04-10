@@ -36,7 +36,7 @@ If you refresh tokens outside the SDK (e.g., during a background refresh in your
 rolla.updateToken(
     token: newAccessToken,
     refreshToken: newRefreshToken,  // Optional
-    expiresIn: TimeInterval(3600)   // Optional: seconds until expiry (TimeInterval)
+    expiresIn: TimeInterval(1800)   // Optional: seconds until expiry (TimeInterval)
 ) { result in
     switch result {
     case .success:

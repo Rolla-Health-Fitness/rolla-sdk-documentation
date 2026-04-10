@@ -9,9 +9,9 @@ Get the Rolla SDK running in your iOS app in under 10 minutes.
 - **iOS 14.0+** deployment target
 - **Xcode 14.0+**
 - **CocoaPods** installed (`sudo gem install cocoapods`)
-- **Partner ID and API credentials** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
+- **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 
-Your backend must be set up to obtain access tokens from Rolla's Partner API. See [Backend — Authentication](../backend/02-authentication.md) for details.
+Your app must register users and obtain access tokens from Rolla's authentication API. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
 ## 1. Install the SDK
 
@@ -50,9 +50,9 @@ class YourViewController: UIViewController {
 
     func showRolla() {
         let configuration = RollaConfiguration(
-            token: "your-access-token",       // JWT from your backend
-            refreshToken: nil,                // Optional — if your backend provides one
-            tokenExpiresIn: 3600,             // Seconds until token expires (TimeInterval)
+            token: "your-access-token",       // JWT from POST /api/login
+            refreshToken: "your-refresh-token", // From POST /api/login
+            tokenExpiresIn: 1800,             // Seconds until token expires (TimeInterval)
             partnerId: "your-partner-id",
             environment: "rnd"                // Use "production" for release builds
         )
@@ -139,8 +139,8 @@ class RollaViewController: UIViewController, RollaDelegate {
     func showRolla(token: String) {
         let config = RollaConfiguration(
             token: token,
-            refreshToken: nil,
-            tokenExpiresIn: 3600,
+            refreshToken: refreshToken,
+            tokenExpiresIn: 1800,
             partnerId: "your-partner-id",
             environment: "rnd"               // "production" for release builds
         )
