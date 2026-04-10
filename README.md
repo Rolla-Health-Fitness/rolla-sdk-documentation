@@ -12,6 +12,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 | # | Section | Description |
 |---|---------|-------------|
+| 0 | [Quick Start](ios/00-quick-start.md) | Minimal integration in under 10 minutes |
 | 1 | [Prerequisites](ios/01-prerequisites.md) | iOS version, CocoaPods, Xcode |
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
@@ -32,6 +33,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 | # | Section | Description |
 |---|---------|-------------|
+| 0 | [Quick Start](android/00-quick-start.md) | Minimal integration in under 10 minutes |
 | 1 | [Prerequisites](android/01-prerequisites.md) | Android API level, Android Studio, Gradle |
 | 2 | [Gradle Setup](android/02-gradle-setup.md) | Maven repos, SDK dependency, desugaring |
 | 3 | [Permissions](android/03-permissions.md) | Internet, Mapbox token, manifest merger |

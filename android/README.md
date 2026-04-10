@@ -4,8 +4,11 @@ Integration steps for embedding the Rolla SDK in an Android app (Gradle + Maven)
 
 > **See also:** [iOS Integration Guide](../ios/README.md) | [Overview](../README.md)
 
+> **New here? Start with the [Quick Start guide](00-quick-start.md).**
+
 ## Table of Contents
 
+0. [Quick Start](00-quick-start.md) — Minimal integration in under 10 minutes
 1. [Prerequisites](01-prerequisites.md) — Requirements and dependencies (Android API 24+, Android Studio Hedgehog, Gradle 8.0+, Partner ID and API credentials)
 2. [Gradle Setup](02-gradle-setup.md) — Configure Maven repositories, add SDK dependency, and enable desugaring
 3. [Permissions](03-permissions.md) — Configure internet permission, Mapbox token, and manifest settings
