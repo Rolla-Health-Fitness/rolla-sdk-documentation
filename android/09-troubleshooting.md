@@ -2,7 +2,7 @@
 
 Common issues and solutions for integrating and running the Rolla SDK on Android.
 
-## 12. Troubleshooting
+## Common Issues
 
 ### SDK fails to start
 
@@ -13,7 +13,7 @@ Common issues and solutions for integrating and running the Rolla SDK on Android
 
 ### Maps not showing
 
-- Verify the Mapbox token is added to AndroidManifest.xml (or strings.xml)
+- Verify the Mapbox token is added to `app/src/main/res/values/strings.xml` (see [Permissions](03-permissions.md))
 - Ensure the Mapbox Maven repository is in `settings.gradle.kts`
 
 ### Bluetooth / GPS not working
@@ -41,7 +41,7 @@ Common issues and solutions for integrating and running the Rolla SDK on Android
 - Check your network connection
 - Run: `./gradlew --refresh-dependencies`
 
-## 13. Support
+## Support
 
 For issues or questions, contact Rolla support or refer to the SDK documentation.
 

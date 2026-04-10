@@ -2,18 +2,14 @@
 
 The SDK manages token lifecycle internally, but provides callbacks and methods so your app can stay in sync with authentication state.
 
-## 8. Token Management
-
-The SDK manages token lifecycle internally, but provides callbacks and methods so your app can stay in sync.
-
-### 8.1 How It Works
+## How It Works
 
 1. **Initialization:** You provide `token`, `refreshToken`, and `tokenExpiresIn` in `RollaConfiguration`. On iOS, `tokenExpiresIn` is `TimeInterval?` (seconds as `Double`). On Android, it is `Int?`.
 2. **Internal refresh:** When the token is close to expiring, the SDK attempts to refresh it automatically using the `refreshToken`. If successful, the SDK notifies your app via `rollaDidRefreshToken`.
 3. **Expired token (cannot refresh):** If the SDK cannot refresh the token (e.g., the refresh token is also expired), it calls `rollaDidRequestTokenRefresh`. Your app must fetch a new token from your backend and push it to the SDK using `updateToken()`.
 4. **Logout / session clear:** Call `clearSession()` when the user logs out to securely remove all SDK-persisted tokens and session data.
 
-### 8.2 Delegate Callbacks
+## Delegate Callbacks
 
 ```swift
 // Called when the SDK refreshes the token internally
@@ -32,7 +28,7 @@ func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
 }
 ```
 
-### 8.3 Pushing a New Token
+## Pushing a New Token
 
 If you refresh tokens outside the SDK (e.g., during a background refresh in your app), you can push the new token to the SDK at any time:
 
@@ -51,7 +47,7 @@ rolla.updateToken(
 }
 ```
 
-### 8.4 Clearing the Session
+## Clearing the Session
 
 When the user logs out of your app, call `clearSession()` to remove all SDK-persisted tokens and session data:
 

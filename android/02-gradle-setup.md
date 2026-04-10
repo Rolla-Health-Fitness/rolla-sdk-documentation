@@ -2,7 +2,7 @@
 
 This guide walks you through configuring Gradle to integrate the Rolla SDK into your Android project.
 
-## 1.1 Add Maven Repositories
+## Add Maven Repositories
 
 Add the required Maven repositories to your `settings.gradle.kts`:
 
@@ -31,7 +31,7 @@ dependencyResolutionManagement {
 }
 ```
 
-## 1.2 Add SDK Dependency
+## Add SDK Dependency
 
 Add the Rolla SDK dependency to your `app/build.gradle.kts`:
 
@@ -55,7 +55,7 @@ android {
 }
 ```
 
-## 1.3 Sync Project
+## Sync Project
 
 Click "Sync Now" in the Gradle notification bar, or run:
 

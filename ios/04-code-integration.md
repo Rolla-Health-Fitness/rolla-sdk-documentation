@@ -2,7 +2,7 @@
 
 This section covers importing the SDK, creating a configuration, initializing and presenting the SDK, and implementing required delegate methods.
 
-## 4.1 Import SDK
+## Import SDK
 
 ```swift
 import RollaSDK
@@ -17,7 +17,7 @@ The SDK needs a **user access token** (JWT) to identify the user and authorize A
 
 > **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
 
-## 4.2 Create Configuration
+## Create Configuration
 
 ```swift
 let configuration = RollaConfiguration(
@@ -32,9 +32,18 @@ let configuration = RollaConfiguration(
 )
 ```
 
-> **Note on `environment`:** The SDK supports two environments: `"production"` (live) and `"rnd"` (development/testing). Use `"rnd"` during development and QA to test against a sandbox environment without affecting production data. Switch to `"production"` for release builds. If omitted, the parameter defaults to `"rnd"`.
+### Environment Values
 
-## 4.3 Initialize and Present SDK
+| Value | Description |
+|-------|-------------|
+| `"production"` | Live / release builds |
+| `"rnd"` | Development and QA (sandbox environment) |
+
+If omitted, defaults to `"rnd"`. Use `"rnd"` during development and QA to test against a sandbox environment without affecting production data. Switch to `"production"` for release builds.
+
+> **Why `"rnd"`?** The name stands for "Research and Development" — it is the SDK's internal label for the non-production sandbox environment.
+
+## Initialize and Present SDK
 
 ```swift
 let rolla = Rolla(configuration: configuration)
@@ -42,7 +51,7 @@ rolla.delegate = self
 rolla.show(from: self)
 ```
 
-## 4.4 Implement RollaDelegate
+## Implement RollaDelegate
 
 ```swift
 extension YourViewController: RollaDelegate {

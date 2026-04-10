@@ -2,9 +2,7 @@
 
 This section covers custom branding options and module configuration.
 
-## 5. Configuration Options
-
-### 5.1 Custom Branding (Optional)
+## Custom Branding (Optional)
 
 ```swift
 let branding = RollaBranding(
@@ -27,7 +25,7 @@ let configuration = RollaConfiguration(
 )
 ```
 
-### 5.2 Branding Assets
+## Branding Assets
 
 Image assets used by the SDK (such as partner logos referenced by `headerLogoAsset`) must be **pre-bundled inside the SDK** at build time — they cannot be transferred from the host app at runtime. This means any custom logos, icons, or images need to be provided to Rolla in advance so they can be included in your SDK build.
 
@@ -38,7 +36,7 @@ During onboarding, coordinate with Rolla to supply:
 
 Rolla will bundle these into the SDK and provide the correct asset path to use in your `RollaBranding` configuration.
 
-## 6. Module Configuration
+## Module Configuration
 
 The SDK is organized into modules. Currently, all modules are always enabled — pass `nil` for the `modules` parameter (or omit it entirely).
 

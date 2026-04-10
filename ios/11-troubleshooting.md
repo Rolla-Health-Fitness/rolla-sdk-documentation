@@ -2,7 +2,7 @@
 
 This section provides solutions to common issues encountered when integrating and using the Rolla SDK.
 
-## 14. Troubleshooting
+## Common Issues
 
 ### SDK fails to start
 
@@ -25,7 +25,7 @@ This section provides solutions to common issues encountered when integrating an
 - Run `pod install` again
 - Ensure you're opening `.xcworkspace`, not `.xcodeproj`
 
-## 15. Support
+## Support
 
 For issues or questions, contact Rolla support or refer to the SDK documentation.
 

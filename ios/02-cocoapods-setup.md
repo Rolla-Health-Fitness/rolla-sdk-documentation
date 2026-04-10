@@ -2,7 +2,9 @@
 
 This section covers adding the Rolla SDK to your project via CocoaPods, configuring build settings, and installing dependencies.
 
-## 1.1 Update Podfile
+> **Package Manager Support:** CocoaPods is the only supported package manager at this time. Swift Package Manager (SPM) is not currently supported.
+
+## Update Podfile
 
 Add the Rolla SDK specs repository and dependency to your Podfile:
 
@@ -21,7 +23,7 @@ target 'YourApp' do
 end
 ```
 
-## 1.2 Set ENABLE_USER_SCRIPT_SANDBOXING to "No"
+## Set ENABLE_USER_SCRIPT_SANDBOXING to "No"
 
 Disable `ENABLE_USER_SCRIPT_SANDBOXING`:
 
@@ -35,7 +37,7 @@ Disable `ENABLE_USER_SCRIPT_SANDBOXING`:
 
 > **Why?** CocoaPods needs to create temporary files during framework copying, and sandboxing blocks that.
 
-## 1.3 Install Dependencies
+## Install Dependencies
 
 Run:
 
