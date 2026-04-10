@@ -2,7 +2,7 @@
 
 Learn how the SDK manages token lifecycle and how your app can stay in sync with token state through callbacks and API methods.
 
-## 6.1 How It Works
+## How It Works
 
 The SDK manages token lifecycle internally, but provides callbacks and methods so your app can stay in sync.
 
@@ -11,7 +11,7 @@ The SDK manages token lifecycle internally, but provides callbacks and methods s
 3. **Expired token (cannot refresh):** If the SDK cannot refresh the token, it calls `onTokenExpired`. Your app must fetch a new token from your backend and push it to the SDK using `updateToken()`.
 4. **Logout / session clear:** Call `clearSession()` when the user logs out to securely remove all SDK-persisted tokens and session data.
 
-## 6.2 Listener Callbacks
+## Listener Callbacks
 
 ```kotlin
 override fun onTokenRefreshed(rolla: Rolla, token: String, refreshToken: String?, expiresIn: Int?) {
@@ -29,7 +29,7 @@ override fun onTokenExpired(rolla: Rolla) {
 }
 ```
 
-## 6.3 Pushing a New Token
+## Pushing a New Token
 
 If you refresh tokens outside the SDK (e.g., during a background refresh in your app), you can push the new token to the SDK at any time:
 
@@ -45,7 +45,7 @@ rolla.updateToken(
 )
 ```
 
-## 6.4 Clearing the Session
+## Clearing the Session
 
 When the user logs out of your app, call `clearSession()` to remove all SDK-persisted tokens and session data:
 

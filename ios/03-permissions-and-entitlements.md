@@ -2,11 +2,11 @@
 
 This section covers configuring permissions in `Info.plist` and entitlements in your `.entitlements` file.
 
-## 2. Configure Info.plist
+## Configure Info.plist
 
 Add the following permissions to your `Info.plist` file:
 
-### 2.1 Background Modes
+### Background Modes
 
 ```xml
 <key>UIBackgroundModes</key>
@@ -16,7 +16,7 @@ Add the following permissions to your `Info.plist` file:
 </array>
 ```
 
-### 2.2 Bluetooth Permissions
+### Bluetooth Permissions
 
 ```xml
 <key>NSBluetoothAlwaysUsageDescription</key>
@@ -26,7 +26,7 @@ Add the following permissions to your `Info.plist` file:
 <string>The app uses Bluetooth to connect to your fitness band and sync health data and activity metrics.</string>
 ```
 
-### 2.3 Location Permissions
+### Location Permissions
 
 ```xml
 <key>NSLocationWhenInUseUsageDescription</key>
@@ -36,7 +36,7 @@ Add the following permissions to your `Info.plist` file:
 <string>The app uses your location to accurately track outdoor activities like running and cycling even when your phone is locked or the app is in the background.</string>
 ```
 
-### 2.4 Mapbox Token
+### Mapbox Token
 
 The SDK uses Mapbox for map rendering (e.g., activity route maps). Add the Mapbox access token to your `Info.plist`:
 
@@ -47,7 +47,7 @@ The SDK uses Mapbox for map rendering (e.g., activity route maps). Add the Mapbo
 
 You will receive the Mapbox token from Rolla along with your partner credentials.
 
-### 2.5 Apple Health Permissions
+### Apple Health Permissions
 
 ```xml
 <key>NSHealthShareUsageDescription</key>
@@ -56,9 +56,9 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 > **Note:** The SDK reads Apple Health data only — it does not write to HealthKit. Only `NSHealthShareUsageDescription` is required.
 
-## 3. Configure Entitlements
+## Configure Entitlements
 
-### 3.1 Bluetooth Central
+### Bluetooth Central
 
 Add the Bluetooth Central entitlement to your `.entitlements` file:
 
@@ -67,7 +67,7 @@ Add the Bluetooth Central entitlement to your `.entitlements` file:
 <true/>
 ```
 
-### 3.2 HealthKit (Required for Apple Health)
+### HealthKit (Required for Apple Health)
 
 Add the HealthKit capability in Xcode:
 

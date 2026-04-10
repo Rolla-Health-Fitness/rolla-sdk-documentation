@@ -2,7 +2,7 @@
 
 Integrate the Rolla SDK into your Android application with proper configuration, initialization, and listener implementation.
 
-## 3.1 Import SDK
+## Import SDK
 
 ```kotlin
 import com.rolla.sdk.wrapper.Rolla
@@ -23,7 +23,7 @@ The SDK needs a user access token (JWT) to identify the user and authorize API c
 
 Note: You are responsible for authentication, the SDK only consumes the token you provide.
 
-## 3.2 Create Configuration
+## Create Configuration
 
 ```kotlin
 val configuration = RollaConfiguration(
@@ -38,9 +38,18 @@ val configuration = RollaConfiguration(
 )
 ```
 
-> **Note on `environment`:** The SDK supports two environments: `"production"` (live) and `"rnd"` (development/testing). Use `"rnd"` during development and QA to test against a sandbox environment without affecting production data. Switch to `"production"` for release builds. If omitted, the parameter defaults to `"rnd"`.
+### Environment Values
 
-## 3.3 Initialize and Present SDK
+| Value | Description |
+|-------|-------------|
+| `"production"` | Live / release builds |
+| `"rnd"` | Development and QA (sandbox environment) |
+
+If omitted, defaults to `"rnd"`. Use `"rnd"` during development and QA to test against a sandbox environment without affecting production data. Switch to `"production"` for release builds.
+
+> **Why `"rnd"`?** The name stands for "Research and Development" — it is the SDK's internal label for the non-production sandbox environment.
+
+## Initialize and Present SDK
 
 ```kotlin
 val rolla = Rolla(configuration)
@@ -57,7 +66,7 @@ rolla.listener = object : RollaListener {
 rolla.show(activity)
 ```
 
-## 3.4 Implement RollaListener
+## Implement RollaListener
 
 ```kotlin
 rolla.listener = object : RollaListener {
@@ -94,7 +103,7 @@ rolla.listener = object : RollaListener {
 
 All listener methods have default empty implementations, so you only need to override the ones relevant to your use case.
 
-## 3.5 Fragment Support
+## Fragment Support
 
 The SDK can also be launched from a Fragment:
 

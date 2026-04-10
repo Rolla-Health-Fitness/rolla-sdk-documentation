@@ -6,22 +6,22 @@ The SDK supports iOS Live Activities for real-time workout tracking on the Lock 
 
 ## Table of Contents
 
-1. [What It Provides](#1-what-it-provides)
-2. [Prerequisites](#2-prerequisites)
-3. [Setup Overview](#3-setup-overview)
-4. [Step 1: Create Widget Extension Target](#4-step-1-create-widget-extension-target)
-5. [Step 2: Main App Info.plist](#5-step-2-main-app-infoplist)
-6. [Step 3: Widget Extension Files](#6-step-3-widget-extension-files)
-7. [Step 4: Widget Extension Info.plist](#7-step-4-widget-extension-infoplist)
-8. [Step 5: Widget Extension Entitlements](#8-step-5-widget-extension-entitlements)
-9. [Step 6: Assets.xcassets (Required)](#9-step-6-assetsxcassets-required)
-10. [Step 7: Configure Target Membership](#10-step-7-configure-target-membership)
-11. [Step 8: Verify Embedding](#11-step-8-verify-embedding)
-12. [Troubleshooting Live Activities](#12-troubleshooting-live-activities)
+- [What It Provides](#what-it-provides)
+- [Prerequisites](#prerequisites)
+- [Setup Overview](#setup-overview)
+- [Step 1: Create Widget Extension Target](#step-1-create-widget-extension-target)
+- [Step 2: Main App Info.plist](#step-2-main-app-infoplist)
+- [Step 3: Widget Extension Files](#step-3-widget-extension-files)
+- [Step 4: Widget Extension Info.plist](#step-4-widget-extension-infoplist)
+- [Step 5: Widget Extension Entitlements](#step-5-widget-extension-entitlements)
+- [Step 6: Assets.xcassets (Required)](#step-6-assetsxcassets-required)
+- [Step 7: Configure Target Membership](#step-7-configure-target-membership)
+- [Step 8: Verify Embedding](#step-8-verify-embedding)
+- [Troubleshooting Live Activities](#troubleshooting-live-activities)
 
 ---
 
-## 1. What It Provides
+## What It Provides
 
 When a user starts a workout (Walk, Run, Cycling, or Cardio), the SDK can display a Live Activity showing:
 
@@ -33,7 +33,7 @@ When a user starts a workout (Walk, Run, Cycling, or Cardio), the SDK can displa
 
 The SDK handles all the real-time data flow automatically. You only need to create the Widget Extension and provide the SwiftUI UI files described below.
 
-## 2. Prerequisites
+## Prerequisites
 
 - iOS deployment target 14.0+ (for your main app)
 - Xcode 14.0 or later
@@ -42,7 +42,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 
 > **Note:** Live Activities require iOS 16.1+ at runtime. Your app can still support older iOS versions — the SDK gracefully skips Live Activities on devices running older iOS.
 
-## 3. Setup Overview
+## Setup Overview
 
 | Step | Action |
 |------|--------|
@@ -54,7 +54,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 | 6 | Verify widget extension is embedded in your app |
 | 7 | Build and test |
 
-## 4. Step 1: Create Widget Extension Target
+## Step 1: Create Widget Extension Target
 
 1. Open your iOS project in Xcode
 2. Select your project file in the Navigator (top-level blue icon)
@@ -71,7 +71,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 
 Delete all the auto-generated placeholder files that Xcode created in the `liveworkout` folder — we will replace them with the files below.
 
-## 5. Step 2: Main App Info.plist
+## Step 2: Main App Info.plist
 
 Add these keys to your **main app's** `Info.plist`:
 
@@ -82,7 +82,7 @@ Add these keys to your **main app's** `Info.plist`:
 <true/>
 ```
 
-## 6. Step 3: Widget Extension Files
+## Step 3: Widget Extension Files
 
 Create the following files in your `liveworkout` widget extension. **Important:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets (your main app and the widget extension). All other files belong to the widget extension only.
 
@@ -522,7 +522,7 @@ private extension Color {
 }
 ```
 
-## 7. Step 4: Widget Extension Info.plist
+## Step 4: Widget Extension Info.plist
 
 The widget extension's `Info.plist` should contain:
 
@@ -542,7 +542,7 @@ The widget extension's `Info.plist` should contain:
 </plist>
 ```
 
-## 8. Step 5: Widget Extension Entitlements
+## Step 5: Widget Extension Entitlements
 
 Create `liveworkout.entitlements` with Push Notifications:
 
@@ -559,7 +559,7 @@ Create `liveworkout.entitlements` with Push Notifications:
 
 Also add Push Notifications capability to your **main app** target (Signing & Capabilities → + Capability → Push Notifications).
 
-## 9. Step 6: Assets.xcassets (Required)
+## Step 6: Assets.xcassets (Required)
 
 The widget extension **must** have an `Assets.xcassets` folder or it will fail to compile. Create the folder with at least these files:
 
@@ -601,7 +601,7 @@ For `AccentColor.colorset/Contents.json` and `WidgetBackground.colorset/Contents
 }
 ```
 
-## 10. Step 7: Configure Target Membership
+## Step 7: Configure Target Membership
 
 **Critical:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets:
 
@@ -614,7 +614,7 @@ For `AccentColor.colorset/Contents.json` and `WidgetBackground.colorset/Contents
 
 To verify: select the file in Xcode → File Inspector (right sidebar) → check Target Membership.
 
-## 11. Step 8: Verify Embedding
+## Step 8: Verify Embedding
 
 1. Select your main app target → General → Frameworks, Libraries, and Embedded Content
 2. Verify `liveworkout.appex` appears
@@ -622,7 +622,7 @@ To verify: select the file in Xcode → File Inspector (right sidebar) → check
 
 > **Tip:** If you get a "Cycle inside Runner" build error, drag the "Embed Foundation Extensions" phase **before** the CocoaPods script phases in Build Phases.
 
-## 12. Troubleshooting Live Activities
+## Troubleshooting Live Activities
 
 - **Live Activity not appearing:** Check iOS version is 16.1+. Verify `NSSupportsLiveActivities` is in both the widget and main app Info.plist. Check Focus mode isn't hiding Live Activities.
 - **Widget shows blank/crashes:** Verify `LiveWorkoutAttributes.swift` is in both targets. Clean build and reinstall.

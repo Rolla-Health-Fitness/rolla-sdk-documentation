@@ -2,7 +2,7 @@
 
 Complete reference for the Rolla SDK classes, methods, interfaces, error types, and close reasons.
 
-## 11. Native API Reference (Android)
+## Native API Reference (Android)
 
 ### Rolla Class
 
@@ -29,7 +29,7 @@ Complete reference for the Rolla SDK classes, methods, interfaces, error types, 
 
 All methods have default empty implementations.
 
-## 7. Error Handling
+## Error Handling
 
 The SDK provides detailed error information through RollaError:
 
@@ -45,7 +45,7 @@ sealed class RollaError(val code: String, val message: String) : Exception(messa
 }
 ```
 
-## 8. Close Reasons
+## Close Reasons
 
 The SDK provides close reasons through RollaCloseReason:
 

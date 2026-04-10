@@ -2,7 +2,7 @@
 
 This section provides a comprehensive reference of the Rolla SDK's public API, including the main Rolla class, delegate protocol, and error types.
 
-## 11. Native API Reference
+## Native API Reference
 
 ### Rolla Class
 
@@ -28,7 +28,7 @@ This section provides a comprehensive reference of the Rolla SDK's public API, i
 
 All methods have default empty implementations.
 
-## 12. Error Handling
+## Error Handling
 
 The SDK provides detailed error information through `RollaError`:
 
@@ -44,7 +44,7 @@ public enum RollaError: Error {
 }
 ```
 
-## 13. Close Reasons
+## Close Reasons
 
 The SDK provides close reasons through `RollaCloseReason`:
 

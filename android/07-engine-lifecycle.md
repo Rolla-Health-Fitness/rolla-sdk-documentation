@@ -2,7 +2,7 @@
 
 Understand how the Rolla SDK manages its internal Flutter engine and how to control its lifecycle for optimal performance and memory management.
 
-## 9. Programmatic Dismiss
+## Programmatic Dismiss
 
 You can dismiss the SDK programmatically:
 
@@ -10,16 +10,16 @@ You can dismiss the SDK programmatically:
 rolla.dismiss()
 ```
 
-## 10. Engine Lifecycle
+## Engine Lifecycle
 
 The SDK manages a Flutter engine internally. By default, the engine stays alive for faster re-launch.
 
-### 10.1 Default Behavior
+### Default Behavior
 
 - **First `show(activity)`** — Creates the Flutter engine and presents the SDK UI.
 - **`dismiss()`** — Dismisses the SDK UI but keeps the engine alive. The next `show()` will present the SDK instantly in its last state.
 
-### 10.2 Destroying the Engine
+### Destroying the Engine
 
 If you need to free memory (e.g., on logout), call:
 
@@ -29,7 +29,7 @@ Rolla.destroyEngine()
 
 The engine will be recreated automatically on the next `show()` call.
 
-### 10.3 Recommended Usage
+### Recommended Usage
 
 ```kotlin
 // User logs out
