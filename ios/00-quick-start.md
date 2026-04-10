@@ -51,8 +51,8 @@ class YourViewController: UIViewController {
     func showRolla() {
         let configuration = RollaConfiguration(
             token: "your-access-token",       // JWT from your backend
-            tokenExpiresIn: TimeInterval(3600),
-            userId: "user-id",
+            refreshToken: nil,                // Optional — if your backend provides one
+            tokenExpiresIn: 3600,             // Seconds until token expires (TimeInterval)
             partnerId: "your-partner-id",
             environment: "rnd"                // Use "production" for release builds
         )
@@ -136,11 +136,11 @@ class RollaViewController: UIViewController, RollaDelegate {
 
     // MARK: - Present the SDK
 
-    func showRolla(token: String, userId: String) {
+    func showRolla(token: String) {
         let config = RollaConfiguration(
             token: token,
-            tokenExpiresIn: TimeInterval(3600),
-            userId: userId,
+            refreshToken: nil,
+            tokenExpiresIn: 3600,
             partnerId: "your-partner-id",
             environment: "rnd"               // "production" for release builds
         )

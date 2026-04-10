@@ -66,8 +66,7 @@ class YourActivity : AppCompatActivity() {
         val configuration = RollaConfiguration(
             token = "your-access-token",       // JWT from your backend
             partnerId = "your-partner-id",
-            tokenExpiresIn = 3600,
-            userId = "user-id",
+            tokenExpiresIn = 3600,             // Seconds until token expires (Int)
             environment = "rnd"                // Use "production" for release builds
         )
 
@@ -96,13 +95,14 @@ private val rollaListener = object : RollaListener {
     }
 
     override fun onTokenExpired(rolla: Rolla) {
-        // Token expired and SDK cannot refresh it.
+        // Token expired and SDK's internal refresh failed.
         // Fetch a new token from your backend, then push it to the SDK:
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
-            rolla.updateToken(newToken, newRefreshToken, expiresIn) { result ->
-                result.onSuccess { Log.d("RollaSDK", "Token updated") }
-                result.onFailure { Log.e("RollaSDK", "Token update failed: $it") }
-            }
+            rolla.updateToken(
+                token = newToken,
+                refreshToken = newRefreshToken,
+                expiresIn = expiresIn
+            )
         }
     }
 
@@ -144,12 +144,11 @@ class RollaActivity : AppCompatActivity() {
 
     // --- Present the SDK ---
 
-    fun showRolla(token: String, userId: String) {
+    fun showRolla(token: String) {
         val config = RollaConfiguration(
             token = token,
             partnerId = "your-partner-id",
             tokenExpiresIn = 3600,
-            userId = userId,
             environment = "rnd"               // "production" for release builds
         )
 
@@ -172,9 +171,11 @@ class RollaActivity : AppCompatActivity() {
 
         override fun onTokenExpired(rolla: Rolla) {
             YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
-                rolla.updateToken(newToken, newRefreshToken, expiresIn) { result ->
-                    result.onFailure { Log.e("RollaSDK", "Token update failed: $it") }
-                }
+                rolla.updateToken(
+                    token = newToken,
+                    refreshToken = newRefreshToken,
+                    expiresIn = expiresIn
+                )
             }
         }
 
