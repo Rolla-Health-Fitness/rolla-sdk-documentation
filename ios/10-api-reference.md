@@ -38,7 +38,7 @@ The `RollaConfiguration` struct defines all parameters for SDK initialization. S
 | `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
 | `refreshToken` | `String?` | No | `nil` | Refresh token for automatic credential renewal |
 | `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
-| `userId` | `String?` | No | Extracted from JWT | User identifier; defaults to the `sub` claim in the JWT if not provided |
+| `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
 | `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
 | `modules` | `[String]?` | No | `nil` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
 | `branding` | `RollaBranding?` | No | `nil` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
