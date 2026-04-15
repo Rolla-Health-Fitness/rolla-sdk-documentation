@@ -3,7 +3,7 @@
 Before you begin integrating the Rolla SDK into your iOS app, ensure you have the following:
 
 1. **iOS 14.0 or later** — Minimum deployment target for the main app
-2. **CocoaPods installed** — Dependency manager for iOS projects
+2. **CocoaPods installed** — Dependency manager for iOS projects. Swift Package Manager support is planned; CocoaPods is currently required because Mapbox has not fully migrated to SPM.
 3. **Xcode 14.0 or later** — Apple's integrated development environment
 4. **Partner ID and API credentials from Rolla** — Required to authenticate SDK requests
 
