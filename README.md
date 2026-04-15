@@ -72,13 +72,15 @@ Feature support comparison between iOS and Android (SDK version `0.1.6`).
 | **Health Connect** | **No** | **No** | **Not implemented on either platform. Android has no health platform integration — all health data comes from the Rolla band only.** |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
-| Blood Pressure | Yes | No | Via Apple Health only |
-| Weight Tracking | Yes | No | Via Apple Health (Body Mass) only |
+| Blood Pressure ¹ | Yes | No | Via Apple Health only |
+| Weight Tracking ¹ | Yes | No | Via Apple Health (Body Mass) only |
 | Workout Routes | Yes | No | Via Apple Health only |
 | Cycling Cadence / Power | Yes | No | Apple Health, iOS 17+ |
 | Running Speed | Yes | No | Apple Health, iOS 16+ |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
+
+> ¹ **Blood Pressure and Weight** are marked "iOS only" because the SDK collects this data via Apple Health on the device. This refers to the SDK's UI-level data collection — the underlying Rolla API can still receive and return this data on any platform. On Android, there is currently no on-device source for these metrics.
 
 > **Critical limitation:** Android has **no** Health Connect integration. On Android, all health data comes exclusively from the Rolla Bluetooth band. iOS users get data from both the band and Apple Health (14 data types). This is not feature parity.
 

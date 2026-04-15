@@ -2,7 +2,7 @@
 
 Get the Rolla SDK running in your Android app in under 10 minutes.
 
-> **This guide covers the minimal integration.** For branding, modules, Health Connect, and other features, see the [full documentation](README.md).
+> **This guide covers the minimal integration.** For branding, modules, and other features, see the [full documentation](README.md).
 
 ## Prerequisites
 
