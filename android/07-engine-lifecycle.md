@@ -29,6 +29,15 @@ Rolla.destroyEngine()
 
 The engine will be recreated automatically on the next `show()` call.
 
+### `clearSession` vs `destroyEngine`
+
+| Method | What It Does | Engine Stays Alive | When to Use |
+|--------|-------------|:------------------:|-------------|
+| `clearSession()` | Purges stored tokens and auth metadata from secure storage | Yes | User logs out and you plan to reinitialize with new credentials |
+| `destroyEngine()` | Fully tears down the Flutter engine and frees all memory | No | Freeing memory, or after `clearSession()` when the user won't return to the SDK |
+
+> **Important:** After calling `clearSession()`, you must create a new `Rolla(configuration)` with fresh tokens before calling `show()` again. The engine is still alive but has no valid credentials — calling `show()` without reinitializing will fail.
+
 ### Recommended Usage
 
 ```kotlin
