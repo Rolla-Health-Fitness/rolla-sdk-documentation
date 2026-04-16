@@ -126,7 +126,7 @@ See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full de
 | Environment | Value | Use |
 |-------------|-------|-----|
 | Production | `"production"` | Release builds |
-| Development | `"rnd"` | Development and QA |
+| Research and Development | `"rnd"` | Development and QA |
 
 If omitted, defaults to `"rnd"`.
 
