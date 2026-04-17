@@ -25,8 +25,32 @@ Common issues and solutions for integrating and running the Rolla SDK on Android
 ### Background tracking unreliable
 
 - The SDK declares `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, and `FOREGROUND_SERVICE_CONNECTED_DEVICE` permissions (merged automatically via manifest merger).
-- For reliable background operation, consider requesting the user to exempt your app from battery optimization. Use `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` to prompt the user.
-- On some OEM devices (Samsung, Xiaomi, Huawei), the user may need to manually disable battery optimization for your app in device settings.
+- See the [OEM Battery Optimization](#oem-battery-optimization) section below for device-specific issues.
+
+### OEM Battery Optimization
+
+Some Android manufacturers (Samsung, Xiaomi, Huawei, OnePlus, Oppo) aggressively kill background services to save battery. This can interrupt Bluetooth band sync, GPS tracking, and foreground service notifications even when the user has granted all permissions.
+
+**Request battery optimization exemption:**
+
+Add the permission to your manifest:
+
+```xml
+<uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+```
+
+Then prompt the user:
+
+```kotlin
+val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+    data = Uri.parse("package:${packageName}")
+}
+startActivity(intent)
+```
+
+**OEM-specific settings:** Each manufacturer has its own battery management UI. For detailed per-device instructions on how to whitelist your app, see [dontkillmyapp.com](https://dontkillmyapp.com) — a community-maintained guide covering Samsung, Xiaomi, Huawei, OnePlus, and others.
+
+> **Note:** Even with the exemption, some OEM skins require the user to manually whitelist the app in their device's battery settings. Consider guiding users to the relevant settings page if background tracking is critical to your use case.
 
 ### Build errors
 

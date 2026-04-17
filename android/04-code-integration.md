@@ -105,10 +105,10 @@ All listener methods have default empty implementations, so you only need to ove
 
 ## Fragment Support
 
-The SDK can also be launched from a Fragment:
+The SDK can also be launched from a Fragment. The parameter expects `androidx.fragment.app.Fragment` (not the legacy `android.app.Fragment`):
 
 ```kotlin
-rolla.show(fragment)
+rolla.show(fragment)  // fragment: androidx.fragment.app.Fragment
 ```
 
 ## Threading

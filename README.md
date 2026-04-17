@@ -69,18 +69,20 @@ Feature support comparison between iOS and Android (SDK version `0.1.6`).
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| **Health Connect** | **No** | **No** | **Not implemented on either platform. Android has no health platform integration — all health data comes from the Rolla band only.** |
+| Health Connect | No | No | On the roadmap |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
-| Blood Pressure | Yes | No | Via Apple Health only |
-| Weight Tracking | Yes | No | Via Apple Health (Body Mass) only |
+| Blood Pressure ¹ | Yes | No | Via Apple Health only |
+| Weight Tracking ¹ | Yes | No | Via Apple Health (Body Mass) only |
 | Workout Routes | Yes | No | Via Apple Health only |
 | Cycling Cadence / Power | Yes | No | Apple Health, iOS 17+ |
 | Running Speed | Yes | No | Apple Health, iOS 16+ |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 
-> **Critical limitation:** Android has **no** Health Connect integration. On Android, all health data comes exclusively from the Rolla Bluetooth band. iOS users get data from both the band and Apple Health (14 data types). This is not feature parity.
+> ¹ **Blood Pressure and Weight** are marked "iOS only" because the SDK collects this data via Apple Health on the device. This refers to the SDK's UI-level data collection — the underlying Rolla API can still receive and return this data on any platform. On Android, there is currently no on-device source for these metrics.
+
+> **Platform note:** On iOS, health data comes from both the Rolla band and Apple Health (14 data types). On Android, health data comes exclusively from the Rolla band. Health Connect integration for Android is on the roadmap.
 
 ## Version Compatibility
 
@@ -124,7 +126,7 @@ See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full de
 | Environment | Value | Use |
 |-------------|-------|-----|
 | Production | `"production"` | Release builds |
-| Development | `"rnd"` | Development and QA |
+| Research and Development | `"rnd"` | Development and QA |
 
 If omitted, defaults to `"rnd"`.
 
@@ -132,4 +134,9 @@ If omitted, defaults to `"rnd"`.
 
 ## Support
 
-For issues or questions, contact Rolla support at [support@rolla.app](mailto:support@rolla.app).
+For issues or questions:
+
+- **Email:** [support@rolla.app](mailto:support@rolla.app)
+- **Slack:** If your organization has a dedicated partner Slack channel with Rolla, use it for faster responses on integration questions and live debugging.
+
+If you don't have a partner Slack channel set up yet, ask your Rolla contact or email support to request one.

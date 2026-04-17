@@ -297,7 +297,7 @@ struct liveworkoutBundle: WidgetBundle {
 
 ### liveworkout.swift
 
-**Target membership: liveworkout only** — Placeholder static widget required by Xcode.
+**Target membership: liveworkout only** — Placeholder static widget required by Xcode. This widget is never shown to users; Xcode requires at least one static widget in any widget bundle.
 
 ```swift
 import WidgetKit

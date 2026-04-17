@@ -13,7 +13,7 @@ This section provides a comprehensive reference of the Rolla SDK's public API, i
 | `var isPresenting: Bool` | Whether the SDK is currently visible |
 | `show(from: UIViewController)` | Present the SDK modally |
 | `dismiss()` | Dismiss the SDK UI (engine stays alive) |
-| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK |
+| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK. The `completion` handler is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. |
 | `clearSession(completion:)` | Clear all persisted session data |
 | `static destroyEngine()` | Destroy the Flutter engine and free memory |
 
@@ -98,7 +98,7 @@ When each `RollaCloseReason` is triggered:
 | `.hostNavigationBack` | User pressed back gesture or navigation back. |
 | `.hostModalDismiss` | User dismissed the modal via swipe-down gesture. |
 | `.programmatic` | Host app called `dismiss()` programmatically. |
-| `.hostStackReplaced` | Host app replaced the navigation stack while SDK was presenting. |
+| `.hostStackReplaced` | Host app replaced the navigation stack while SDK was presenting. This can occur if the host app programmatically pops multiple view controllers or pushes a new root while the SDK is on screen. |
 | `.unknown` | Close reason could not be determined. |
 
 ---

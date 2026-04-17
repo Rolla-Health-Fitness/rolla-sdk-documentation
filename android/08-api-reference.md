@@ -14,7 +14,7 @@ Complete reference for the Rolla SDK classes, methods, interfaces, error types, 
 | `show(activity: Activity)` | Present the SDK from an Activity |
 | `show(fragment: Fragment)` | Present the SDK from a Fragment |
 | `dismiss()` | Dismiss the SDK UI (engine stays alive) |
-| `updateToken(token, refreshToken?, expiresIn?, callback?)` | Push fresh credentials to the SDK |
+| `updateToken(token, refreshToken?, expiresIn?, callback?)` | Push fresh credentials to the SDK. The `callback` is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. |
 | `clearSession(callback?)` | Clear all persisted session data |
 | `companion fun destroyEngine()` | Destroy the Flutter engine and free memory |
 
@@ -99,7 +99,7 @@ When each `RollaCloseReason` subclass is triggered:
 | `HostNavigationBack` | User pressed the system back button. |
 | `HostModalDismiss` | User dismissed the modal via gesture or system action. |
 | `Programmatic` | Host app called `dismiss()` programmatically. |
-| `HostStackReplaced` | Host app replaced the navigation/activity stack while SDK was presenting. |
+| `HostStackReplaced` | Host app replaced the navigation/activity stack while SDK was presenting. This can occur if the host app finishes the current Activity, launches a new task, or clears the back stack while the SDK is on screen. |
 | `Unknown` | Close reason could not be determined. |
 
 ---

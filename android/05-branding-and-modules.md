@@ -47,29 +47,56 @@ Selective module enablement will be available in a future release. Once you see 
 
 The SDK is organized into the following modules. Module names are **camelCase** strings and must match exactly if passed in the `modules` list.
 
+**Health & Fitness**
+
 | Module | Description |
 |--------|-------------|
 | `metrics` | Health metrics dashboard (heart rate, HRV, steps, calories, distance) |
 | `weight` | Weight tracking with BMI and targets |
 | `bloodPressure` | Blood pressure tracking and manual logging |
-| `activityTracking` | Live activity tracking with GPS and heart rate |
-| `activityReview` | Activity history and detailed review |
 | `goals` | Daily health goals (steps, sleep, active points) |
 | `insights` | AI-generated personalized health insights |
 | `scores` | Readiness and activity scores |
-| `profile` | User profile management |
+
+**Activity Tracking**
+
+| Module | Description |
+|--------|-------------|
+| `activityTracking` | Live activity tracking with GPS and heart rate |
+| `activityReview` | Activity history and detailed review |
+
+**Device Management**
+
+| Module | Description |
+|--------|-------------|
 | `bandPairing` | Bluetooth band discovery and pairing |
 | `bandSync` | Band data synchronization |
 | `bandFirmware` | Band firmware update management |
+
+**User & Settings**
+
+| Module | Description |
+|--------|-------------|
+| `profile` | User profile management |
 | `settings` | App settings (theme, language, units, permissions) |
 | `authentication` | User authentication and session management |
-| `branding` | App branding and theming |
 | `consent` | User consent management |
-| `fabMenu` | Floating action button menu |
-| `home` | Home dashboard |
 | `onboarding` | User onboarding flow and initial setup |
 | `permissions` | Runtime permissions management |
+
+**UI & Navigation**
+
+| Module | Description |
+|--------|-------------|
+| `home` | Home dashboard |
+| `fabMenu` | Floating action button menu |
+| `branding` | App branding and theming |
 | `support` | Support and help |
+
+**Integrations & Diagnostics**
+
+| Module | Description |
+|--------|-------------|
 | `integrations` | External integrations (Apple Health, Garmin, Oura) |
 | `debugLogs` | Band diagnostic logs |
 
