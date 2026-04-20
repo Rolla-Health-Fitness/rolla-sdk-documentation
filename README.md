@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-> **Latest SDK Version:** `0.1.6`
+> **Latest SDK Version:** Check the [iOS release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios) or [Android release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-android) for the latest version.
 
 ---
 
@@ -62,7 +62,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ## Platform Capabilities
 
-Feature support comparison between iOS and Android (SDK version `0.1.6`).
+Feature support comparison between iOS and Android.
 
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
@@ -94,7 +94,7 @@ Feature support comparison between iOS and Android (SDK version `0.1.6`).
 | **Language** | Swift | Kotlin (JVM target 11) |
 | **Compile / Target SDK** | — | API 36 |
 | **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
-| **SDK Artifact** | `pod 'RollaSDK', '0.1.6'` | `com.rolla.sdk:android_release:0.1.6` |
+| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|

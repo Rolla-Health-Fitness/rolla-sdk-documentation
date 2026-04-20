@@ -29,6 +29,8 @@ target 'YourApp' do
 end
 ```
 
+> Check the [iOS release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios) for the latest version.
+
 Then run:
 
 ```bash

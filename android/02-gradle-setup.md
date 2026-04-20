@@ -45,6 +45,8 @@ dependencies {
 }
 ```
 
+> Check the [Android release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-android) for the latest version.
+
 Enable core library desugaring in the android block:
 
 ```kotlin

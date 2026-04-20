@@ -45,6 +45,8 @@ android {
 }
 ```
 
+> Check the [Android release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-android) for the latest version.
+
 Sync the project. For build settings and troubleshooting, see [Gradle Setup](02-gradle-setup.md).
 
 ## 2. Configure and Present
