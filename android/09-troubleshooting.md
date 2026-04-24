@@ -150,6 +150,32 @@ configurations.all {
 
 **Offline builds fail:** The SDK is hosted on a remote Maven repository and cannot be resolved offline. Ensure network access during the first build or when updating versions.
 
+### Stale transitive dependencies after bumping the SDK version
+
+**Symptom:** after bumping `com.rolla.sdk:android_release` to a new version, the app crashes with one of:
+
+- `java.lang.ClassCastException: java.lang.Long cannot be cast to java.lang.Double` inside `com.mapbox.maps.mapbox_maps.pigeons.*`
+- `java.lang.NoSuchMethodError: No direct method <init>(...) in class Lcom/mapbox/maps/plugin/annotation/AnnotationConfig;`
+- Logcat shows a Mapbox native SDK version that doesn't match the SDK release notes (e.g. `[maps-core]: Using Mapbox Core Maps SDK v11.18.0` when the release expects `11.22.0`).
+
+**Cause:** the SDK bundles Flutter plugin AARs (Mapbox, Bluetooth, etc.) under the Flutter-assigned coordinate `<plugin>:1.0`. Because the `:1.0` version string never changes across SDK releases, Gradle's local module cache can reuse old resolved metadata for the plugin — pulling in older Mapbox native libraries that are ABI-incompatible with the new plugin Kotlin code.
+
+**Fix:** force Gradle to re-resolve dependency metadata:
+
+```bash
+./gradlew clean --refresh-dependencies
+```
+
+Then rebuild and reinstall the app. The new build will pull the correct transitive versions declared by the bundled plugin AARs.
+
+Do this after every SDK version bump. If the issue persists, clear the local cache for the Mapbox plugin:
+
+```bash
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.mapbox.maps.mapbox_maps
+rm -rf ~/.gradle/caches/modules-2/metadata-2.*
+./gradlew clean --refresh-dependencies
+```
+
 ## Support
 
 For issues or questions, contact Rolla support or refer to the SDK documentation.
