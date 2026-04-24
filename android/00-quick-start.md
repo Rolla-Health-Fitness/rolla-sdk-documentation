@@ -35,7 +35,7 @@ Add the dependency to `app/build.gradle.kts`:
 ```kotlin
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    implementation("com.rolla.sdk:android_release:0.1.6")
+    implementation("com.rolla.sdk:android_release:0.1.9")
 }
 
 android {
