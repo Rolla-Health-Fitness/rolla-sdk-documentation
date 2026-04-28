@@ -7,7 +7,8 @@ Before you begin integrating the Rolla SDK into your Android application, ensure
 - Android API 24 (Android 7.0) or later
 - Android Studio Hedgehog (2023.1) or later
 - Gradle 8.0+
-- JVM target 11 or later (`sourceCompatibility` and `targetCompatibility` set to `JavaVersion.VERSION_11` minimum). The SDK is built with Java 21, but the published AAR is compatible with Java 11+.
+- JDK 17 or later to run Gradle (required by Android Gradle Plugin 8.x). The SDK is built with Java 21; the published AAR is consumable on JDK 17+ via core library desugaring.
+- App-level `sourceCompatibility` and `targetCompatibility` may be set to `JavaVersion.VERSION_11` or higher.
 - Partner ID and API credentials from Rolla
 
 ## SDK Binary Size

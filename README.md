@@ -84,7 +84,7 @@ Feature support comparison between iOS and Android.
 | **Min OS** | iOS 14.0 | API 24 (Android 7.0) |
 | **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
 | **Dependency Manager** | CocoaPods | Gradle 8.0+ |
-| **Language** | Swift | Kotlin (JVM target 11) |
+| **Language** | Swift | Kotlin (JDK 17+ to build; app JVM target 11+) |
 | **Compile / Target SDK** | — | API 36 |
 | **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
 | **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
