@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-> **Latest SDK Version:** Check the [iOS release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios) or [Android release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-android) for the latest version.
+**Latest SDK Version:** 0.1.9
 
 ---
 
