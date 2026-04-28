@@ -9,6 +9,7 @@ Get the Rolla SDK running in your Android app in under 10 minutes.
 - **Android API 24+** (Android 7.0) minimum SDK
 - **Android Studio Hedgehog** (2023.1) or later
 - **Gradle 8.0+**
+- **Build JDK 21+** for SDK `0.1.9` (compiled with Java 21, class file major version 65); the next release will target Java 17 (major version 61), allowing builds on **JDK 17+**
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 
 Your app must register users and obtain access tokens from Rolla's authentication API. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).

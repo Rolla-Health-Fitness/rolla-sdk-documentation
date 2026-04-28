@@ -59,6 +59,10 @@ startActivity(intent)
 - Clear Gradle cache: `./gradlew --refresh-dependencies`
 - Ensure all three Maven repositories are configured in `settings.gradle.kts`
 
+### `class file has wrong version 65.0, should be 61.0`
+
+SDK `0.1.9` is compiled with Java 21 (class file major version 65). If your build JDK is 17, you'll see this error during compilation. Fix: point `JAVA_HOME` (or Android Studio → Settings → Build Tools → Gradle → Gradle JDK) to **JDK 21 or newer**. The next SDK release will be compiled with Java 17 (major version 61) and will build cleanly on JDK 17+.
+
 ### "Could not find com.rolla.sdk:android_release"
 
 - Verify the Rolla SDK Maven repository URL is correct
