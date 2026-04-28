@@ -115,6 +115,46 @@ override fun onRollaClosed(rolla: Rolla, reason: RollaCloseReason) {
 
 See [Engine Lifecycle](07-engine-lifecycle.md) for more on `destroyEngine()`.
 
+### FlutterJNI `nativeSetViewportMetrics` crash after upgrading the SDK
+
+**Symptom:** after changing the Rolla SDK version, Flutter version, or Maven repository, the host app builds and launches, but crashes when the SDK initializes its Flutter engine. Logcat may show:
+
+```text
+Failed to register native method io.flutter.embedding.engine.FlutterJNI.nativeSetViewportMetrics(...)
+[ERROR:flutter/shell/platform/android/platform_view_android_jni_impl.cc] Failed to RegisterNatives with FlutterJNI
+[FATAL:flutter/shell/platform/android/library_loader.cc] Check failed: result.
+Fatal signal 6 (SIGABRT)
+```
+
+**Cause:** the installed APK or local Gradle cache can contain a stale Flutter engine combination. In practice this means `libflutter.so` and `flutter_embedding_release` were resolved from different Flutter engine revisions, or the device is still running an APK installed before the dependency refresh.
+
+**Fix:** do a full dependency refresh and reinstall the app:
+
+```bash
+adb shell am force-stop <your.package>
+adb uninstall <your.package>
+
+./gradlew --stop
+
+rm -rf .gradle .kotlin app/build build
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.rolla.sdk
+rm -rf ~/.gradle/caches/modules-2/files-2.1/io.flutter
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.github.Yalantis
+rm -rf ~/.gradle/caches/*/transforms
+
+./gradlew clean :app:assembleDebug --refresh-dependencies --no-build-cache --rerun-tasks
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+
+For release builds, replace `assembleDebug` and the APK path with your app's release variant. After reinstalling, confirm Logcat shows:
+
+```text
+RollaEngineManager: Flutter engine initialized
+RollaEngineManager: SDK configured successfully
+```
+
+Run this cleanup after Rolla SDK upgrades if you see FlutterJNI registration errors, especially when testing multiple SDK builds on the same physical device.
+
 ### Getting debug logs for support tickets
 
 The SDK logs to Logcat with the tags `RollaEngineManager` and `RollaSdkPlugin`. To capture logs for a support ticket:
@@ -161,8 +201,9 @@ configurations.all {
 - `java.lang.ClassCastException: java.lang.Long cannot be cast to java.lang.Double` inside `com.mapbox.maps.mapbox_maps.pigeons.*`
 - `java.lang.NoSuchMethodError: No direct method <init>(...) in class Lcom/mapbox/maps/plugin/annotation/AnnotationConfig;`
 - Logcat shows a Mapbox native SDK version that doesn't match the SDK release notes (e.g. `[maps-core]: Using Mapbox Core Maps SDK v11.18.0` when the release expects `11.22.0`).
+- Logcat shows `Failed to register native method io.flutter.embedding.engine.FlutterJNI.nativeSetViewportMetrics(...)`.
 
-**Cause:** the SDK bundles Flutter plugin AARs (Mapbox, Bluetooth, etc.) under the Flutter-assigned coordinate `<plugin>:1.0`. Because the `:1.0` version string never changes across SDK releases, Gradle's local module cache can reuse old resolved metadata for the plugin — pulling in older Mapbox native libraries that are ABI-incompatible with the new plugin Kotlin code.
+**Cause:** the SDK bundles Flutter plugin and engine artifacts that rely on Gradle metadata. After an SDK upgrade, Gradle's local cache can reuse old resolved metadata, mixing old native libraries with newer Kotlin or Flutter Java classes.
 
 **Fix:** force Gradle to re-resolve dependency metadata:
 
@@ -172,9 +213,11 @@ configurations.all {
 
 Then rebuild and reinstall the app. The new build will pull the correct transitive versions declared by the bundled plugin AARs.
 
-Do this after every SDK version bump. If the issue persists, clear the local cache for the Mapbox plugin:
+Do this after every SDK version bump. If the issue persists, clear the affected local cache entries:
 
 ```bash
+rm -rf ~/.gradle/caches/modules-2/files-2.1/com.rolla.sdk
+rm -rf ~/.gradle/caches/modules-2/files-2.1/io.flutter
 rm -rf ~/.gradle/caches/modules-2/files-2.1/com.mapbox.maps.mapbox_maps
 rm -rf ~/.gradle/caches/modules-2/metadata-2.*
 ./gradlew clean --refresh-dependencies
