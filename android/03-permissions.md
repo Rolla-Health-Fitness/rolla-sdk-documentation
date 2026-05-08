@@ -1,6 +1,6 @@
 # Permissions
 
-Configure the required permissions and Mapbox token for the Rolla SDK to function properly.
+Configure the required permissions and Mapbox token for the Rolla SDK to function properly. For the partner-facing justification of each permission — required/optional status and rationale text suitable for your privacy policy and Play Console **Data safety** form — see the [Permissions Rationale](#permissions-rationale) matrix at the bottom of this page.
 
 ## Internet Permission
 

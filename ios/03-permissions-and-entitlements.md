@@ -1,6 +1,6 @@
 # Permissions & Entitlements
 
-This section covers configuring permissions in `Info.plist` and entitlements in your `.entitlements` file.
+This section covers configuring permissions in `Info.plist` and entitlements in your `.entitlements` file. For the partner-facing justification of each permission — required/optional status and rationale text suitable for your privacy policy and **App Store Connect → App Privacy** form — see the [Permissions Rationale](#permissions-rationale) matrix at the bottom of this page.
 
 ## Configure Info.plist
 
