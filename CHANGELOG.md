@@ -1,5 +1,15 @@
 # Changelog
 
+**Tags used in this changelog:**
+
+- `[breaking]` — changes that require immediate attention and action in order to avoid a failed build or integration.
+- `[feature]` — new SDK capability.
+- `[improvement]` — existing behavior enhanced, optimized or refactored.
+- `[documentation]` — documentation-only change.
+- `[fix]` — bug fix.
+
+---
+
 ## 0.1.10 — Draft
 
 ### Both platforms
