@@ -1,11 +1,5 @@
 # Changelog
 
-All notable changes to the Rolla SDK are documented here. This log starts at `0.1.10`; `0.1.9` is listed as the first stable release without per-change entries.
-
-Format loosely follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Each entry is tagged with one of: `[breaking]`, `[feature]`, `[improvement]`, `[fix]`.
-
----
-
 ## 0.1.10 — Draft
 
 - **[breaking] Android `minSdk` raised from 24 to 26.** Required by the bundled Health Connect plugin's manifest. See [Why minSdk 26?](android/01-prerequisites.md#why-minsdk-26).
