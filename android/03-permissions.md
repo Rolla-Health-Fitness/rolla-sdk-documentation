@@ -24,8 +24,6 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 `0.1.10` adds Google Health Connect support. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
 
-### Required permissions
-
 Add inside the `<manifest>` element, alongside your other `<uses-permission>` entries:
 
 ```xml
@@ -119,10 +117,6 @@ Before shipping a build with Health Connect enabled, update:
 
 Google's policy review compares the manifest entries above against these two surfaces. A mismatch is the most common reason for a Play rejection on a Health Connect-enabled build.
 
-### Demo
-
-For a complete working `AndroidManifest.xml`, see the demo app's [Health Connect changes commit](https://github.com/Rolla-Health-Fitness/rolla-sdk-demo-android/commit/0f8a4b2a4060c07ec249d672009b5135d648eca0).
-
 ## Permissions Rationale
 
 This section is the partner-facing justification for every permission the SDK requests on Android. The wording is intended to be lifted into a privacy policy or pasted into the **Play Console → App content → Data safety** form. Permissions are grouped by the user-visible capability they gate.
@@ -145,16 +139,14 @@ This section is the partner-facing justification for every permission the SDK re
 
 ### Health Connect
 
-> The `android.permission.health.READ_*` permissions are declared by the **host app**, not the SDK — see [Why the SDK doesn't merge these for you](#health-connect-android) above. Each permission is granted *per-type* inside the Health Connect app, not via a runtime prompt in your app.
-
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `READ_HEART_RATE`, `READ_HEART_RATE_VARIABILITY` | Optional | Reads heart-rate samples and HRV recorded by other Health Connect-writing apps (Wear OS watches, Fitbit, Garmin Connect, etc.) so the user's Rolla feed combines band-recorded HR with off-band HR from their other devices. |
-| `READ_EXERCISE`, `READ_EXERCISE_ROUTES` | Optional | Reads workout sessions written by other apps and their associated GPS traces. Used by `HealthConnectWorkoutDetailsBridge` to display a unified history of workouts regardless of which app recorded them. |
-| `READ_STEPS`, `READ_DISTANCE`, `READ_SPEED` | Optional | Reads step counts, cumulative distance, and speed samples for daily activity totals and pace charts. These often originate from the device's onboard step counter (via Google Fit / Health Connect aggregation). |
-| `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED` | Optional | Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view. |
-| `READ_SLEEP` | Optional | Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.). |
-| `READ_WEIGHT`, `READ_BLOOD_PRESSURE` | Optional | Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture. |
+| `READ_HEART_RATE`, `READ_HEART_RATE_VARIABILITY` | Optional, recommended | Reads heart-rate samples and HRV recorded by other Health Connect-writing apps (Wear OS watches, Fitbit, Garmin Connect, etc.) so the user's Rolla feed combines band-recorded HR with off-band HR from their other devices. |
+| `READ_EXERCISE`, `READ_EXERCISE_ROUTES` | Optional, recommended | Reads workout sessions written by other apps and their associated GPS traces. Used by `HealthConnectWorkoutDetailsBridge` to display a unified history of workouts regardless of which app recorded them. |
+| `READ_STEPS`, `READ_DISTANCE`, `READ_SPEED` | Optional, recommended | Reads step counts, cumulative distance, and speed samples for daily activity totals and pace charts. These often originate from the device's onboard step counter (via Google Fit / Health Connect aggregation). |
+| `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED` | Optional, recommended | Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view. |
+| `READ_SLEEP` | Optional, recommended | Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.). |
+| `READ_WEIGHT`, `READ_BLOOD_PRESSURE` | Optional, recommended | Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture. |
 | `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect only exposes data recorded *after* the user grants a given permission. This permission lets the SDK read up to 30 days of history written before the grant, so the first-launch dashboard isn't artificially empty. |
 
 ### Activity Recognition
