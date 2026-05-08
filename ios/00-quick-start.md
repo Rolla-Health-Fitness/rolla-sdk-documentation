@@ -10,6 +10,11 @@ Get the Rolla SDK running in your iOS app in under 10 minutes.
 - **Xcode 14.0+**
 - **CocoaPods** installed (`sudo gem install cocoapods`)
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
+- **Supported runtime configurations**
+   - **Release** configuration for physical iPhone devices
+   - **Debug** configuration for iPhone simulators
+
+   > **Note:** Hardware-backed features (Bluetooth, etc.) will only work on physical devices.
 
 Your app must register users and obtain access tokens from Rolla's authentication API. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
