@@ -129,157 +129,75 @@ Google's policy review compares the manifest entries above against these two sur
 
 For a complete working `AndroidManifest.xml`, see the demo app's [Health Connect changes commit](https://github.com/Rolla-Health-Fitness/rolla-sdk-demo-android/commit/0f8a4b2a4060c07ec249d672009b5135d648eca0).
 
-## Permission Summary
-
-| Permission | Rationale |
-|------------|-----------|
-| Internet (`INTERNET`) | Posts workouts, syncs the user's profile, fetches band firmware updates, and exchanges OAuth tokens with Rolla's backend. |
-| Bluetooth (scan, connect, advertise) | Scans for, pairs with, and reads live metrics from the user's Rolla fitness band. |
-| Location (fine, coarse, background) | Records the GPS polyline, distance, and pace for outdoor activities, including while the phone is locked mid-workout. |
-| Foreground Service (`FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_LOCATION`, `FOREGROUND_SERVICE_CONNECTED_DEVICE`) | Keeps GPS tracking and the band BLE connection alive while a workout is in progress, with a persistent notification per OS policy. |
-| Wake Lock (`WAKE_LOCK`) | Keeps the CPU awake during background workouts so GPS fixes are processed in real time rather than batched by Doze. |
-| Notifications (`POST_NOTIFICATIONS`) | Posts the foreground-service notification that signals to the user (and the OS) that a workout is being tracked. |
-| Exact Alarms (`SCHEDULE_EXACT_ALARM`) | Fires engagement reminders (e.g. inactivity nudges, scheduled workout prompts) at their intended time even under Doze. |
-| Battery Exemption (`REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`) | Lets the user whitelist the app so OEM battery managers don't suspend the foreground service mid-workout. |
-| Activity Recognition (`ACTIVITY_RECOGNITION`) | Required by Google for Health Connect step-data access; signals that step counting depends on motion sensing. |
-| Health Connect (`android.permission.health.*`) | Reads workouts, heart rate, sleep, calories, weight, and related metrics that the user has agreed to share via Health Connect. |
-| Mapbox Token | Renders activity route maps; not a permission, just a host-app credential. |
-
-> **Note:** Bluetooth, location, foreground service, wake lock and `POST_NOTIFICATIONS` are declared by the SDK and merged automatically. The host app must declare `INTERNET`, the Health Connect entries listed above, `SCHEDULE_EXACT_ALARM`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, and the Mapbox token.
-
----
-
 ## Permissions Rationale
 
 This section is the partner-facing justification for every permission the SDK requests on Android. The wording is intended to be lifted into a privacy policy or pasted into the **Play Console → App content → Data safety** form. Permissions are grouped by the user-visible capability they gate.
 
 ### Location
 
-#### `ACCESS_FINE_LOCATION`
-
-- **Required or optional:** Required for any GPS-tracked activity (running, cycling, walking).
-- **Rationale:** During an outdoor activity the SDK records the user's GPS trace to draw the route polyline, compute distance, pace, and elevation, and to attribute the workout to a specific place. Fine (GPS-grade) accuracy is what produces a clean, on-the-road polyline; coarse-only fixes drift across blocks and make pace and split data unusable.
-
-#### `ACCESS_COARSE_LOCATION`
-
-- **Required or optional:** Required (Android requires it alongside `ACCESS_FINE_LOCATION`; on Android 12+ the user can grant *coarse-only*, in which case the SDK still falls back to a degraded route).
-- **Rationale:** Android pairs fine and coarse location and asks the user to choose between *Precise* and *Approximate* at the runtime prompt. The SDK declares both so the prompt presents the choice; if the user picks Approximate, the route exists but is reduced to neighborhood-level granularity.
-
-#### `ACCESS_BACKGROUND_LOCATION`
-
-- **Required or optional:** Optional but strongly recommended. Without it, **the polyline drops out the moment the user locks the phone or switches apps mid-workout**, leaving gaps in the recorded route.
-- **Rationale:** Outdoor workouts are routinely longer than the screen-on timeout. When the phone locks, Android moves the app to the background and the foreground location service requires this permission to keep streaming GPS fixes. The SDK pairs background location with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `ACCESS_FINE_LOCATION` | Required | During an outdoor activity the SDK records the user's GPS trace to draw the route polyline, compute distance, pace, and elevation, and to attribute the workout to a specific place. Fine (GPS-grade) accuracy is what produces a clean, on-the-road polyline; coarse-only fixes drift across blocks and make pace and split data unusable. |
+| `ACCESS_COARSE_LOCATION` | Required | Android pairs fine and coarse location and asks the user to choose between *Precise* and *Approximate* at the runtime prompt. The SDK declares both so the prompt presents the choice; if the user picks Approximate, the route exists but is reduced to neighborhood-level granularity. |
+| `ACCESS_BACKGROUND_LOCATION` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. When the phone locks, Android moves the app to the background and the foreground location service requires this permission to keep streaming GPS fixes. Without it, **the polyline drops out the moment the user locks the phone or switches apps mid-workout**, leaving gaps in the recorded route. The SDK pairs background location with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active. |
 
 ### Bluetooth
 
-#### `BLUETOOTH_SCAN` (Android 12+) / `BLUETOOTH` (≤ Android 11)
-
-- **Required or optional:** Required for first-time band pairing.
-- **Rationale:** The SDK scans for nearby Rolla fitness bands during the pairing flow. The `neverForLocation` flag is set so this scan does *not* count as location access — Google's Data Safety form treats this distinction as material.
-
-#### `BLUETOOTH_CONNECT` (Android 12+) / `BLUETOOTH_ADMIN` (≤ Android 11)
-
-- **Required or optional:** Required for syncing data from a paired band.
-- **Rationale:** After pairing, the SDK opens a GATT connection to the band to stream heart rate, steps, and activity events while the user wears the device. Without `BLUETOOTH_CONNECT`, the SDK can detect the band but cannot read from it.
-
-#### `BLUETOOTH_ADVERTISE`
-
-- **Required or optional:** Optional. Currently declared for forward compatibility; the SDK does not actively advertise as a peripheral.
-- **Rationale:** Future band-companion features may require the host phone to advertise. Declaring it now avoids a manifest-merger churn later.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `BLUETOOTH_SCAN` (Android 12+) / `BLUETOOTH` (≤ Android 11) | Required | The SDK scans for nearby Rolla fitness bands during the pairing flow. The `neverForLocation` flag is set so this scan does *not* count as location access — Google's Data Safety form treats this distinction as material. |
+| `BLUETOOTH_CONNECT` (Android 12+) / `BLUETOOTH_ADMIN` (≤ Android 11) | Required | After pairing, the SDK opens a GATT connection to the band to stream heart rate, steps, and activity events while the user wears the device. Without `BLUETOOTH_CONNECT`, the SDK can detect the band but cannot read from it. |
+| `BLUETOOTH_ADVERTISE` | Optional | Currently declared for forward compatibility; the SDK does not actively advertise as a peripheral. Future band-companion features may require the host phone to advertise. |
 
 ### Health Connect
 
 > The `android.permission.health.READ_*` permissions are declared by the **host app**, not the SDK — see [Why the SDK doesn't merge these for you](#health-connect-android) above. Each permission is granted *per-type* inside the Health Connect app, not via a runtime prompt in your app.
 
-#### `android.permission.health.READ_HEART_RATE`, `READ_HEART_RATE_VARIABILITY`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads heart-rate samples and HRV recorded by other Health Connect-writing apps (Wear OS watches, Fitbit, Garmin Connect, etc.) so the user's Rolla feed combines band-recorded HR with off-band HR from their other devices.
-
-#### `READ_EXERCISE`, `READ_EXERCISE_ROUTES`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads workout sessions written by other apps and their associated GPS traces. Used by `HealthConnectWorkoutDetailsBridge` to display a unified history of workouts regardless of which app recorded them.
-
-#### `READ_STEPS`, `READ_DISTANCE`, `READ_SPEED`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads step counts, cumulative distance, and speed samples for daily activity totals and pace charts. These often originate from the device's onboard step counter (via Google Fit / Health Connect aggregation).
-
-#### `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view.
-
-#### `READ_SLEEP`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.).
-
-#### `READ_WEIGHT`, `READ_BLOOD_PRESSURE`
-
-- **Required or optional:** Optional.
-- **Rationale:** Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture.
-
-#### `READ_HEALTH_DATA_HISTORY`
-
-- **Required or optional:** Optional but recommended for accurate first-week views.
-- **Rationale:** By default Health Connect only exposes data recorded *after* the user grants a given permission. This permission lets the SDK read up to 30 days of history written before the grant, so the first-launch dashboard isn't artificially empty.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `READ_HEART_RATE`, `READ_HEART_RATE_VARIABILITY` | Optional | Reads heart-rate samples and HRV recorded by other Health Connect-writing apps (Wear OS watches, Fitbit, Garmin Connect, etc.) so the user's Rolla feed combines band-recorded HR with off-band HR from their other devices. |
+| `READ_EXERCISE`, `READ_EXERCISE_ROUTES` | Optional | Reads workout sessions written by other apps and their associated GPS traces. Used by `HealthConnectWorkoutDetailsBridge` to display a unified history of workouts regardless of which app recorded them. |
+| `READ_STEPS`, `READ_DISTANCE`, `READ_SPEED` | Optional | Reads step counts, cumulative distance, and speed samples for daily activity totals and pace charts. These often originate from the device's onboard step counter (via Google Fit / Health Connect aggregation). |
+| `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED` | Optional | Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view. |
+| `READ_SLEEP` | Optional | Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.). |
+| `READ_WEIGHT`, `READ_BLOOD_PRESSURE` | Optional | Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture. |
+| `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect only exposes data recorded *after* the user grants a given permission. This permission lets the SDK read up to 30 days of history written before the grant, so the first-launch dashboard isn't artificially empty. |
 
 ### Activity Recognition
 
-#### `ACTIVITY_RECOGNITION`
-
-- **Required or optional:** Required to be declared for Health Connect step access on Android 10+, even though no SDK code currently calls the Activity Recognition Transition API directly.
-- **Rationale:** Google's Health Connect docs require apps that read step data to declare this permission so the user understands that step counting depends on motion sensing.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `ACTIVITY_RECOGNITION` | Required for Health Connect step access on Android 10+ | Google's Health Connect docs require apps that read step data to declare this permission so the user understands that step counting depends on motion sensing. No SDK code currently calls the Activity Recognition Transition API directly. |
 
 ### Foreground Service
 
-#### `FOREGROUND_SERVICE`
-
-- **Required or optional:** Required for any background workout tracking.
-- **Rationale:** The SDK runs a foreground service while a workout is active so Android does not kill the process when the screen is off. The persistent notification it posts is the user's signal that tracking is in progress and is what the OS uses to justify the elevated process priority.
-
-#### `FOREGROUND_SERVICE_LOCATION` (Android 14+)
-
-- **Required or optional:** Required for the GPS-tracked activity flow on Android 14+.
-- **Rationale:** Android 14 split foreground services by purpose. `LocationService` is started with `ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION` so the OS knows the service is consuming location and applies the correct policy (e.g. requiring `ACCESS_BACKGROUND_LOCATION`).
-
-#### `FOREGROUND_SERVICE_CONNECTED_DEVICE` (Android 14+)
-
-- **Required or optional:** Required for BLE-only workouts (cardio without GPS) and for firmware updates (DFU).
-- **Rationale:** `BleForegroundService` and `DfuService` keep the BLE GATT connection alive while a workout or firmware update is in progress. Android 14 requires this dedicated foreground-service type for connected-device work.
-
-#### `WAKE_LOCK`
-
-- **Required or optional:** Required for reliable background GPS fixes.
-- **Rationale:** `LocationService` acquires a `PARTIAL_WAKE_LOCK` for the duration of the workout (cap: 12 hours) so the CPU stays awake to process incoming GPS fixes when the screen is off. Without it, Doze would batch fixes and the polyline would step rather than flow.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `FOREGROUND_SERVICE` | Required | The SDK runs a foreground service while a workout is active so Android does not kill the process when the screen is off. The persistent notification it posts is the user's signal that tracking is in progress and is what the OS uses to justify the elevated process priority. |
+| `FOREGROUND_SERVICE_LOCATION` (Android 14+) | Required for GPS-tracked activities | Android 14 split foreground services by purpose. `LocationService` is started with `ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION` so the OS knows the service is consuming location and applies the correct policy (e.g. requiring `ACCESS_BACKGROUND_LOCATION`). |
+| `FOREGROUND_SERVICE_CONNECTED_DEVICE` (Android 14+) | Required for BLE-only workouts and DFU | `BleForegroundService` and `DfuService` keep the BLE GATT connection alive while a workout or firmware update is in progress. Android 14 requires this dedicated foreground-service type for connected-device work. |
+| `WAKE_LOCK` | Required | `LocationService` acquires a `PARTIAL_WAKE_LOCK` for the duration of the workout (cap: 12 hours) so the CPU stays awake to process incoming GPS fixes when the screen is off. Without it, Doze would batch fixes and the polyline would step rather than flow. |
 
 ### Notifications
 
-#### `POST_NOTIFICATIONS` (Android 13+)
-
-- **Required or optional:** Required on Android 13+ for the foreground service notification.
-- **Rationale:** Android 13 made notifications a runtime permission. Without it the foreground service still runs but the persistent notification is suppressed, which removes the user's only visible cue that tracking is active and gives the OS grounds to kill the service under memory pressure.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `POST_NOTIFICATIONS` (Android 13+) | Required for the foreground-service notification | Android 13 made notifications a runtime permission. Without it the foreground service still runs but the persistent notification is suppressed, which removes the user's only visible cue that tracking is active and gives the OS grounds to kill the service under memory pressure. |
 
 ### Engagement / Reminders
 
-#### `SCHEDULE_EXACT_ALARM` (Android 12+)
-
-- **Required or optional:** Optional.
-- **Rationale:** The SDK schedules engagement reminders (e.g. "you haven't worn your band in 3 days") via `AndroidScheduleMode.exactAllowWhileIdle`. Exact alarms fire reliably under Doze; inexact alarms can drift by hours, which makes "your morning workout reminder" unusable.
-
-#### `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`
-
-- **Required or optional:** Optional but strongly recommended for users on aggressive OEM battery profiles (Xiaomi, Huawei, Samsung "deep sleep").
-- **Rationale:** The SDK opens the system battery-optimization exemption screen so the user can whitelist the app. Without the exemption, OEM battery managers can suspend the foreground service mid-workout, dropping the polyline and disconnecting the band.
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules engagement reminders (e.g. "you haven't worn your band in 3 days") via `AndroidScheduleMode.exactAllowWhileIdle`. Exact alarms fire reliably under Doze; inexact alarms can drift by hours, which makes "your morning workout reminder" unusable. |
+| `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Optional, strongly recommended | The SDK opens the system battery-optimization exemption screen so the user can whitelist the app. Without the exemption, OEM battery managers (Xiaomi, Huawei, Samsung "deep sleep") can suspend the foreground service mid-workout, dropping the polyline and disconnecting the band. |
 
 ### Network
 
-#### `INTERNET`
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `INTERNET` | Required | The SDK posts workouts, syncs the user's profile, fetches firmware updates for the band, and exchanges OAuth tokens with Rolla's auth backend. None of these can be deferred — without internet the SDK runs in a read-only "no sync" mode. |
 
-- **Required or optional:** Required.
-- **Rationale:** The SDK posts workouts, syncs the user's profile, fetches firmware updates for the band, and exchanges OAuth tokens with Rolla's auth backend. None of these can be deferred — without internet the SDK runs in a read-only "no sync" mode.
+> **Note on declaration:** Bluetooth, location, foreground service, wake lock and `POST_NOTIFICATIONS` are declared by the SDK and merged automatically. The host app must declare `INTERNET`, the Health Connect entries listed above, `SCHEDULE_EXACT_ALARM`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, and the Mapbox token.
 
 ---
 
