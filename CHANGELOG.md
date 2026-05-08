@@ -2,7 +2,7 @@
 
 **Tags used in this changelog:**
 
-- `[breaking]` — changes that require immediate attention and action in order to avoid a failed build or integration.
+- `[breaking]` — changes that require immediate attention in order to avoid a failed build.
 - `[feature]` — new SDK capability.
 - `[improvement]` — existing behavior enhanced, optimized or refactored.
 - `[documentation]` — documentation-only change.
