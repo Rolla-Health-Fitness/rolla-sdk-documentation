@@ -42,6 +42,7 @@ The `RollaConfiguration` struct defines all parameters for SDK initialization. S
 | `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
 | `modules` | `[String]?` | No | `nil` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
 | `branding` | `RollaBranding?` | No | `nil` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
+| `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button.
 
 ## Error Handling
 

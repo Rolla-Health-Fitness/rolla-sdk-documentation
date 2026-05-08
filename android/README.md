@@ -9,9 +9,9 @@ Integration steps for embedding the Rolla SDK in an Android app (Gradle + Maven)
 ## Table of Contents
 
 0. [Quick Start](00-quick-start.md) — Minimal integration in under 10 minutes
-1. [Prerequisites](01-prerequisites.md) — Requirements and dependencies (Android API 24+, Android Studio Hedgehog, Gradle 8.0+, Partner ID and API credentials)
-2. [Gradle Setup](02-gradle-setup.md) — Configure Maven repositories, add SDK dependency, and enable desugaring
-3. [Permissions](03-permissions.md) — Configure internet permission, Mapbox token, and manifest settings
+1. [Prerequisites](01-prerequisites.md) — Requirements and dependencies (Android API 26+, JDK 17+, Kotlin 2.2.0+, Android Studio Hedgehog, Gradle 8.0+, Partner ID and API credentials)
+2. [Gradle Setup](02-gradle-setup.md) — Configure Maven repositories, add SDK dependency, set Kotlin/JDK floor, enable desugaring
+3. [Permissions](03-permissions.md) — Configure internet, Mapbox token, Health Connect manifest entries, and `<queries>` block
 4. [Code Integration](04-code-integration.md) — Import SDK, create configuration, initialize, implement RollaListener, and Fragment support
 5. [Branding & Modules](05-branding-and-modules.md) — Custom branding configuration and module enablement
 6. [Token Management](06-token-management.md) — Token lifecycle, callbacks, refreshing, and session management

@@ -41,21 +41,40 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // Rolla SDK
-    implementation("com.rolla.sdk:android_release:0.1.9")
+    implementation("com.rolla.sdk:android_release:0.1.10")
 }
 ```
 
 > Check the [Android release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-android) for the latest version.
 
-Enable core library desugaring in the android block:
+Enable core library desugaring and set `minSdk = 26`
 
 ```kotlin
 android {
+    defaultConfig {
+        minSdk = 26
+    }
+
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
     }
 }
 ```
+
+## Kotlin Version
+
+The host app must build with **Kotlin 2.2.0 or newer**. In a typical project this is set in `gradle/libs.versions.toml`:
+
+```toml
+[versions]
+kotlin = "2.2.0"   # or any patch ≥ 2.2.0 (e.g. 2.2.10)
+```
+
+The floor is a transitive requirement of the bundled `health` Flutter plugin — the SDK itself is also built against Kotlin 2.2.0. Any patch ≥ 2.2.0 is forward-compatible (2.2.10, 2.3.x, …). Kotlin ≥ 2.1.0 should work as well because of the [version tolerance](https://kotlinlang.org/docs/metadata-jvm.html#maven) rule, but 2.2.0 is still the recommended minimum.
+
+## Build JDK
+
+The SDK `0.1.10` AAR ships Java 17 bytecode (class file major version 61). Your build JDK must be **17 or newer**.
 
 ## Sync Project
 

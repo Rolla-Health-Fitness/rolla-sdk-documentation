@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.9
+**Latest SDK Version:** 0.1.10
 
 ---
 
@@ -69,30 +69,29 @@ Feature support comparison between iOS and Android.
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | No | On the roadmap |
+| Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 
-> **Platform note:** On iOS, health data comes from both the Rolla band and Apple Health (14 data types). On Android, health data comes exclusively from the Rolla band. Health Connect integration for Android is on the roadmap.
-
 ## Version Compatibility
 
 | Requirement | iOS | Android |
 |-------------|-----|---------|
-| **Min OS** | iOS 14.0 | API 24 (Android 7.0) |
+| **Min OS** | iOS 14.0 | API 26 (Android 8.0) |
 | **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
 | **Dependency Manager** | CocoaPods | Gradle 8.0+ |
-| **Language** | Swift | Kotlin (JDK 17+ to build; app JVM target 11+) |
+| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
 | **Compile / Target SDK** | — | API 36 |
 | **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
 | **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|
-| Core SDK | iOS 14.0 / API 24 | Both |
+| Core SDK | iOS 14.0 / API 26 | Both |
 | Apple Health | iOS 14.0 | iOS only |
+| Health Connect | API 26 | Android only |
 | Running Speed | iOS 16.0 | iOS only |
 | **Live Activities** | **iOS 16.1** | **iOS only** |
 | Cycling Cadence & Power | iOS 17.0 | iOS only |
