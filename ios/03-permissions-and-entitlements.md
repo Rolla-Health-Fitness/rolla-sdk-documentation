@@ -132,18 +132,6 @@ This section is the partner-facing justification for every permission the SDK re
 | `NSSupportsLiveActivities` | Optional | During an active workout the SDK posts a Live Activity (`LiveWorkoutBridge.swift:180` — `Activity.request(attributes:content:pushType: nil)`) that displays elapsed time, current pace, and heart rate on the lock screen and in the Dynamic Island. |
 | `NSSupportsLiveActivitiesFrequentUpdates` | Optional, recommended alongside the above | Lets the SDK push updates more often than the default ~1/15s budget, which is what makes the on-screen pace number flow rather than tick. |
 
-### Photo Library
-
-| Permission | Required / Optional | Rationale |
-|------------|---------------------|-----------|
-| `NSPhotoLibraryAddUsageDescription` | Optional | The SDK can render a shareable summary card from a completed workout and offers a "Save to Photos" action. iOS requires this key the moment the SDK calls `PHPhotoLibrary` to write an image. |
-
-> **Note on `NSPhotoLibraryUsageDescription` (read):** The SDK does **not** read from the photo library. Do not declare this key unless your host app uses photo-picker UI for its own features — declaring it surfaces an extra App Store privacy line that you can't justify from SDK behavior alone.
-
-### Notifications
-
-The SDK does not currently call `UNUserNotificationCenter.requestAuthorization(...)` itself for push or local notifications used by core SDK flows; engagement reminders are scheduled via the local notification plugin and inherit the host app's notification authorization. If the host app uses notifications for its own features, declare the prompt timing in your privacy policy under the host app's notifications usage rather than tying it to the SDK.
-
 ---
 
 **Previous:** [CocoaPods Setup](02-cocoapods-setup.md) | **Next:** [Code Integration](04-code-integration.md) | **Home:** [README](README.md)

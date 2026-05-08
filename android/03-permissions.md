@@ -20,15 +20,9 @@ Add the Mapbox access token to `app/src/main/res/values/strings.xml` for map fun
 
 You will receive the Mapbox token from Rolla along with your partner credentials.
 
-> **Platform note:** On Android, the Mapbox token is placed in `strings.xml` because the Mapbox SDK reads it as a string resource. On iOS, the token goes in `Info.plist` under the `MBXAccessToken` key — this is the standard Mapbox convention for each platform.
-
-> **Note:** Bluetooth, location, and foreground service permissions are declared by the SDK and merged automatically via manifest merger. You do not need to add them manually.
-
 ## Health Connect (Android)
 
 `0.1.10` adds Google Health Connect support. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
-
-> **Why the SDK doesn't merge these for you:** Google scans declared `android.permission.health.*` entries against the host app's privacy policy and Data Safety form during Play review. If the SDK injected them via manifest merger, every partner would inherit Rolla's permission set without their privacy policy reflecting it — Play would reject the upload.
 
 ### Required permissions
 
@@ -182,7 +176,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `POST_NOTIFICATIONS` (Android 13+) | Required for the foreground-service notification | Android 13 made notifications a runtime permission. Without it the foreground service still runs but the persistent notification is suppressed, which removes the user's only visible cue that tracking is active and gives the OS grounds to kill the service under memory pressure. |
+| `POST_NOTIFICATIONS` (Android 13+) | Required for the foreground-service notification | Android 13 made notifications a runtime permission. Without it the foreground service still runs but the persistent notification is suppressed, which removes the user's only visible cue that workout tracking is active and gives the OS grounds to kill the service under memory pressure. |
 
 ### Engagement / Reminders
 
@@ -196,8 +190,6 @@ This section is the partner-facing justification for every permission the SDK re
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
 | `INTERNET` | Required | The SDK posts workouts, syncs the user's profile, fetches firmware updates for the band, and exchanges OAuth tokens with Rolla's auth backend. None of these can be deferred — without internet the SDK runs in a read-only "no sync" mode. |
-
-> **Note on declaration:** Bluetooth, location, foreground service, wake lock and `POST_NOTIFICATIONS` are declared by the SDK and merged automatically. The host app must declare `INTERNET`, the Health Connect entries listed above, `SCHEDULE_EXACT_ALARM`, `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS`, and the Mapbox token.
 
 ---
 
