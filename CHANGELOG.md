@@ -26,7 +26,7 @@
 
 - **[breaking] Host-app Kotlin floor raised to 2.2.0.** Required by the bundled `health` plugin's transitive `kotlin-stdlib-jdk7:2.2.10`. Kotlin ≥ 2.1.0 should work as well because of the [version tolerance](https://kotlinlang.org/docs/metadata-jvm.html#maven) rule, but 2.2.0 is still the recommended minimum.
 
-- **[feature] Google Health Connect support.** Android health data now flows from both the Rolla band and Health Connect. For more information about permissions, please see [Health Connect](android/03-permissions.md#health-connect-android).
+- **[feature] Google Health Connect support.** Android health data can now be synced and tracked from Health Connect. For more information about permissions, please see [Health Connect](android/03-permissions.md#health-connect-android).
 
 - **[improvement] Build JDK floor lowered from 21 to 17.** AAR is now compiled with Java 17 (class file major version 61).
 
