@@ -59,9 +59,82 @@ startActivity(intent)
 - Clear Gradle cache: `./gradlew --refresh-dependencies`
 - Ensure all three Maven repositories are configured in `settings.gradle.kts`
 
-### `class file has wrong version 65.0, should be 61.0`
+### `class file has wrong version 61.0, should be ...`
 
-SDK `0.1.9` is compiled with Java 21 (class file major version 65). If your build JDK is 17, you'll see this error during compilation. Fix: point `JAVA_HOME` (or Android Studio → Settings → Build Tools → Gradle → Gradle JDK) to **JDK 21 or newer**. The next SDK release will be compiled with Java 17 (major version 61) and will build cleanly on JDK 17+.
+Starting with `0.1.10`, the SDK is compiled with Java 17 (class file major version 61) and the published AAR is validated in CI to never exceed major version 61. If your build JDK is older than 17, you'll see a `wrong version` error. Fix: point `JAVA_HOME` (or Android Studio → Settings → Build Tools → Gradle → Gradle JDK) to **JDK 17 or newer**.
+
+> If you were previously on SDK `0.1.9` you may have set the build JDK to 21 to satisfy that release's Java 21 bytecode. JDK 21 still works with `0.1.10`, but JDK 17 is now the documented floor.
+
+### Kotlin compiler crash: `IllegalArgumentException: source must not be null`
+
+**Symptom:** the app fails to compile with a stack trace containing:
+
+```text
+IllegalArgumentException: source must not be null
+    at org.jetbrains.kotlin.fir.analysis.checkers.FirIncompatibleClassExpressionChecker...
+```
+
+…or your build complains about reading `kotlin_module` metadata at version 2.2.0.
+
+**Cause:** the SDK bundles the `health` Flutter plugin, which transitively pins `org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.10`. That stdlib's `kotlin_module` files carry metadata version **2.2.0**. Kotlin's metadata compatibility rule is one-directional: a compiler at version X.Y can read metadata up to X.Y, never higher. Older compilers crash inside the K2 checker when they encounter the newer metadata.
+
+**Fix:** raise the Kotlin version in your host app to **2.2.0 or newer**. Kotlin ≥ 2.1.0 should work as well because of the [version tolerance](https://kotlinlang.org/docs/metadata-jvm.html#maven) rule, but 2.2.0 is still the recommended minimum. In a typical Flutter Add-to-App or Compose project this lives in `gradle/libs.versions.toml`:
+
+```toml
+[versions]
+kotlin = "2.2.0"   # any patch ≥ 2.2.0 works (2.2.10, 2.3.x, …)
+```
+
+Or, in legacy `build.gradle` setups:
+
+```groovy
+ext.kotlin_version = '2.2.0'
+```
+
+After bumping, run `./gradlew --refresh-dependencies` so the new Kotlin runtime is resolved.
+
+### Manifest merger fails on `minSdk = 24`
+
+**Symptom:** after upgrading to `0.1.10`, the Gradle build fails with a manifest merger error pointing at the bundled `health` plugin and complaining about `minSdkVersion`.
+
+**Cause:** Health Connect requires `minSdk = 26`. The bundled `health` plugin's manifest declares this floor and the merger refuses to inject Health Connect components into a host app that targets an older API.
+
+**Fix:** raise `minSdk` to 26 in `app/build.gradle.kts`:
+
+```kotlin
+android {
+    defaultConfig {
+        minSdk = 26
+    }
+}
+```
+
+If you previously supported API 24, this drops Android 7.0 / 7.1 (Nougat) — verify your install base before shipping.
+
+### Health Connect: nothing happens when the user taps "View permissions"
+
+**Symptom:** the user opens the Health Connect app, taps your app's entry, and taps "View permissions" — but nothing happens, or Android shows "App not installed".
+
+**Cause:** your host activity is missing the rationale intent-filter, or the `ViewPermissionUsageActivity` alias is missing/misconfigured.
+
+**Fix:** verify your `AndroidManifest.xml` contains both the rationale intent-filter on the SDK host activity and the `ViewPermissionUsageActivity` alias. See [Permissions → Health Connect](03-permissions.md#health-connect-android).
+
+### Health Connect: "Health Connect is not available on this device"
+
+**Symptom:** the SDK reports that Health Connect is unavailable even on a device that has the Health Connect app installed.
+
+**Cause:** the host app is missing the package-visibility entry for `com.google.android.apps.healthdata`. Starting on Android 11 (API 30), an app cannot detect another app's presence unless it declares it in `<queries>`.
+
+**Fix:** add the `<queries>` block to your `AndroidManifest.xml`:
+
+```xml
+<queries>
+    <package android:name="com.google.android.apps.healthdata" />
+    <intent>
+        <action android:name="androidx.health.ACTION_SHOW_PERMISSIONS_RATIONALE" />
+    </intent>
+</queries>
+```
 
 ### "Could not find com.rolla.sdk:android_release"
 

@@ -44,10 +44,6 @@ Apple Health is part of the `integrations` module, which is enabled by default. 
 
 Apple Health data is read on-demand, not via background delivery in the current SDK implementation. No additional background modes are required beyond what is already configured (location + bluetooth-central).
 
-## Android Equivalent
-
-There is currently **no** Android Health Connect integration in the SDK. On Android, health data comes from the Rolla band only. Do not expect feature parity between platforms for health data integrations.
-
 ---
 
 **Previous:** [Branding & Modules](05-branding-and-modules.md) | **Next:** [Token Management](07-token-management.md) | **Home:** [README](README.md)
