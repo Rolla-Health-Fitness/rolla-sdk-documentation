@@ -10,7 +10,7 @@
 
 ---
 
-## 0.1.10 — Draft
+## 0.1.10
 
 ### Both platforms
 
