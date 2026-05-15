@@ -1,8 +1,9 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS and Android apps.
+Documentation for embedding the Rolla SDK into partner iOS, Android, and React Native apps.
 
-**Latest SDK Version:** 0.1.10
+**Latest SDK Version:** 0.1.10 (native iOS and Android)
+**Latest React Native wrapper:** [`@rolla-health/react-native-sdk@0.1.2`](react-native/README.md)
 
 ---
 
@@ -46,6 +47,29 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ---
 
+## React Native Integration
+
+[**Go to React Native Guide →**](react-native/README.md)
+
+The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/package/@rolla-health/react-native-sdk) ships the same native iOS pod and Android Maven artifact behind a TypeScript TurboModule. Cross-links out to the iOS / Android guides for platform configuration; documents the JS-only surface inline.
+
+| # | Section | Description |
+|---|---------|-------------|
+| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal RN integration in under 15 minutes |
+| 1 | [Prerequisites](react-native/01-prerequisites.md) | RN floor (0.80.3+), React 19.1.0 exact, new arch, partner credentials |
+| 2 | [Installation](react-native/02-installation.md) | `npm install`, Podfile snippet, settings.gradle, build.gradle deltas |
+| 3 | [Permissions](react-native/03-permissions.md) | iOS Info.plist keys; Android handled by AAR manifest merge |
+| 4 | [Code Integration](react-native/04-code-integration.md) | `Rolla.show()`, listeners, token-refresh handler, useEffect cleanup |
+| 5 | [Branding & Modules](react-native/05-branding-and-modules.md) | `branding` config shape; module configuration |
+| 6 | [Token Management](react-native/06-token-management.md) | `onTokenExpired` event + `updateToken()` push flow |
+| 7 | [Engine Lifecycle](react-native/07-engine-lifecycle.md) | `destroyEngine()` semantics, warm-vs-cold trade-off |
+| 8 | [API Reference](react-native/08-api-reference.md) | TypeScript types, method signatures, event payloads |
+| 9 | [Troubleshooting](react-native/09-troubleshooting.md) | RN-specific symptoms (silent SIGABRT, TurboModule registry, peer deps) |
+
+> **RN version floor:** iOS works on RN 0.77+ with new arch. Android requires RN 0.80.3+ because RollaSDK transitively needs AGP 8.9.1 (RN 0.77–0.79 bundle AGP 8.7.x). See [RN Prerequisites](react-native/01-prerequisites.md#react-native-version-floor).
+
+---
+
 ## Auth API — SDK Authentication
 
 [**Go to Auth API Guide →**](sdk-auth-api/README.md)
@@ -62,30 +86,34 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ## Platform Capabilities
 
-Feature support comparison between iOS and Android.
+Feature support comparison across iOS, Android, and React Native (via `@rolla-health/react-native-sdk`).
 
-| Feature | iOS | Android | Notes |
-|---------|:---:|:-------:|-------|
-| Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
-| Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
-| Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
-| Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
-| Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
-| Background Location | Yes | Yes | |
+| Feature | iOS | Android | React Native | Notes |
+|---------|:---:|:-------:|:------------:|-------|
+| Core SDK (present, dismiss, token management) | Yes | Yes | Yes | |
+| Custom Branding & Modules | Yes | Yes | Yes | All modules currently always enabled |
+| Apple Health (HealthKit) | Yes | **No** | Yes (iOS only) | 14 data types, read-only; auto-exposed via native side |
+| Health Connect | No | Yes | Yes (Android only) | Added in `0.1.10`; host app declares the manifest entries |
+| Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | **No** | RN wrapper does not yet expose JS bindings; native iOS only |
+| Bluetooth Band Sync | Yes | Yes | Yes | Background mode on iOS; foreground service on Android |
+| Mapbox Maps | Yes | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
+| Background Location | Yes | Yes | Yes | |
+| New Architecture / Bridgeless (RN only) | — | — | **Required** | Wrapper ships codegen TurboModule; old bridge not supported |
 
 ## Version Compatibility
 
-| Requirement | iOS | Android |
-|-------------|-----|---------|
-| **Min OS** | iOS 14.0 | API 26 (Android 8.0) |
-| **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
-| **Dependency Manager** | CocoaPods | Gradle 8.0+ |
-| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
-| **Compile / Target SDK** | — | API 36 |
-| **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
-| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
+| Requirement | iOS | Android | React Native |
+|-------------|-----|---------|--------------|
+| **Min OS** | iOS 14.0 (15.1 via RN) | API 26 (Android 8.0) | iOS 15.1 / API 26 |
+| **RN floor** | — | — | 0.80.3 (Android); 0.77+ likely works on iOS |
+| **React** | — | — | 19.1.0 exact |
+| **New Arch** | — | — | Required (`newArchEnabled=true`) |
+| **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ | both |
+| **Dependency Manager** | CocoaPods | Gradle 8.0+ | npm/Yarn + both |
+| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) | TypeScript |
+| **Compile / Target SDK** | — | API 36 | API 36 |
+| **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` | same as Android |
+| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` | `@rolla-health/react-native-sdk@^0.1.2` |
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|
