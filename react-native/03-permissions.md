@@ -1,10 +1,10 @@
 # Permissions
 
-The Rolla SDK uses Bluetooth Low Energy, Location, Motion, Health, and Photos. The React Native wrapper does not change which permissions are required — it surfaces them through the same native APIs the iOS and Android guides describe. Configure them at the platform level.
+The Rolla SDK uses Bluetooth Low Energy, Location, Motion, Health, and Photos. The Rolla wrapper does not change which permissions are required — it surfaces them through the same native APIs the iOS and Android guides describe. Configure them at the platform level.
 
 ## iOS
 
-Add the following keys to `ios/<YourApp>/Info.plist`. Without them the app **aborts silently with SIGABRT** the moment the SDK touches the corresponding API — there is no JS-side error you can catch.
+Add the following keys to `ios/YourApp/Info.plist`. Without them the app **aborts silently with SIGABRT** the moment the SDK touches the corresponding API — there is no JS-side error you can catch.
 
 | Key | Required for | Triggers crash on |
 | --- | --- | --- |

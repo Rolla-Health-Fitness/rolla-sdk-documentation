@@ -55,7 +55,7 @@ The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/pa
 
 | # | Section | Description |
 |---|---------|-------------|
-| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal RN integration in under 15 minutes |
+| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal RN integration in 20–30 minutes |
 | 1 | [Prerequisites](react-native/01-prerequisites.md) | RN floor (0.80.3+), React 19.1.0 exact, new arch, partner credentials |
 | 2 | [Installation](react-native/02-installation.md) | `npm install`, Podfile snippet, settings.gradle, build.gradle deltas |
 | 3 | [Permissions](react-native/03-permissions.md) | iOS Info.plist keys; Android handled by AAR manifest merge |

@@ -6,7 +6,7 @@ Before integrating the Rolla SDK into your React Native app, verify the followin
 
 - **React Native 0.80.3 or later** — see [RN version floor](#react-native-version-floor) below for why
 - **React 19.1.0 exact** — see [React version pin](#react-version-pin) below for why
-- **New Architecture enabled** (`newArchEnabled=true`). The wrapper ships a codegen-backed TurboModule and does not run under the old bridge
+- **New Architecture enabled** (`newArchEnabled=true`). The Rolla wrapper ships a codegen-backed TurboModule and does not run under the old bridge
 - **iOS deployment target 15.1+** — see [iOS Prerequisites](../ios/01-prerequisites.md)
 - **Android `minSdk = 26`, `compileSdk = 36`** — see [Android Prerequisites](../android/01-prerequisites.md)
 - **AGP 8.9.1+, Kotlin 2.2.0+** — see [Android Prerequisites](../android/01-prerequisites.md)
@@ -15,9 +15,9 @@ Before integrating the Rolla SDK into your React Native app, verify the followin
 
 ## React Native version floor
 
-The wrapper requires **React Native ≥ 0.80.3**.
+The Rolla wrapper requires **React Native ≥ 0.80.3**.
 
-**iOS only:** the wrapper has been verified to build and run on RN `0.77.3` with new arch + TurboModule interop. The Swift / ObjC++ TurboModule does not depend on RN internals, so older RN versions on iOS will likely work.
+**iOS only:** the Rolla wrapper has been verified to build and run on RN `0.77.3` with new arch + TurboModule interop. The Swift / ObjC++ TurboModule does not depend on RN internals, so older RN versions on iOS will likely work.
 
 **Android requires RN ≥ 0.80.3.** RN 0.80 was the first release whose bundled `react-native-gradle-plugin` allows Android Gradle Plugin `8.9.x`. The native `com.rolla.sdk:android_release` AAR transitively pulls AndroidX dependencies (`androidx.activity:1.12.x`, `androidx.core:1.18.x`, `androidx.navigationevent:1.0.x`) that require **AGP 8.9.1 + compileSdk 36**. On RN 0.77–0.79 the build fails at `:app:checkDebugAarMetadata` with:
 
@@ -50,7 +50,7 @@ A caret (`^19.1.0`) resolves to whatever is current on npm (`19.2.x` at time of 
 
 ## Native SDK pin
 
-The wrapper's `0.1.x` series pins the native iOS pod and Android Maven artifact at **`0.1.10`**. You do not declare these versions yourself — the wrapper's podspec and `android/build.gradle` declare them. If you try to override the native version your build will fail fast. That is intentional.
+The Rolla wrapper's `0.1.x` series pins the native iOS pod and Android Maven artifact at **`0.1.10`**. You do not declare these versions yourself — the Rolla wrapper's podspec and `android/build.gradle` declare them. If you try to override the native version your build will fail fast. That is intentional.
 
 When you bump `@rolla-health/react-native-sdk` to a version that points at a different native artifact, run:
 

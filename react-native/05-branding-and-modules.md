@@ -1,6 +1,6 @@
 # Branding & Modules
 
-The wrapper accepts the same branding shape as the native SDKs, exposed as a plain TypeScript object. Module configuration is forwarded to the native side untouched — the canonical list lives in the platform docs.
+The Rolla wrapper accepts the same branding shape as the native SDKs, exposed as a plain TypeScript object. Module configuration is forwarded to the native side untouched — the canonical list lives in the platform docs.
 
 ## Custom branding (optional)
 
@@ -30,11 +30,11 @@ await Rolla.show({
 
 ### Color format
 
-Colors are passed as hex strings (`'#RRGGBB'` or `'#RRGGBBAA'`) and parsed natively on both platforms. **Do not** use React Native's `processColor` — it returns a platform-specific integer that the wrapper does not accept.
+Colors are passed as hex strings (`'#RRGGBB'` or `'#RRGGBBAA'`) and parsed natively on both platforms. **Do not** use React Native's `processColor` — it returns a platform-specific integer that the Rolla wrapper does not accept.
 
 This differs from the native SDKs:
-- iOS native expects `UIColor` instances. The wrapper converts hex → `UIColor` for you.
-- Android native expects ARGB `Int` (`0xFF1976D2.toInt()`). The wrapper converts hex → `Int` for you.
+- iOS native expects `UIColor` instances. The Rolla wrapper converts hex → `UIColor` for you.
+- Android native expects ARGB `Int` (`0xFF1976D2.toInt()`). The Rolla wrapper converts hex → `Int` for you.
 
 ## Branding assets
 
@@ -46,18 +46,7 @@ See [iOS Branding & Modules → Branding Assets](../ios/05-branding-and-modules.
 
 ## Module configuration
 
-The SDK is organized into modules (Health & Fitness, Activity Tracking, Device Management, User & Settings). Currently all modules are enabled and `disabledModules` is reserved for future use:
-
-```ts
-await Rolla.show({
-  token,
-  partnerId: 'your-partner-id',
-  environment: 'production',
-  // disabledModules: ['WEIGHT'],  // not yet honored
-});
-```
-
-The wrapper accepts `disabledModules?: string[]` so your TypeScript will compile, but the native side currently ignores it. Selective module enablement will be available in a future release.
+The SDK is organized into modules (Health & Fitness, Activity Tracking, Device Management, User & Settings). All modules are currently always enabled; selective module enablement will be available in a future release.
 
 For the complete list of modules and what each one does, see [iOS Branding & Modules → Available Modules](../ios/05-branding-and-modules.md#available-modules) and [Android Branding & Modules → Available Modules](../android/05-branding-and-modules.md). The module identifiers are the same across platforms.
 

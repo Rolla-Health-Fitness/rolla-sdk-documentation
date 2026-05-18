@@ -1,6 +1,6 @@
 # Engine Lifecycle
 
-The Rolla modal is rendered by an embedded Flutter engine on the native side. The wrapper exposes the same lifecycle controls as the native SDKs.
+The Rolla modal is rendered by an embedded Flutter engine on the native side. The Rolla wrapper exposes the same lifecycle controls as the native SDKs.
 
 The model is identical to [iOS Engine Lifecycle](../ios/08-engine-lifecycle.md) and [Android Engine Lifecycle](../android/07-engine-lifecycle.md) — this page covers the JS-side surface.
 

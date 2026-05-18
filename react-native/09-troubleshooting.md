@@ -14,11 +14,11 @@ No JS-side error, no JS console output, no backtrace.
 
 **Cause:** missing iOS usage strings. The Rolla SDK touches `CBCentralManager`, `CLLocationManager`, `CMMotionManager`, etc. When iOS sees the native API call without the matching `NSBluetoothAlwaysUsageDescription` / `NSLocationWhenInUseUsageDescription` / `NSMotionUsageDescription` / etc., it calls `abort()` (SIGABRT). The abort is silent in console logs.
 
-**Fix:** add all required keys to `ios/<YourApp>/Info.plist`. See [Permissions → iOS](03-permissions.md#ios) for the complete list.
+**Fix:** add all required keys to `ios/YourApp/Info.plist`. See [Permissions → iOS](03-permissions.md#ios) for the complete list.
 
 ## `Invariant Violation: TurboModuleRegistry.getEnforcing('RollaWrapper') could not be found`
 
-**Cause:** the native side of the wrapper did not register with the TurboModule registry. Autolinking failed or stale build state.
+**Cause:** the native side of the Rolla wrapper did not register with the TurboModule registry. Autolinking failed or stale build state.
 
 **Fix:**
 
@@ -31,10 +31,13 @@ cd ../android && ./gradlew --refresh-dependencies
 
 Then rebuild.
 
-If the error persists after a clean install:
-- Confirm `RCTNewArchEnabled` is `true` in `ios/<YourApp>/Info.plist`
-- Confirm `newArchEnabled=true` in `android/gradle.properties`
-- Confirm the wrapper is listed in `react-native config` output (`npx react-native config | grep RollaWrapper`)
+If the error persists after a clean install, confirm autolinking picked up the package:
+
+```sh
+npx react-native config | grep RollaWrapper
+```
+
+If `RollaWrapper` does not appear, the package is missing from `node_modules` or `react-native.config.js` is overriding autolinking.
 
 ## `Incompatible React versions: react-native-renderer: 19.1.0`
 
@@ -98,7 +101,7 @@ Find your node path with `which node` in your shell.
 
 ## Bumping the SDK doesn't pick up the new native version
 
-**Cause:** Gradle caches transitive Mapbox metadata per coordinate. When the wrapper bumps its native pin (e.g. `0.1.10` → `0.1.11`), the cache can serve stale dependency info.
+**Cause:** Gradle caches transitive Mapbox metadata per coordinate. When the Rolla wrapper bumps its native pin (e.g. `0.1.10` → `0.1.11`), the cache can serve stale dependency info.
 
 **Fix:**
 
@@ -127,7 +130,7 @@ npx react-native start
 
 ## Still stuck
 
-Pair the wrapper's diagnostics with the platform troubleshooting guides:
+Pair the Rolla wrapper's diagnostics with the platform troubleshooting guides:
 
 - [iOS Troubleshooting](../ios/11-troubleshooting.md) — build errors, Apple Health, code-signing
 - [Android Troubleshooting](../android/09-troubleshooting.md) — Gradle errors, Mapbox cache, ProGuard

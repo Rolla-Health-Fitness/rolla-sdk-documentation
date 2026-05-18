@@ -1,6 +1,6 @@
 # Installation
 
-Install the wrapper from npm, then apply the iOS Podfile and Android Gradle changes required by the underlying native SDK.
+Install the Rolla wrapper from npm, then apply the iOS Podfile and Android Gradle changes required by the underlying native SDK.
 
 ## 1. npm install
 
@@ -119,15 +119,15 @@ For the underlying iOS configuration (signing, build settings, etc.) see [iOS Co
 
 The fresh RN template ships only an empty `NSLocationWhenInUseUsageDescription`. The Rolla SDK uses Bluetooth, Location, Motion, Health, and Photos — you must add usage strings for each or the app will abort silently with **SIGABRT** at `Rolla.show()`. See [Permissions → iOS](03-permissions.md#ios) for the exact keys.
 
-## 4. iOS — `.xcode.env`
+## 4. iOS — `.xcode.env.local` (only if Hermes script phase fails)
 
-Xcode's script-phase shell does not source your interactive PATH. `command -v node` returns empty in script phases, which breaks Hermes' `replace-config` step. Hard-code an absolute path in `ios/.xcode.env`:
+The RN template ships `ios/.xcode.env` with `export NODE_BINARY=$(command -v node)`, which works on most setups. If Xcode's script phase fails with `: command not found` during the Hermes `replace-config` step, your interactive PATH is not being sourced by Xcode. Override the resolution with an absolute path in the gitignored `ios/.xcode.env.local`:
 
 ```sh
 export NODE_BINARY=/opt/homebrew/bin/node
 ```
 
-Adjust if your Node lives elsewhere (`which node` in your shell tells you).
+Find your node path with `which node`. Do **not** edit `ios/.xcode.env` directly — it is versioned and a hard-coded path will break for the next contributor.
 
 ## 5. Android — `settings.gradle`
 
@@ -212,7 +212,27 @@ dependencies {
 
 Ensure `ANDROID_HOME` is set or write `sdk.dir=$HOME/Library/Android/sdk` (adjust for your OS) into `android/local.properties`.
 
-## 7. Order of operations
+## 7. Entry points — `AppDelegate.swift` and `MainApplication.kt`
+
+The Rolla wrapper assumes the RN 0.80 default scaffold:
+
+- **iOS** — Swift `AppDelegate.swift` using `RCTReactNativeFactory` and `RCTAppDependencyProvider` (not the older `AppDelegate.mm`).
+- **Android** — Kotlin `MainApplication.kt` extending `DefaultReactNativeHost`, with `PackageList(this).packages` for autolinked modules.
+
+Autolinking registers `RollaWrapper` with the TurboModule registry automatically — you do **not** add anything to `getPackages()` or to the iOS factory. If you are upgrading from an older RN version, regenerate the entry points with `npx @react-native-community/cli init` against `0.80.3` and copy your app code over, rather than patching `AppDelegate.mm` by hand.
+
+The Rolla wrapper requires the React Native New Architecture. Confirm both flags are on:
+
+- `ios/YourApp/Info.plist` → `RCTNewArchEnabled = true`
+- `android/gradle.properties` → `newArchEnabled=true`
+
+Both are on by default in a fresh RN 0.80.3 scaffold.
+
+## 8. JavaScript engine
+
+The Rolla wrapper is verified against **Hermes** (the RN 0.80 default — `hermesEnabled=true` in `android/gradle.properties`, Hermes pod auto-installed on iOS). JSC is untested with the Rolla wrapper; if you need JSC, raise it with Rolla support before integration.
+
+## 9. Order of operations
 
 Always:
 

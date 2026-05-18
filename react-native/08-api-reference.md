@@ -99,7 +99,6 @@ interface RollaConfiguration {
   userId?: string;
   partnerId: string;
   environment: RollaEnvironment;
-  disabledModules?: string[];    // reserved; not currently honored
   branding?: RollaBranding;
   showSettingsButton?: boolean;
 }
@@ -108,10 +107,10 @@ interface RollaConfiguration {
 ### `RollaEnvironment`
 
 ```ts
-type RollaEnvironment = 'production' | 'staging' | 'development' | 'rnd' | string;
+type RollaEnvironment = 'production' | 'rnd';
 ```
 
-Must match the environment your token was issued for.
+Must match the environment your token was issued for. `'rnd'` is research-and-development (used by the demos and during onboarding); `'production'` is the live backend. If omitted, defaults to `'rnd'`.
 
 ### `RollaBranding`
 

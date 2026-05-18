@@ -1,6 +1,6 @@
 # Code Integration
 
-The wrapper exposes a single `Rolla` namespace with promise-style methods and an event emitter. There is no class to instantiate — the underlying engine is a singleton owned by the native side.
+The Rolla wrapper exposes a single `Rolla` namespace with promise-style methods and an event emitter. There is no class to instantiate — the underlying engine is a singleton owned by the native side.
 
 ## Import
 
@@ -18,7 +18,7 @@ const close = await Rolla.show({
   refreshToken: 'optional-refresh-token',
   tokenExpiresIn: 1800,                    // seconds; optional
   partnerId: 'your-partner-id',
-  environment: 'production',                // 'production' | 'staging' | 'rnd'
+  environment: 'production',                // 'production' | 'rnd'
   branding: { /* optional, see Branding & Modules */ },
 });
 
@@ -53,7 +53,7 @@ Available events: `onClose`, `onError`, `onTokenRefreshed`, `onTokenExpired`. Pa
 
 ## Handle token refresh
 
-The wrapper exposes the same token lifecycle as the native SDKs. Subscribe to `onTokenExpired` and push fresh credentials with `Rolla.updateToken()`:
+The Rolla wrapper exposes the same token lifecycle as the native SDKs. Subscribe to `onTokenExpired` and push fresh credentials with `Rolla.updateToken()`:
 
 ```ts
 useEffect(() => {

@@ -4,7 +4,7 @@ A minimal end-to-end React Native integration. Run on physical devices — Bluet
 
 > **Before you begin:** verify your project meets the [Prerequisites](01-prerequisites.md). If you are on RN `< 0.80.3`, see the [RN version floor](01-prerequisites.md#react-native-version-floor) section first — iOS will likely work but Android requires `0.80.3+`.
 
-## 1. Install the wrapper
+## 1. Install the Rolla wrapper
 
 ```sh
 npm install @rolla-health/react-native-sdk --legacy-peer-deps
@@ -22,7 +22,7 @@ npm pkg set 'dependencies.react=19.1.0'
 
 Edit `ios/Podfile` to add the Rolla CocoaPods source, enable static framework linkage, and apply two ZIPFoundation workarounds. The exact snippet lives in [Installation → iOS](02-installation.md#ios--podfile).
 
-Add the required iOS usage strings to `ios/<YourApp>/Info.plist`. **Without these the app aborts silently with SIGABRT at `Rolla.show()`** — there is no JS-side error you can catch. See [Permissions → iOS](03-permissions.md#ios).
+Add the required iOS usage strings to `ios/YourApp/Info.plist`. **Without these the app aborts silently with SIGABRT at `Rolla.show()`** — there is no JS-side error you can catch. See [Permissions → iOS](03-permissions.md#ios).
 
 Then:
 
