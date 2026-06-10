@@ -58,7 +58,7 @@ await RollaSDK.initializeWithToken(
   accessToken: session.accessToken,
   refreshToken: session.refreshToken,
   tokenExpiresIn: Duration(seconds: session.expiresIn),
-  userId: 'your-user-id',            // your logged-in user's id or user email
+  userId: 'your-user-id',            // the login JWT's `sub` claim (step 2), or your own id / email
   partnerId: 'your-partner-id',
   environment: RollaEnvironment.rnd, // sandbox; .production for release builds
 
