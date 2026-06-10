@@ -49,8 +49,6 @@ The response contains everything step 3 needs:
 
 See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
-> **In production, your backend mints the tokens** and hands them to the app — don't ship the starter-package login credentials in your app.
-
 ## 3. Initialize the SDK
 
 Call `RollaSDK.initializeWithToken(...)` with the tokens before rendering any SDK UI:
