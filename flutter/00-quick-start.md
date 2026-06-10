@@ -40,7 +40,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/login" \
   -d "email=user@example.com&password=SecurePassword123"
 ```
 
-The response contains `access_token`, `refresh_token`, and `expires_in` — these map to `accessToken`, `refreshToken`, and `tokenExpiresIn` in the next step. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
+The response contains `access_token`, `refresh_token`, and `expires_in` — these map to `accessToken`, `refreshToken`, and `tokenExpiresIn` in the next step. The access token is a JWT whose `sub` claim is the Rolla user ID — decode it if you need a `userId` for step 3. See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
 > **In production, your backend mints the tokens** and hands them to the app — don't ship the starter-package login credentials in your app.
 

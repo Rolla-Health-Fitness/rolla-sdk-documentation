@@ -40,7 +40,7 @@ static Future<void> initializeWithToken({
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `accessToken` | `String` | *required* | JWT access token from the [Auth API](../sdk-auth-api/02-authentication.md). |
-| `userId` | `String` | *required* | Your user's id or user email (pass the same value to `RollaSdkHome`). |
+| `userId` | `String` | *required* | Your user's id or user email (pass the same value to `RollaSdkHome`). The Rolla user ID is also available as the `sub` claim of the login JWT. |
 | `partnerId` | `String` | *required* | Your partner id, provided by Rolla. |
 | `environment` | `RollaEnvironment` | `production` | Backend environment. Must match where the token was issued. |
 | `baseUrl` | `String?` | `null` | Override the environment's base URL. Leave `null` to use `environment.baseUrl`. |

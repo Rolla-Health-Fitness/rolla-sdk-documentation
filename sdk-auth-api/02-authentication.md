@@ -105,6 +105,8 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/login" \
 | `refresh_token` | string | Token used to obtain a fresh access token — pass this to `RollaConfiguration.refreshToken` |
 | `refresh_expires_in` | int | Refresh token lifetime in seconds (2592000 = 30 days) |
 
+> **Note:** The `access_token` is a JWT — its `sub` claim contains the user's Rolla ID (and `tid` your partner ID). Decode it if you need the user ID, for example for the Flutter SDK's `userId` parameter; there is no separate endpoint for it.
+
 ---
 
 ## Refresh Token
