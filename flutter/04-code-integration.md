@@ -19,7 +19,7 @@ await RollaSDK.initializeWithToken(
   accessToken: session.accessToken,
   refreshToken: session.refreshToken,            // optional
   tokenExpiresIn: const Duration(seconds: 1800), // optional, enables proactive refresh
-  userId: 'user-123',                            // your logged-in user's id
+  userId: 'user-123',                            // your logged-in user's id or user email
   partnerId: 'your-partner-id',
   environment: RollaEnvironment.rnd,             // .rnd while integrating; .production when live
   branding: myBranding,                          // optional, see Branding & Modules
