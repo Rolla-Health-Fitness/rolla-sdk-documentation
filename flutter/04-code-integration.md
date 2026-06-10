@@ -1,6 +1,6 @@
 # Code Integration
 
-The Rolla SDK exposes a static `RollaSDK` class for initialization and a single widget, `RollaSdkHome`, that renders the entire SDK experience. You initialize once with a token, then hand off a route to `RollaSdkHome`.
+The SDK exposes a static `RollaSDK` class for initialization and a single widget, `RollaSdkHome`, that renders the entire SDK experience. You initialize once with a token, then hand off a route to `RollaSdkHome`.
 
 ## Import
 
@@ -12,27 +12,25 @@ Everything you need — `RollaSDK`, `RollaSdkHome`, `RollaEnvironment`, `TokenRe
 
 ## Initialize with a token
 
-`RollaSDK.initializeWithToken(...)` is the primary entry point. Your backend mints the SDK access token (see [Token Management](06-token-management.md)); you pass it in along with your partner ID and the lifecycle callbacks.
+`RollaSDK.initializeWithToken(...)` is the entry point. Your backend mints the SDK tokens via the [Auth API](../sdk-auth-api/02-authentication.md); you pass them in along with your partner ID and the lifecycle callbacks:
 
 ```dart
 await RollaSDK.initializeWithToken(
   accessToken: session.accessToken,
-  refreshToken: session.refreshToken,        // optional
+  refreshToken: session.refreshToken,            // optional
   tokenExpiresIn: const Duration(seconds: 1800), // optional, enables proactive refresh
-  userId: 'user-123',                         // your logged-in user's id
+  userId: 'user-123',                            // your logged-in user's id
   partnerId: 'your-partner-id',
-  environment: RollaEnvironment.rnd,          // start on .rnd; switch to .production when you go live
-  branding: myBranding,                       // optional, see Branding & Modules
+  environment: RollaEnvironment.rnd,             // .rnd while integrating; .production when live
+  branding: myBranding,                          // optional, see Branding & Modules
   onTokenExpired: () async { /* return fresh tokens */ },
   onLogout: () { /* return to your app */ },
 );
 ```
 
-> **Use `RollaEnvironment.rnd` while integrating.** Rolla issues you **rnd** (research-and-development) sandbox credentials for onboarding — your tokens are minted against `https://ross-rnd.rolla.cloud`, so `environment` must be `.rnd` to match (a mismatch authenticates against the wrong backend and fails). Switch to `.production` only once Rolla provisions your production credentials.
+> **Use `RollaEnvironment.rnd` while integrating.** Your starter-package credentials are sandbox credentials, so the environment must be `.rnd` to match — and the Dart default is `.production`, so set it explicitly. Switch to `.production` once Rolla provisions your production credentials.
 
-`initializeWithToken` resets any prior instance and returns once the SDK is ready. Call it before you render `RollaSdkHome`. After it completes, `RollaSDK.isInitialized` is `true`.
-
-> **Initialize off the first frame, not in `build()`.** Kick it off from `initState()` (or a button handler) and show a spinner while it runs — the demo's `RollaLaunchScreen` does exactly this. Re-running `initializeWithToken` disposes and rebuilds the SDK, so do not call it on every rebuild.
+`initializeWithToken` resets any prior instance and returns once the SDK is ready; after it completes, `RollaSDK.isInitialized` is `true`. Kick it off from `initState()` (or a button handler) and show a spinner while it runs — re-running it disposes and rebuilds the SDK, so do not call it on every rebuild.
 
 ## Render `RollaSdkHome`
 
@@ -42,27 +40,27 @@ Once initialized, render the SDK by returning `RollaSdkHome(userId: ...)` from a
 return RollaSdkHome(userId: widget.userId);
 ```
 
-> **Do NOT wrap `RollaSdkHome` in another `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation, theming, and routing from that point on. Nesting it inside your own `MaterialApp` breaks routing and theming. Push it onto a route from your existing app instead (`Navigator.push` / `GoRoute`).
+> **Do not wrap `RollaSdkHome` in another `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation, theming, and routing from that point on. Push it onto a route from your existing app instead (`Navigator.push` / `GoRoute`).
 
 ## Host dismissal — `showBackButton` + `onRequestDismiss`
 
-Because `RollaSdkHome` owns its own router, a back button inside the SDK cannot pop *your* `Navigator` by itself. To let the SDK's top-bar back button return the user to your app, pass both:
+Because `RollaSdkHome` owns its own router, a back button inside the SDK cannot pop *your* `Navigator` by itself. To let the user exit the SDK and return to your app, pass both:
 
 ```dart
 await RollaSDK.initializeWithToken(
   // ...
-  showBackButton: true,                       // render a back button in the SDK top bar
+  showBackButton: true,                        // render a back button in the SDK top bar
   onRequestDismiss: () {                       // SDK calls this when that button is tapped
     if (mounted) Navigator.of(context).pop();  // pop back to your screen
   },
 );
 ```
 
-> **`onRequestDismiss` is new in 0.1.12 and is required for pure-Flutter hosts.** A Flutter app that embeds `RollaSdkHome` on its own `Navigator` has no native side listening on the `rolla_sdk/init` method channel, so `showBackButton: true` alone does nothing — the SDK has no way to dismiss itself. Pass `onRequestDismiss` to pop your route. (Native add-to-app hosts that present Flutter as a `FlutterViewController`/`FlutterActivity` receive the dismiss over the method channel instead and don't need this callback.)
+> **Both are required for a pure-Flutter host.** `showBackButton: true` alone renders the button, but tapping it does nothing — the SDK has no way to dismiss itself without `onRequestDismiss`, and the user is left with no way back to your app. (Native add-to-app hosts receive the dismiss over a method channel instead and don't need the callback.) Requires `rolla_sdk` **0.1.12** or newer.
 
 ## Handle logout
 
-Pass `onLogout` to learn when the user signs out from inside the SDK so you can clear your own auth state and route back to your login screen:
+Pass `onLogout` to learn when the user signs out from inside the SDK, so you can clear your own auth state and route back to your login screen:
 
 ```dart
 onLogout: () {
@@ -70,53 +68,45 @@ onLogout: () {
 },
 ```
 
-`onLogout` fires after the SDK clears its own tokens and session. If you want to clear the SDK from your side (e.g. when the user logs out of *your* app), call `RollaSDK.logout()`.
+`onLogout` fires after the SDK has already cleared its own tokens and session. To clear the SDK from your side (e.g. when the user logs out of *your* app), call `RollaSDK.logout()`.
 
 ## Control the SDK UI chrome
 
-`initializeWithToken` accepts flags that tune what chrome the SDK renders. The **Flutter defaults** are:
+`initializeWithToken` accepts flags that tune what chrome the SDK renders:
 
-| Flag | Flutter default | Effect when set |
+| Flag | Default | Effect when changed |
 | --- | --- | --- |
-| `hideBottomNavigation` | `false` | `true` hides the bottom navigation (Home / Profile tabs), leaving only the activity (＋) button — a minimal embed. |
 | `showBackButton` | `false` | `true` renders a back button in the SDK top bar (pair with `onRequestDismiss`, above). |
+| `hideBottomNavigation` | `false` | `true` hides the Home / Profile tabs, leaving only the activity (＋) button — a minimal embed. |
 | `showSettingsButton` | `true` | `false` hides the Home **Settings** shortcut (use if you surface Data Sources / Goals elsewhere). |
-| `showAccountSettings` | `false` | `true` exposes credential-management screens (change/reset password, change email, delete account). Leave `false` unless your app delegates credential management to the SDK. |
+| `showAccountSettings` | `false` | `true` exposes credential-management screens (change/reset password, change email, delete account). |
 
-```dart
-await RollaSDK.initializeWithToken(
-  // ...
-  hideBottomNavigation: true,   // minimal chrome: only the activity button
-  showSettingsButton: false,    // you surface Data Sources / Goals in your own UI
-);
-```
-
-> **`hideBottomNavigation` defaults differ by integration path.** Native iOS/Android hosts (via `RollaConfiguration`) default it to **`true`**, but the Flutter `initializeWithToken` defaults it to **`false`** (full bottom navigation shown). If you're matching the minimal chrome the native integrations get out of the box, pass `hideBottomNavigation: true` explicitly.
+> **`hideBottomNavigation` defaults differ by integration path.** Native iOS/Android hosts default it to `true`, but the Flutter `initializeWithToken` defaults it to `false` (full bottom navigation shown). To match the minimal chrome of the native integrations, pass `hideBottomNavigation: true` explicitly.
 
 ## Handle token refresh
 
-When the SDK's access token expires and it cannot refresh internally, it calls `onTokenExpired`. Return a `TokenRefreshResult` with fresh credentials, or `null` to force a logout:
+When the SDK's access token expires and it cannot refresh internally, it calls `onTokenExpired`. Return a `TokenRefreshResult` with fresh credentials, or `null` if you could not refresh:
 
 ```dart
 onTokenExpired: () async {
   try {
-    final refreshed = await myBackend.fetchTokens();
+    final refreshed = await myBackend.fetchRollaTokens();
     return TokenRefreshResult(
       accessToken: refreshed.accessToken,
-      refreshToken: refreshed.refreshToken,           // optional
-      expiresIn: Duration(seconds: refreshed.expiresIn), // optional Duration
+      refreshToken: refreshed.refreshToken,
+      expiresIn: Duration(seconds: refreshed.expiresIn),
     );
   } catch (_) {
-    return null; // forces logout
+    return null; // refresh failed
   }
 },
 ```
 
-The full lifecycle (proactive refresh, `RollaSDK.updateToken()`, forced logout) is in [Token Management](06-token-management.md). The conceptual model is identical to [iOS Token Management](../ios/07-token-management.md) and [Android Token Management](../android/06-token-management.md).
+The full lifecycle (internal refresh, `RollaSDK.updateToken()`, logout) is in [Token Management](06-token-management.md).
 
-## Full minimal integration
+## Complete Example
 
-This is the demo's `RollaLaunchScreen`, trimmed to the essentials: initialize in `initState`, show a spinner while it runs, surface errors with a retry, then hand off to `RollaSdkHome`. Source: [`rolla-sdk-demo-flutter`](https://github.com/Rolla-Health-Fitness/rolla-sdk-demo-flutter) (`lib/screens/rolla_launch_screen.dart`).
+This is the reference launch screen from the `rolla-sdk-demo-flutter` demo app (`lib/screens/rolla_launch_screen.dart`): initialize in `initState`, show a spinner while it runs, surface errors with a retry, then hand off to `RollaSdkHome`.
 
 ```dart
 import 'package:flutter/material.dart';
@@ -147,7 +137,7 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
     });
 
     try {
-      final session = await myBackend.fetchTokens();
+      final session = await myBackend.fetchRollaTokens();
 
       await RollaSDK.initializeWithToken(
         accessToken: session.accessToken,
@@ -155,17 +145,17 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
         tokenExpiresIn: Duration(seconds: session.expiresIn),
         userId: widget.userId,
         partnerId: 'your-partner-id',
-        environment: RollaEnvironment.rnd, // rnd sandbox during integration
-        branding: myBranding, // see Branding & Modules
+        environment: RollaEnvironment.rnd, // sandbox during integration
+        branding: myBranding,              // see Branding & Modules
         // Show the SDK's back button and pop our route when it's tapped.
         showBackButton: true,
         onRequestDismiss: () {
           if (mounted) Navigator.of(context).pop();
         },
-        // Hand back fresh tokens when the SDK asks; null forces logout.
+        // Hand back fresh tokens when the SDK asks; null signals refresh failed.
         onTokenExpired: () async {
           try {
-            final refreshed = await myBackend.fetchTokens();
+            final refreshed = await myBackend.fetchRollaTokens();
             return TokenRefreshResult(
               accessToken: refreshed.accessToken,
               refreshToken: refreshed.refreshToken,
@@ -229,7 +219,7 @@ Navigator.of(context).push(
 );
 ```
 
-> **Before you build:** if you skipped it, configure [Permissions](03-permissions.md) first — a Flutter host **must** add the iOS usage-description strings and Android manifest permissions itself, or the SDK SIGABRT-crashes on iOS the moment it touches Bluetooth.
+Before running on a device, make sure the [Permissions](03-permissions.md) are configured.
 
 ---
 
