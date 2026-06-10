@@ -1,8 +1,8 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS and Android apps.
+Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
 
-**Latest SDK Version:** 0.1.10
+**Latest SDK Version:** 0.1.12
 
 ---
 
@@ -43,6 +43,30 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 7 | [Engine Lifecycle](android/07-engine-lifecycle.md) | Flutter engine, dismiss, memory |
 | 8 | [API Reference](android/08-api-reference.md) | Rolla class, listener, errors, close reasons |
 | 9 | [Troubleshooting](android/09-troubleshooting.md) | Common issues & support |
+
+---
+
+## Flutter Integration
+
+[**Go to Flutter Guide →**](flutter/README.md)
+
+The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embeds the full SDK experience directly in your Flutter widget tree. Unlike the native AAR/pod, a pure-Flutter host compiles the SDK, so **the host app declares its own permissions** in `Info.plist` and `AndroidManifest.xml`. Cross-links out to the iOS / Android guides for shared platform configuration; documents the Dart surface inline.
+
+| # | Section | Description |
+|---|---------|-------------|
+| 0 | [Quick Start](flutter/00-quick-start.md) | Minimal integration in 20–30 minutes |
+| 1 | [Prerequisites](flutter/01-prerequisites.md) | Flutter/Dart floor, native platform floors, partner credentials |
+| 2 | [Installation](flutter/02-installation.md) | `flutter pub add rolla_sdk`, iOS Podfile, Gradle deltas + desugaring |
+| 3 | [Permissions](flutter/03-permissions.md) | Info.plist keys and AndroidManifest entries you DO add |
+| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, `RollaSdkHome`, `onRequestDismiss` |
+| 5 | [Branding & Modules](flutter/05-branding-and-modules.md) | `Branding(...)` config shape, `disabledModules` |
+| 6 | [Token Management](flutter/06-token-management.md) | `onTokenExpired` → `TokenRefreshResult`, logout |
+| 7 | [Permissions Gate](flutter/07-permissions-gate.md) | Open design: onboarding gate behavior and options |
+| 8 | [API Reference](flutter/08-api-reference.md) | Public Dart API: `RollaSDK`, `RollaSdkHome`, `Branding`, enums, types |
+| 9 | [Troubleshooting](flutter/09-troubleshooting.md) | Flutter-specific symptoms and remedies |
+| 10 | [Compatibility Matrix](flutter/10-compatibility-matrix.md) | Toolchain and platform floors per package version |
+
+> **Flutter permissions differ from native:** because the host app consumes the Dart package (not a prebuilt AAR/pod), **you must add the SDK's permission strings yourself** to both `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml`. A `flutter create` scaffold ships with none — a missing iOS Bluetooth usage description SIGABRT-crashes on launch. See [Flutter Permissions](flutter/03-permissions.md).
 
 ---
 
