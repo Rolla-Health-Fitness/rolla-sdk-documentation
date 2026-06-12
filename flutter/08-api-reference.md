@@ -55,7 +55,7 @@ static Future<void> initializeWithToken({
 | `showAccountSettings` | `bool` | `false` | Show credential-management screens (change/reset password, change email, delete account). |
 | `isProfileComplete` | `bool?` | `null` | `true` skips the SDK's profile-completeness check, `false` forces onboarding, `null` lets the SDK check via API. |
 | `disabledModules` | `Set<RollaDisabledModule>` | `{}` | Modules whose UI is hidden everywhere. See [Branding & Modules](05-branding-and-modules.md). |
-| `moduleConfigs` | `Map<RollaModuleType, RollaModuleConfig>?` | `null` | Per-module configuration. Rarely needed. |
+| `moduleConfigs` | `Map<RollaModuleType, RollaModuleConfig>?` | `null` | Reserved — has no effect in this release. Leave unset. |
 | `branding` | `Branding?` | `null` | Host branding (colors, app name, theme, assets). See [`Branding`](#branding) below. |
 
 ### `RollaSDK.updateToken(...)`
@@ -200,7 +200,7 @@ class Branding {
 
 | Export | Purpose |
 | --- | --- |
-| `RollaModuleType` / `RollaModuleConfig` | Keys and value types for `moduleConfigs` — typed config classes per module (`WeightModuleConfig`, `ProfileModuleConfig`, …). |
+| `RollaModuleType` / `RollaModuleConfig` | Module enums and config types (the `moduleConfigs` parameter is reserved in this release). |
 | `WeightModule`, `BloodPressureModule`, `ProfileModule`, `GoalsModule` | Module classes for advanced reads after init, via `RollaSDK.instance.getModule<T>(type)`. |
 | `RollaRoutes` | Route-path constants for the SDK's internal router; only needed for deep-linking and debugging. |
 | `RollaSDKConfig`, `RollaAuthProvider`, `TokenAuthProvider` | Advanced `RollaSDK.initialize` configuration. |

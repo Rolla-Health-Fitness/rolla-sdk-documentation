@@ -64,25 +64,6 @@ await RollaSDK.initializeWithToken(
 
 `RollaDisabledModule` exposes exactly `weight` and `bloodPressure`; every other module is always on. Broader selective enablement is planned for a future release.
 
-## Tuning modules (`moduleConfigs`)
-
-For modules that stay enabled, pass per-module options as a `Map<RollaModuleType, RollaModuleConfig>`. This does not enable or disable modules — it adjusts behaviour within them:
-
-```dart
-import 'package:rolla_sdk/rolla_sdk.dart'
-    show RollaModuleType, WeightModuleConfig, ProfileModuleConfig;
-
-await RollaSDK.initializeWithToken(
-  // ...
-  moduleConfigs: {
-    RollaModuleType.weight: WeightModuleConfig(showBMI: false, allowTarget: false),
-    RollaModuleType.profile: ProfileModuleConfig(showPicture: false),
-  },
-);
-```
-
-> **`disabledModules` vs. `moduleConfigs`:** use `disabledModules` to remove `weight` / `bloodPressure` entirely; use `moduleConfigs` to keep a module but turn parts of it off. They are independent parameters.
-
 For the complete list of modules and what each one does, see [iOS Branding & Modules → Available Modules](../ios/05-branding-and-modules.md#available-modules) and [Android Branding & Modules → Available Modules](../android/05-branding-and-modules.md#available-modules). The module identifiers are the same across platforms.
 
 ---
