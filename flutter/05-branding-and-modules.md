@@ -25,10 +25,8 @@ const Branding partnerBranding = Branding(
   termsUrl: 'https://example.com/terms',
   privacyUrl: 'https://example.com/privacy',
 
-  // Optional asset paths (see Branding assets). null = SDK bundled defaults.
+  // Optional header logo — an SVG bundled inside the SDK (see Branding assets).
   headerLogoAsset: null,
-  onboardingImageAsset: null,
-  signUpImageAsset: null,
 );
 ```
 
@@ -47,9 +45,9 @@ The full field list (including the auth-screen text and background overrides) is
 
 ## Branding assets
 
-Image assets referenced by `headerLogoAsset` (and the onboarding/sign-up images) **must be bundled inside the SDK at build time** — they are loaded from the SDK's own asset bundle, not your host app's `pubspec.yaml` assets. Leave the paths `null` to use the SDK defaults.
+The header logo must be an **SVG** — the SDK renders it with its own SVG widget, so raster formats will not load. It also **must be bundled inside the SDK at build time**: assets are loaded from the SDK's own bundle, not your host app's `pubspec.yaml` assets. Leave the path `null` to use the SDK default.
 
-During onboarding, coordinate with Rolla to supply your logo (SVG preferred) and brand assets. Rolla bundles them into the SDK and gives you the asset paths to set here. See [iOS Branding & Modules → Branding Assets](../ios/05-branding-and-modules.md#branding-assets) for the rationale — it is the same on Flutter.
+During onboarding, send Rolla your logo as an SVG; Rolla bundles it into the SDK and gives you the asset path to set here. The `Branding` class also declares onboarding/sign-up image slots (`onboardingImageAsset`, `signUpImageAsset`) — these are reserved and not rendered by this version of the SDK. See [iOS Branding & Modules → Branding Assets](../ios/05-branding-and-modules.md#branding-assets) for the same model on the native side.
 
 ## Disabling modules
 
