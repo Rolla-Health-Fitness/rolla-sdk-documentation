@@ -10,7 +10,7 @@ Get the Rolla SDK running in your Flutter app in under 10 minutes.
 - **iOS 14.0+** deployment target (`platform :ios, '14.0'` in `ios/Podfile`)
 - **Android `minSdk 26`**, **build JDK 17+**, **Kotlin 2.2.0+**, and **core library desugaring** — see [Installation](02-installation.md)
 - **Partner ID and sandbox credentials** from your Rolla SDK starter package (contact [support@rolla.app](mailto:support@rolla.app))
-- **Physical devices** for hardware-backed features (Bluetooth, GPS)
+- **A physical device** for hardware-backed features (Bluetooth band pairing, motion sensors)
 
 Before running on a device, add the SDK's permission declarations to `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml` — a Flutter host declares these itself, and iOS aborts with SIGABRT if a usage string is missing. See [Permissions](03-permissions.md).
 
@@ -135,7 +135,7 @@ Navigator.of(context).push(
 
 > **`RollaSdkHome` is a complete app shell** — it brings its own navigation and theming. Your app's root `MaterialApp` stays as it is; just don't wrap `RollaSdkHome` in a new one — return it directly from your route.
 
-Run the app (`flutter run`) — the SDK initializes and renders, and its back button returns the user to your app. Simulators and emulators work for everything except hardware-backed features: Bluetooth band pairing and GPS activity tracking need a physical device.
+Run the app (`flutter run`) — the SDK initializes and renders, and its back button returns the user to your app. Simulators and emulators work for everything except hardware-backed features: Bluetooth band pairing and motion-sensor tracking need a physical device.
 
 For the production-ready version of this screen (error handling, retry), see [Code Integration](04-code-integration.md).
 
