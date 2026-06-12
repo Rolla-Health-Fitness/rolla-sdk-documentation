@@ -92,7 +92,7 @@ await RollaSDK.initializeWithToken(
 
 ## 4. Use the SDK
 
-Once initialization completes, render `RollaSdkHome` — the single widget that hosts the entire SDK experience:
+Once initialization completes, render `RollaSdkHome` — the single widget that hosts the entire SDK experience. It is a regular widget, so place it however fits your app: pushed as its own screen (this quick start and the demo), as your app's root, or behind a `FutureBuilder` — see [Code Integration → Placing `RollaSdkHome`](04-code-integration.md#placing-rollasdkhome). Whatever the placement, initialize first.
 
 ```dart
 class RollaLaunchScreen extends StatefulWidget {
@@ -137,7 +137,7 @@ Navigator.of(context).push(
 
 Run on a physical device (`flutter run --release -d <device-id>`) — the SDK initializes and renders, and its back button returns the user to your app.
 
-For the production-ready version of this screen (error handling, retry), see [Code Integration](04-code-integration.md). It mirrors the `rolla-sdk-demo-flutter` reference app — ask your Rolla contact for access.
+For the production-ready version of this screen (error handling, retry), see [Code Integration](04-code-integration.md).
 
 ## Next Steps
 

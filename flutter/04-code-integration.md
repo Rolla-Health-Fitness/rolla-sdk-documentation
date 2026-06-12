@@ -1,6 +1,11 @@
 # Code Integration
 
-The SDK exposes a static `RollaSDK` class for initialization and a single widget, `RollaSdkHome`, that renders the entire SDK experience. You initialize once with a token, then hand off a route to `RollaSdkHome`.
+The entire integration is two calls:
+
+1. `await RollaSDK.initializeWithToken(...)` — once, with the tokens your backend minted.
+2. Place `RollaSdkHome(userId: ...)` wherever the SDK should appear.
+
+`RollaSdkHome` does not work before initialization completes — everything it renders depends on the session that `initializeWithToken` sets up. How you place the widget is up to you; the common placements are in [Placing `RollaSdkHome`](#placing-rollasdkhome) below.
 
 ## Import
 
@@ -34,15 +39,67 @@ For `userId`, pass a stable identifier or the user's email. The login response's
 
 `initializeWithToken` resets any prior instance and returns once the SDK is ready; after it completes, `RollaSDK.isInitialized` is `true`. Kick it off from `initState()` (or a button handler) and show a spinner while it runs — re-running it disposes and rebuilds the SDK, so do not call it on every rebuild.
 
-## Render `RollaSdkHome`
+## Placing `RollaSdkHome`
 
-Once initialized, render the SDK by returning `RollaSdkHome(userId: ...)` from a route:
+`RollaSdkHome(userId: ...)` is a regular widget — place it whichever way fits your app. Whatever the placement, the same rules apply:
+
+- **Initialize first.** Render the widget only after `initializeWithToken` completes — guard on your own state flag or `RollaSDK.isInitialized`.
+- **Do not wrap it in another `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation, theming, and routing from that point on.
+- **Wire the exit for your placement.** A pushed screen needs `showBackButton` + `onRequestDismiss` (next section); an app-root placement exits through `onLogout` instead.
+
+### Option A — push it as a screen
+
+The pattern the demo app uses, and the right fit when Rolla is one feature of your app: a launch screen initializes the SDK in `initState`, shows a spinner, then returns `RollaSdkHome` from `build`. Your app pushes that screen as an ordinary route:
 
 ```dart
-return RollaSdkHome(userId: widget.userId);
+Navigator.of(context).push(
+  MaterialPageRoute<void>(
+    builder: (_) => const RollaLaunchScreen(), // initializes, then shows RollaSdkHome
+  ),
+);
 ```
 
-> **Do not wrap `RollaSdkHome` in another `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation, theming, and routing from that point on. Push it onto a route from your existing app instead (`Navigator.push` / `GoRoute`).
+The full launch screen, including error handling and retry, is the [Complete Example](#complete-example) below.
+
+### Option B — make it your app's root
+
+For deployments where Rolla *is* the main experience: run your own login flow, initialize the SDK, then return `RollaSdkHome` as the authenticated home:
+
+```dart
+@override
+Widget build(BuildContext context) {
+  if (!auth.isLoggedIn) return const LoginScreen();
+  if (!RollaSDK.isInitialized) return const SplashScreen(); // initializeWithToken in flight
+  return RollaSdkHome(userId: auth.userId); // the SDK is the app from here
+}
+```
+
+There is nothing to dismiss in this topology — leave `showBackButton` off and route back to your login screen from `onLogout`.
+
+### Option C — gate it with a `FutureBuilder`
+
+A compact variant of Option A. Create the init future **once** (a field — never in `build`, since re-running `initializeWithToken` disposes and rebuilds the SDK):
+
+```dart
+class _RollaScreenState extends State<RollaScreen> {
+  late final Future<void> _init = RollaSDK.initializeWithToken(/* ... */);
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _init,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+        return RollaSdkHome(userId: widget.userId);
+      },
+    );
+  }
+}
+```
+
+Add error handling via `snapshot.hasError` — or use Option A's explicit state fields, which make the retry flow easier to express.
 
 ## Host dismissal — `showBackButton` + `onRequestDismiss`
 
@@ -115,8 +172,7 @@ import 'package:flutter/material.dart';
 import 'package:rolla_sdk/rolla_sdk.dart';
 
 class RollaLaunchScreen extends StatefulWidget {
-  const RollaLaunchScreen({super.key, required this.userId});
-  final String userId;
+  const RollaLaunchScreen({super.key});
 
   @override
   State<RollaLaunchScreen> createState() => _RollaLaunchScreenState();
@@ -125,6 +181,10 @@ class RollaLaunchScreen extends StatefulWidget {
 class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
   bool _initializing = true;
   String? _error;
+
+  /// The Rolla user id from the login JWT's `sub` claim. A partner with
+  /// their own user system can pass its id (or the user's email) instead.
+  String? _userId;
 
   @override
   void initState() {
@@ -145,7 +205,7 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
         tokenExpiresIn: Duration(seconds: session.expiresIn),
-        userId: widget.userId,
+        userId: session.userId, // decoded from the JWT's `sub` claim
         partnerId: 'your-partner-id',
         environment: RollaEnvironment.rnd, // sandbox during integration
         branding: myBranding,              // see Branding & Modules
@@ -174,7 +234,10 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
       );
 
       if (!mounted) return;
-      setState(() => _initializing = false);
+      setState(() {
+        _initializing = false;
+        _userId = session.userId;
+      });
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -201,27 +264,18 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
       );
     }
 
-    if (_initializing) {
+    final userId = _userId;
+    if (_initializing || userId == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     // Hand off to the SDK. RollaSdkHome owns everything from here.
-    return RollaSdkHome(userId: widget.userId);
+    return RollaSdkHome(userId: userId);
   }
 }
 ```
 
-Push it from your own screen as an ordinary route — Rolla lives alongside your UI, it does not replace your app:
-
-```dart
-Navigator.of(context).push(
-  MaterialPageRoute<void>(
-    builder: (_) => RollaLaunchScreen(userId: currentUser.id),
-  ),
-);
-```
-
-Before running on a device, make sure the [Permissions](03-permissions.md) are configured.
+Push it from your own screen as an ordinary route ([Option A](#option-a--push-it-as-a-screen)) — Rolla lives alongside your UI, it does not replace your app. Before running on a device, make sure the [Permissions](03-permissions.md) are configured.
 
 ---
 

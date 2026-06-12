@@ -58,7 +58,7 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 | 1 | [Prerequisites](flutter/01-prerequisites.md) | Flutter/Dart floor, native platform floors, partner credentials |
 | 2 | [Installation](flutter/02-installation.md) | `flutter pub add rolla_sdk`, iOS deployment target, Gradle deltas + desugaring |
 | 3 | [Permissions](flutter/03-permissions.md) | Info.plist keys and AndroidManifest entries the host app adds |
-| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, `RollaSdkHome`, host dismissal |
+| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal |
 | 5 | [Branding & Modules](flutter/05-branding-and-modules.md) | `Branding(...)` config, `disabledModules`, `moduleConfigs` |
 | 6 | [Token Management](flutter/06-token-management.md) | `onTokenExpired` → `TokenRefreshResult`, `updateToken()`, logout |
 | 7 | [Permission Gating](flutter/07-permissions-gate.md) | How and when the SDK requests runtime permissions |

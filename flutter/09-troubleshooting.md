@@ -81,7 +81,7 @@ version solving failed.
 
 **Cause:** `RollaSdkHome` was wrapped in another `MaterialApp`. It builds its own `MaterialApp.router` and owns navigation and theming from that point.
 
-**Fix:** push it onto a route from your existing app (`Navigator.push` / a `GoRoute`) instead of nesting it in a `MaterialApp`. See [Code Integration](04-code-integration.md#render-rollasdkhome).
+**Fix:** push it onto a route from your existing app (`Navigator.push` / a `GoRoute`) instead of nesting it in a `MaterialApp`. See [Code Integration → Placing `RollaSdkHome`](04-code-integration.md#placing-rollasdkhome).
 
 ## Stale native dependencies after bumping `rolla_sdk`
 
