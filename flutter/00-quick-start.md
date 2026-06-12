@@ -86,7 +86,7 @@ await RollaSDK.initializeWithToken(
 );
 ```
 
-> **Pass both `showBackButton: true` and `onRequestDismiss`.** The SDK owns its own navigation, so its back button cannot pop *your* `Navigator` — `onRequestDismiss` is how it asks your app to dismiss it. Without it the back button does nothing and the user has no way back to your app. See [Code Integration → Host dismissal](04-code-integration.md#host-dismissal--showbackbutton--onrequestdismiss).
+> **Give the user a way back to your app.** `showBackButton: true` renders a back button in the SDK's top bar. `onRequestDismiss` is the callback that button invokes — typically `Navigator.pop()` to close the SDK screen. Pass both: without `onRequestDismiss` the back button renders but does nothing. See [Code Integration → Host dismissal](04-code-integration.md#host-dismissal--showbackbutton--onrequestdismiss).
 
 > **Use `RollaEnvironment.rnd` while integrating.** Your starter-package credentials are sandbox credentials, minted against `https://ross-rnd.rolla.cloud` — and the Dart default is `.production`, so set this explicitly. Switch to `.production` once Rolla provisions your production credentials.
 
