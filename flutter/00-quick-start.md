@@ -133,7 +133,7 @@ Navigator.of(context).push(
 );
 ```
 
-> **Do not wrap `RollaSdkHome` in your own `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation and theming from that point on.
+> **`RollaSdkHome` is a complete app shell** — it brings its own navigation and theming. Your app's root `MaterialApp` stays as it is; just don't wrap `RollaSdkHome` in a new one — return it directly from your route.
 
 Run on a physical device (`flutter run --release -d <device-id>`) — the SDK initializes and renders, and its back button returns the user to your app.
 
