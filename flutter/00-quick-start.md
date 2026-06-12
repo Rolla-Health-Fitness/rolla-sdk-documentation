@@ -135,7 +135,7 @@ Navigator.of(context).push(
 
 > **`RollaSdkHome` is a complete app shell** — it brings its own navigation and theming. Your app's root `MaterialApp` stays as it is; just don't wrap `RollaSdkHome` in a new one — return it directly from your route.
 
-Run on a physical device (`flutter run --release -d <device-id>`) — the SDK initializes and renders, and its back button returns the user to your app.
+Run the app (`flutter run`) — the SDK initializes and renders, and its back button returns the user to your app. Simulators and emulators work for everything except hardware-backed features: Bluetooth band pairing and GPS activity tracking need a physical device.
 
 For the production-ready version of this screen (error handling, retry), see [Code Integration](04-code-integration.md).
 
