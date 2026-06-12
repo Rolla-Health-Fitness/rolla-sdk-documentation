@@ -35,7 +35,7 @@ await RollaSDK.initializeWithToken(
 
 For `userId`, pass a stable identifier or the user's email. The login response's access token is a JWT whose `sub` claim contains the Rolla user ID, so you can also decode it from there — no extra API call needed.
 
-> **Use `RollaEnvironment.rnd` while integrating.** Your starter-package credentials are sandbox credentials, so the environment must be `.rnd` to match — and the Dart default is `.production`, so set it explicitly. Switch to `.production` once Rolla provisions your production credentials.
+> **Use `RollaEnvironment.rnd` while integrating.** Your starter-package credentials belong to the `rnd` sandbox and won't authenticate against production. The parameter defaults to `.production`, so set it explicitly. Switch to `.production` once Rolla provisions your production credentials.
 
 `initializeWithToken` resets any prior instance and returns once the SDK is ready; after it completes, `RollaSDK.isInitialized` is `true`. Kick it off from `initState()` (or a button handler) and show a spinner while it runs — re-running it disposes and rebuilds the SDK, so do not call it on every rebuild.
 
