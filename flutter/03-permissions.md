@@ -71,7 +71,7 @@ The SDK renders maps for activity tracking and needs the Mapbox access token Rol
 
 ## Runtime prompts
 
-Runtime permission prompts (the Bluetooth dialog on iOS, runtime dialogs on Android API 31+) are handled by the **SDK itself** when the user reaches the relevant feature inside `RollaSdkHome`. Your Flutter code does not call any permission API. You may pre-prompt before launching the SDK if your onboarding UX prefers it — see [Permission Gating](07-permissions-gate.md).
+Runtime permission prompts (the Bluetooth dialog on iOS, runtime dialogs on Android API 31+) are handled by the **SDK itself** when the user reaches the relevant feature inside `RollaSdkHome`. Your Flutter code does not call any permission API. If your onboarding UX prefers collecting permissions up front, you can pre-prompt before launching the SDK (e.g. with [`permission_handler`](https://pub.dev/packages/permission_handler)) — permissions already granted are not re-prompted.
 
 ---
 

@@ -68,4 +68,4 @@ When logout is initiated *inside* the SDK, the order is reversed: the SDK clears
 
 ---
 
-**Next:** [Permission Gating](07-permissions-gate.md) | **Home:** [README](README.md)
+**Next:** [API Reference](07-api-reference.md) | **Home:** [README](README.md)

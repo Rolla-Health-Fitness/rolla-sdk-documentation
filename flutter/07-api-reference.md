@@ -210,4 +210,4 @@ There is no event-listener API: in Flutter you observe the SDK lifecycle through
 
 ---
 
-**Next:** [Troubleshooting](09-troubleshooting.md) | **Home:** [README](README.md)
+**Next:** [Troubleshooting](08-troubleshooting.md) | **Home:** [README](README.md)

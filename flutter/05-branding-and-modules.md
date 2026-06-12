@@ -41,7 +41,7 @@ await RollaSDK.initializeWithToken(
 
 > **Color literals only.** `Color(0xFF1976D2)` is opaque blue — the leading `FF` is the alpha byte. Passing a bare `0x1976D2` yields a fully transparent color.
 
-The full field list (including the auth-screen text and background overrides) is in [API Reference → Branding](08-api-reference.md#branding).
+The full field list (including the auth-screen text and background overrides) is in [API Reference → Branding](07-api-reference.md#branding).
 
 ## Branding assets
 

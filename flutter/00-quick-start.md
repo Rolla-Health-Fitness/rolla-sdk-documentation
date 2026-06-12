@@ -144,7 +144,7 @@ For the production-ready version of this screen (error handling, retry), see [Co
 - **Permissions:** Add the required Info.plist keys and manifest entries — [Permissions](03-permissions.md)
 - **Branding:** Customize colors, logos, and enabled modules — [Branding & Modules](05-branding-and-modules.md)
 - **Token details:** Full token lifecycle and edge cases — [Token Management](06-token-management.md)
-- **API Reference:** All methods, callbacks, and types — [API Reference](08-api-reference.md)
+- **API Reference:** All methods, callbacks, and types — [API Reference](07-api-reference.md)
 
 ---
 

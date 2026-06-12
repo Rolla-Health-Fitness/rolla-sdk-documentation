@@ -61,10 +61,9 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 | 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal |
 | 5 | [Branding & Modules](flutter/05-branding-and-modules.md) | `Branding(...)` config, `disabledModules` |
 | 6 | [Token Management](flutter/06-token-management.md) | `onTokenExpired` → `TokenRefreshResult`, `updateToken()`, logout |
-| 7 | [Permission Gating](flutter/07-permissions-gate.md) | How and when the SDK requests runtime permissions |
-| 8 | [API Reference](flutter/08-api-reference.md) | Public Dart API: `RollaSDK`, `RollaSdkHome`, `Branding`, enums, types |
-| 9 | [Troubleshooting](flutter/09-troubleshooting.md) | Flutter-specific symptoms and remedies |
-| 10 | [Compatibility Matrix](flutter/10-compatibility-matrix.md) | Package version ↔ Flutter / Dart / iOS / Android floors |
+| 7 | [API Reference](flutter/07-api-reference.md) | Public Dart API: `RollaSDK`, `RollaSdkHome`, `Branding`, enums, types |
+| 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific symptoms and remedies |
+| 9 | [Compatibility Matrix](flutter/09-compatibility-matrix.md) | Package version ↔ Flutter / Dart / iOS / Android floors |
 
 > **Flutter hosts declare their own permissions.** Because the app consumes the Dart package (not a prebuilt AAR/pod), the SDK's permission strings must be added to `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml` — a missing iOS usage string aborts the app with SIGABRT. See [Flutter Permissions](flutter/03-permissions.md).
 
