@@ -45,8 +45,6 @@ In `android/app/build.gradle.kts`, set `minSdk = 26` and enable core library des
 android {
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
     }
 
     defaultConfig {
