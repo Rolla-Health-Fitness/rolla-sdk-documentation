@@ -10,6 +10,28 @@
 
 ---
 
+## 0.1.11
+
+### Both platforms
+
+- **[breaking] Replaced the `modules` parameter on `RollaConfiguration` with `disabledModules`.** The previous `modules` (enable-list) parameter — and the previously undocumented `enabledModules` parameter — have been removed. Module configuration is now opt-*out*: pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit the parameter to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed `modules`/`enabledModules` must switch to `disabledModules`. See [Android](android/05-branding-and-modules.md#module-configuration) and [iOS](ios/05-branding-and-modules.md#module-configuration) branding & modules guides and the [Android](android/08-api-reference.md#rolladisabledmodule) / [iOS](ios/10-api-reference.md#rolladisabledmodule) API references.
+
+- **[feature] Added the `removeRollaBandReferences` flag to `RollaConfiguration`, default `true`.** When `true` the SDK UI uses generic "fitness device" wording; set it to `false` to show Rolla Band-specific references. See [Android](android/05-branding-and-modules.md#rolla-band-references) and [iOS](ios/05-branding-and-modules.md#rolla-band-references) branding & modules guides.
+
+- **[feature] Smartphone-only workout tracking.** Workouts can now be started and tracked without a paired wearable, using the phone's pedometer and motion sensors. This adds a new permission requirement on each platform — see the Android and iOS notes below.
+
+### Android
+
+- **[breaking] `ACTIVITY_RECOGNITION` is now declared by the SDK manifest.** The bundled SDK manifest declares `android.permission.ACTIVITY_RECOGNITION` (API 29+) to read the phone's step counter for smartphone-only workouts. You no longer add it yourself — but ensure your host app does not strip it via `tools:node="remove"`, and that your Play Console listing covers the activity-recognition rationale. See [Smartphone-Only Workouts](android/03-permissions.md#smartphone-only-workouts-activity_recognition) and the updated [Permissions Rationale](android/03-permissions.md#permissions-rationale).
+
+### iOS
+
+- **[breaking] `NSMotionUsageDescription` now required in the host app's `Info.plist`.** Smartphone-only workouts use `CMPedometer`, and iOS hard-terminates any app that starts it without an `NSMotionUsageDescription` string declared. Add the key with a user-facing rationale or smartphone-only workouts will crash the app on first start. See [Motion & Fitness](ios/03-permissions-and-entitlements.md#motion--fitness-required-for-smartphone-only-workouts).
+
+- **[improvement] Live Workout widget honors phone-only mode.** `LiveWorkoutAttributes.ContentState` gained an `isPhoneOnly` flag (defaulted to `false`) so the Dynamic Island and Lock Screen views can hide band-specific elements when a workout is tracked from the phone alone. If you copied an older data contract into your widget, add the field to match the current SDK. See [Live Activities](ios/09-live-activities.md#step-3-widget-extension-files).
+
+---
+
 ## 0.1.10
 
 ### Both platforms

@@ -20,6 +20,19 @@ Add the Mapbox access token to `app/src/main/res/values/strings.xml` for map fun
 
 You will receive the Mapbox token from Rolla along with your partner credentials.
 
+## Smartphone-Only Workouts (`ACTIVITY_RECOGNITION`)
+
+`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's step counter and motion sensors. To read the phone's step counter on Android 10+ (API 29+), the SDK's bundled manifest **declares `android.permission.ACTIVITY_RECOGNITION` for you**:
+
+```xml
+<!-- Declared by the Rolla SDK manifest — you do NOT need to add this -->
+<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+```
+
+> **Breaking:** Do **not** strip this permission from the merged manifest. If your host app removes it (e.g. with `tools:node="remove"` or `tools:remove`), smartphone-only step counting and cadence will silently stop working. The permission merges in automatically — no action is required beyond leaving it in place.
+
+Because `ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
+
 ## Health Connect (Android)
 
 `0.1.10` adds Google Health Connect support. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
@@ -28,7 +41,6 @@ Add inside the `<manifest>` element, alongside your other `<uses-permission>` en
 
 ```xml
 <!-- Health Connect permissions -->
-<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
 <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
 <uses-permission android:name="android.permission.health.READ_STEPS" />
@@ -153,7 +165,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `ACTIVITY_RECOGNITION` | Required for Health Connect step access on Android 10+ | Google's Health Connect docs require apps that read step data to declare this permission so the user understands that step counting depends on motion sensing. No SDK code currently calls the Activity Recognition Transition API directly. |
+| `ACTIVITY_RECOGNITION` | Required (declared by the SDK) | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. As of `0.1.11` the SDK reads the phone's step counter directly to power **smartphone-only workout tracking** (workouts tracked with no paired wearable). The SDK's bundled manifest declares it and requests it at runtime; the host app must not strip it. |
 
 ### Foreground Service
 

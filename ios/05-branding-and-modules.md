@@ -36,76 +36,43 @@ During onboarding, coordinate with Rolla to supply:
 
 Rolla will bundle these into the SDK and provide the correct asset path to use in your `RollaBranding` configuration.
 
-## Module Configuration
+## Rolla Band References
 
-The SDK is organized into modules. Currently, all modules are always enabled — pass `nil` for the `modules` parameter (or omit it entirely).
+The SDK can refer to the paired wearable either generically ("fitness device") or specifically as the "Rolla Band" throughout its UI. This is controlled by the `removeRollaBandReferences` flag on `RollaConfiguration`:
 
 ```swift
 let configuration = RollaConfiguration(
     token: token,
     partnerId: partnerId,
-    modules: nil  // All modules enabled (currently the only supported option)
+    removeRollaBandReferences: true  // Default — generic "fitness device" wording
 )
 ```
 
-Selective module enablement will be available in a future release. Once you see the full feature set, you can tell us which modules you want enabled or disabled and we will implement per-partner module configuration.
+- `true` (**default**) — the SDK uses generic "fitness device" wording. This is the right choice for most partner apps, which pair with their own-branded or third-party wearables rather than a Rolla-branded band.
+- `false` — the SDK shows Rolla Band-specific references (naming, imagery, and copy that call out the Rolla Band by name).
 
-### Available Modules
+## Module Configuration
 
-The SDK is organized into the following modules. Module names are **camelCase** strings and must match exactly if passed in the `modules` array.
+By default every module is enabled. To hide a module's entire UI everywhere it appears in the SDK, pass its `RollaDisabledModule` value in the `disabledModules` set (or omit the parameter / pass `[]` to keep everything enabled):
 
-**Health & Fitness**
+```swift
+let configuration = RollaConfiguration(
+    token: token,
+    partnerId: partnerId,
+    disabledModules: [.weight, .bloodPressure]
+)
+```
 
-| Module | Description |
-|--------|-------------|
-| `metrics` | Health metrics dashboard (heart rate, HRV, steps, calories, distance) |
-| `weight` | Weight tracking with BMI and targets |
-| `bloodPressure` | Blood pressure tracking and manual logging |
-| `goals` | Daily health goals (steps, sleep, active points) |
-| `insights` | AI-generated personalized health insights |
-| `scores` | Readiness and activity scores |
+### Disable-able Modules
 
-**Activity Tracking**
+`disabledModules` accepts the following `RollaDisabledModule` values. These are the modules that can currently be turned off per integration:
 
-| Module | Description |
-|--------|-------------|
-| `activityTracking` | Live activity tracking with GPS and heart rate |
-| `activityReview` | Activity history and detailed review |
+| Value | Hides |
+|-------|-------|
+| `.weight` | The Weight tracking module (weight logging, BMI, and targets) |
+| `.bloodPressure` | The Blood Pressure tracking and manual-logging module |
 
-**Device Management**
-
-| Module | Description |
-|--------|-------------|
-| `bandPairing` | Bluetooth band discovery and pairing |
-| `bandSync` | Band data synchronization |
-| `bandFirmware` | Band firmware update management |
-
-**User & Settings**
-
-| Module | Description |
-|--------|-------------|
-| `profile` | User profile management |
-| `settings` | App settings (theme, language, units, permissions) |
-| `authentication` | User authentication and session management |
-| `consent` | User consent management |
-| `onboarding` | User onboarding flow and initial setup |
-| `permissions` | Runtime permissions management |
-
-**UI & Navigation**
-
-| Module | Description |
-|--------|-------------|
-| `home` | Home dashboard |
-| `fabMenu` | Floating action button menu |
-| `branding` | App branding and theming |
-| `support` | Support and help |
-
-**Integrations & Diagnostics**
-
-| Module | Description |
-|--------|-------------|
-| `integrations` | External integrations (Apple Health, Garmin, Oura) |
-| `debugLogs` | Band diagnostic logs |
+Additional modules will become disable-able in future releases. If there is a module you need to hide that isn't listed yet, contact Rolla during onboarding and we will prioritize adding it to `RollaDisabledModule`.
 
 ---
 

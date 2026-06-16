@@ -56,6 +56,17 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 > **Note:** The SDK reads Apple Health data only — it does not write to HealthKit. Only `NSHealthShareUsageDescription` is required.
 
+### Motion & Fitness (Required for smartphone-only workouts)
+
+`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's pedometer for steps and cadence. The SDK uses `CMPedometer` for this, which requires a motion usage description:
+
+```xml
+<key>NSMotionUsageDescription</key>
+<string>Used to count steps and measure cadence during workouts when no fitness band is connected.</string>
+```
+
+> **Breaking — add this key or the app will crash.** iOS terminates any app that calls `CMPedometer.startUpdates` without an `NSMotionUsageDescription` string declared in its `Info.plist`. If you omit the key, the app will `SIGABRT` the first time a user starts a smartphone-only workout. Add the key with a user-facing rationale (the string above is a suggestion — adjust the wording to match your app's voice).
+
 ## Configure Entitlements
 
 ### Bluetooth Central
@@ -116,6 +127,12 @@ This section is the partner-facing justification for every permission the SDK re
 | HealthKit Entitlement | Required if Apple Health is enabled (build-time) | App Store capability that authorizes the HealthKit APIs the SDK uses to read Apple Health data. Configured in `.entitlements`, not `Info.plist`. |
 
 > **Note on `NSHealthUpdateUsageDescription`:** The SDK passes an empty `toShare` array — it does **not** write back to HealthKit. The white-label app declares the write key out of caution, but a partner integration whose product does not write to HealthKit can omit it. If you call any HealthKit write API in your own host code, declare it.
+
+### Motion & Fitness
+
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `NSMotionUsageDescription` | Required if smartphone-only workouts are reachable | The SDK uses `CMPedometer` (`PhonePedometerHandler.swift`) to count steps and measure cadence when a workout is tracked from the phone alone (no paired band). iOS shows the system Motion & Fitness prompt the first time `CMPedometer` is started, and **hard-terminates the app (`SIGABRT`) if the key is absent** — so the key must be present in any build where a user can start a phone-only workout, even if the user later denies the prompt. With the permission denied the workout still records via GPS, but step- and cadence-based metrics are unavailable. |
 
 ### Background Modes
 

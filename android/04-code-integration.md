@@ -33,7 +33,7 @@ val configuration = RollaConfiguration(
     tokenExpiresIn = 1800,                     // Optional: token expiry in seconds
     userId = "user-id",                        // Optional: extracted from JWT if not provided
     environment = "production",                // or "rnd" for development
-    modules = null,                            // Optional: null enables all modules
+    disabledModules = emptySet(),              // Optional: modules to hide (default: none disabled)
     branding = null                            // Optional: custom branding configuration
 )
 ```

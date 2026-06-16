@@ -40,9 +40,21 @@ The `RollaConfiguration` struct defines all parameters for SDK initialization. S
 | `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
 | `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
 | `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
-| `modules` | `[String]?` | No | `nil` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
+| `disabledModules` | `Set<RollaDisabledModule>` | No | `[]` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Branding and Modules](05-branding-and-modules.md#module-configuration) and the [`RollaDisabledModule`](#rolladisabledmodule) values below |
 | `branding` | `RollaBranding?` | No | `nil` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
-| `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button.
+| `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button. |
+| `removeRollaBandReferences` | `Bool` | No | `true` | When `true` (the default), the SDK UI uses generic "fitness device" wording. Set to `false` to show Rolla Band-specific references. See [Branding and Modules](05-branding-and-modules.md#rolla-band-references) |
+
+### RollaDisabledModule
+
+`disabledModules` accepts a set of `RollaDisabledModule` values. Each value passed hides that module's entire UI everywhere it appears in the SDK. Currently supported:
+
+| Value | Hides |
+|-------|-------|
+| `.weight` | The Weight tracking module |
+| `.bloodPressure` | The Blood Pressure tracking module |
+
+More modules will become disable-able in future releases. Pass `[]` (or omit the parameter) to keep every module enabled.
 
 ## Error Handling
 

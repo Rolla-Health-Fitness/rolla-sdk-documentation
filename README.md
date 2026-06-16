@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.10
+**Latest SDK Version:** 0.1.11
 
 ---
 
@@ -67,11 +67,13 @@ Feature support comparison between iOS and Android.
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
+| Custom Branding | Yes | Yes | Colors, logo, Rolla Band wording (`removeRollaBandReferences`) |
+| Module Disabling | Yes | Yes | `disabledModules`; `weight` and `bloodPressure` supported as of `0.1.11` |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
 | Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
+| Smartphone-Only Workout Tracking | Yes | Yes | Added in `0.1.11`; needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 
