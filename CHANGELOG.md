@@ -14,11 +14,27 @@
 
 ### Both platforms
 
-- **[breaking] Replaced the `modules` parameter on `RollaConfiguration` with `disabledModules`.** The previous `modules` (enable-list) parameter — and the previously undocumented `enabledModules` parameter — have been removed. Module configuration is now opt-*out*: pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit the parameter to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed `modules`/`enabledModules` must switch to `disabledModules`. See [Android](android/05-branding-and-modules.md#module-configuration) and [iOS](ios/05-branding-and-modules.md#module-configuration) branding & modules guides and the [Android](android/08-api-reference.md#rolladisabledmodule) / [iOS](ios/10-api-reference.md#rolladisabledmodule) API references.
+- **[breaking] Module configuration switched from an enable-list to an opt-out list (`disabledModules`).** The previous enable-list parameter — documented as `modules`, named `enabledModules` in the SDK — has been removed and replaced by `disabledModules`. Pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit it to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed an enable-list must switch to `disabledModules`. See [Android](android/05-branding-and-modules.md#module-configuration) and [iOS](ios/05-branding-and-modules.md#module-configuration) branding & modules guides and the [Android](android/08-api-reference.md#rolladisabledmodule) / [iOS](ios/10-api-reference.md#rolladisabledmodule) API references.
 
 - **[feature] Added the `removeRollaBandReferences` flag to `RollaConfiguration`, default `true`.** When `true` the SDK UI uses generic "fitness device" wording; set it to `false` to show Rolla Band-specific references. See [Android](android/05-branding-and-modules.md#rolla-band-references) and [iOS](ios/05-branding-and-modules.md#rolla-band-references) branding & modules guides.
 
 - **[feature] Smartphone-only workout tracking.** Workouts can now be started and tracked without a paired wearable, using the phone's pedometer and motion sensors. This adds a new permission requirement on each platform — see the Android and iOS notes below.
+
+- **[feature] Added an Activity History screen.** Users can open it from **View All Activities** at the bottom of the activities section on the SDK Home screen, and browse all past workouts in a monthly calendar view with summary stats and shareable card previews.
+
+- **[feature] Added in-app usage events analytics.** The SDK records basic usage events within its UI (screen views and feature interactions) and reports them to the Rolla backend, queued locally and delivered across offline periods.
+
+- **[feature] Manual activity logging.** Users can manually log a past workout — pick an activity type, set duration and intensity — and the SDK estimates calories from heart-rate samples where available, falling back to a metabolic-equivalents (MET) model otherwise.
+
+- **[feature] New activity types: Spa and Calisthenics.** Calisthenics joins the Strength category and can be live-tracked or logged manually; a new Spa category (Sauna, Steam Room, Cold Plunge, Jacuzzi) is available from the manual activity logger only and does not appear in the live-tracking start list.
+
+- **[improvement] Redesigned the Insights experience into a dedicated Insights tab.** Insights moved off the Home screen into its own tab in the SDK bottom navigation, with a daily scrollable feed, filters, full article views, and ratings. This is visible only to partners using the SDK's bottom navigation bar — partners with their own navigation will no longer see the Insights section.
+
+- **[improvement] Redesigned the SDK bottom navigation bar.** The bottom navigation is now a floating pill with a blurred backdrop, an animated active-tab indicator, and a separated circular button for starting workouts; three primary tabs (Home, Insights, Profile). Partners not using the SDK's bottom navigation will only see the Plus button move from bottom-centre to bottom-right.
+
+- **[improvement] Reduced the SDK payload size by 73 MB, removing unused bundled media assets and lowering your app's download size significantly.**
+
+- **[fix] Apple Health and Health Connect now sync as a secondary source.** Workouts, weight, and blood pressure from a secondary Apple Health / Health Connect connection are now uploaded on each Home resume; previously they stopped syncing when another source was primary. Heart rate, HRV, steps, and sleep remain owned by the primary source.
 
 ### Android
 

@@ -40,7 +40,7 @@ The `RollaConfiguration` class defines all parameters for SDK initialization. Se
 | `refreshToken` | `String?` | No | `null` | Refresh token for automatic credential renewal |
 | `tokenExpiresIn` | `Int?` | No | `null` | Token lifetime in seconds. Note: iOS uses `TimeInterval` (Double) for this parameter |
 | `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
-| `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
+| `environment` | `String` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Branding and Modules](05-branding-and-modules.md#module-configuration) and the [`RollaDisabledModule`](#rolladisabledmodule) values below |
 | `branding` | `RollaBranding?` | No | `null` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
 | `showSettingsButton` | `Boolean` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button. |

@@ -15,7 +15,7 @@ Kotlin ≥ 2.1.0 should work as well because of the [version tolerance](https://
 
 ## SDK Binary Size
 
-The Rolla SDK embeds a Flutter engine, Mapbox native libraries, and several supporting dependencies. This adds approximately **20–40 MB** to your APK download size (the debug APK is significantly larger; release builds with R8 minification and ABI splits are smaller).
+The Rolla SDK embeds a Flutter engine, Mapbox native libraries, and several supporting dependencies, which increase your APK download size. The exact amount depends on your build (the debug APK is significantly larger; release builds with R8 minification and ABI splits are smaller) — see the note below to measure it.
 
 Key contributors:
 - **Flutter engine** — the cross-platform UI runtime (native `.so` libraries per ABI)
