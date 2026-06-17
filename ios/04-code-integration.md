@@ -27,7 +27,7 @@ let configuration = RollaConfiguration(
     userId: "user-id",  // Optional: extracted from JWT if not provided
     partnerId: "your-partner-id",
     environment: "production",  // or "rnd" for development
-    modules: nil,  // Optional: nil enables all modules
+    disabledModules: [],  // Optional: modules to hide (default: none disabled)
     branding: nil  // Optional: custom branding configuration
 )
 ```

@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.10
+**Latest SDK Version:** 0.1.11
 
 ---
 
@@ -17,7 +17,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
-| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, available modules |
+| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, module disabling |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
 | 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
 | 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |
@@ -67,11 +67,13 @@ Feature support comparison between iOS and Android.
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
+| Custom Branding | Yes | Yes | Colors, logo, Rolla Band wording (`removeRollaBandReferences`) |
+| Module Disabling | Yes | Yes | `disabledModules`; only `weight` and `bloodPressure` can currently be disabled |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
+| Health Connect | No | Yes | Host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
+| Smartphone-Only Workout Tracking | Yes | Yes | Needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 

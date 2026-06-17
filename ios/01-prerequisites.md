@@ -11,7 +11,7 @@ This guide walks you through installing the Rolla SDK via CocoaPods, configuring
 
 ## SDK Binary Size
 
-The Rolla SDK embeds a Flutter engine and several native frameworks (Mapbox maps, Bluetooth/band communication, HealthKit integration, and more). This adds approximately **30–50 MB** to your app's download size after App Store thinning (the raw framework files are larger due to multi-architecture universal binaries).
+The Rolla SDK embeds a Flutter engine and several native frameworks (Mapbox maps, Bluetooth/band communication, HealthKit integration, and more), which increase your app's download size after App Store thinning (the raw framework files are larger due to multi-architecture universal binaries). The exact amount depends on your build — see below to measure it.
 
 Key contributors:
 - **Flutter engine** — the cross-platform UI runtime
