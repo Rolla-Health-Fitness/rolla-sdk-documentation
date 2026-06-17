@@ -22,16 +22,15 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 ## Smartphone-Only Workouts (`ACTIVITY_RECOGNITION`)
 
-`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's step counter and motion sensors. To read the phone's step counter on Android 10+ (API 29+), the SDK's bundled manifest **declares `android.permission.ACTIVITY_RECOGNITION` for you**:
+`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's step counter and motion sensors. Reading the phone's step counter on Android 10+ (API 29+) requires the `ACTIVITY_RECOGNITION` permission.
+
+You can add this permission yourself, or let the manifest merger pull it in from the SDK's bundled manifest — the SDK already declares it, so it merges in automatically:
 
 ```xml
-<!-- Declared by the Rolla SDK manifest — you do NOT need to add this -->
 <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 ```
 
-> **Breaking:** Do **not** strip this permission from the merged manifest. If your host app removes it (e.g. with `tools:node="remove"` or `tools:remove`), smartphone-only step counting and cadence will silently stop working. The permission merges in automatically — no action is required beyond leaving it in place.
-
-Because `ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
+`ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, so the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
 
 ## Health Connect (Android)
 
@@ -165,7 +164,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `ACTIVITY_RECOGNITION` | Required (declared by the SDK) | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. As of `0.1.11` the SDK reads the phone's step counter directly to power **smartphone-only workout tracking** (workouts tracked with no paired wearable). The SDK's bundled manifest declares it and requests it at runtime; the host app must not strip it. |
+| `ACTIVITY_RECOGNITION` | Required (declared by the SDK) | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. As of `0.1.11` the SDK reads the phone's step counter directly to power **smartphone-only workout tracking** (workouts tracked with no paired wearable). The SDK's bundled manifest already declares it and requests it at runtime, so you don't need to add it yourself. |
 
 ### Foreground Service
 

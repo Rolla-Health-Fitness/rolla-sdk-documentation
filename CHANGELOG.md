@@ -38,7 +38,7 @@
 
 ### Android
 
-- **[breaking] `ACTIVITY_RECOGNITION` is now declared by the SDK manifest.** The bundled SDK manifest declares `android.permission.ACTIVITY_RECOGNITION` (API 29+) to read the phone's step counter for smartphone-only workouts. You no longer add it yourself — but ensure your host app does not strip it via `tools:node="remove"`, and that your Play Console listing covers the activity-recognition rationale. See [Smartphone-Only Workouts](android/03-permissions.md#smartphone-only-workouts-activity_recognition) and the updated [Permissions Rationale](android/03-permissions.md#permissions-rationale).
+- **[breaking] Smartphone-only workouts require `ACTIVITY_RECOGNITION` (API 29+).** The SDK's bundled manifest already declares `android.permission.ACTIVITY_RECOGNITION` to read the phone's step counter, so the manifest merger adds it for you — or you can declare it yourself. Make sure your Play Console listing covers the activity-recognition rationale. See [Smartphone-Only Workouts](android/03-permissions.md#smartphone-only-workouts-activity_recognition) and the updated [Permissions Rationale](android/03-permissions.md#permissions-rationale).
 
 ### iOS
 
