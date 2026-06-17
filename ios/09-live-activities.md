@@ -40,7 +40,6 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 
 - iOS deployment target 14.0+ (for your main app)
 - Xcode 14.0 or later
-- Activity Tracking module enabled
 - Valid Apple Developer account
 
 > **Note:** Live Activities require iOS 16.1+ at runtime. Your app can still support older iOS versions — the SDK gracefully skips Live Activities on devices running older iOS.

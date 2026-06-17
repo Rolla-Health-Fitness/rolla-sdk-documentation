@@ -1,6 +1,6 @@
 # Branding & Modules
 
-Customize the SDK appearance through branding configuration and manage which modules are enabled in your integration.
+Customize the SDK appearance through branding configuration and control which modules are disabled in your integration.
 
 ## Custom Branding (Optional)
 

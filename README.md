@@ -17,7 +17,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
-| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, available modules |
+| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, module disabling |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
 | 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
 | 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |

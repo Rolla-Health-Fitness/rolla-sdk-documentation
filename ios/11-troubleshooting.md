@@ -15,7 +15,6 @@ This section provides solutions to common issues encountered when integrating an
 
 - Verify `NSHealthShareUsageDescription` is in Info.plist
 - Verify HealthKit capability is added in Xcode (Signing & Capabilities)
-- Ensure `"integrations"` module is enabled (or modules is `nil`)
 - HealthKit is not available on iPads without the Health app
 
 ### Build errors

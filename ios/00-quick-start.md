@@ -59,7 +59,7 @@ class YourViewController: UIViewController {
         let configuration = RollaConfiguration(
             token: "your-access-token",       // JWT from POST /api/login
             refreshToken: "your-refresh-token", // From POST /api/login
-            tokenExpiresIn: 1800,             // Seconds until token expires (TimeInterval)
+            tokenExpiresIn: TimeInterval(1800),  // Seconds until token expires (TimeInterval)
             partnerId: "your-partner-id",
             environment: "rnd"                // Use "production" for release builds
         )
@@ -147,7 +147,7 @@ class RollaViewController: UIViewController, RollaDelegate {
         let config = RollaConfiguration(
             token: token,
             refreshToken: refreshToken,
-            tokenExpiresIn: 1800,
+            tokenExpiresIn: TimeInterval(1800),
             partnerId: "your-partner-id",
             environment: "rnd"               // "production" for release builds
         )
