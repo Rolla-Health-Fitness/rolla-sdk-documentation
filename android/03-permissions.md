@@ -164,7 +164,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `ACTIVITY_RECOGNITION` | Required (declared by the SDK) | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. As of `0.1.11` the SDK reads the phone's step counter directly to power **smartphone-only workout tracking** (workouts tracked with no paired wearable). The SDK's bundled manifest already declares it and requests it at runtime, so you don't need to add it yourself. |
+| `ACTIVITY_RECOGNITION` | Required for smartphone-only workouts | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. The SDK reads the phone's step counter to track workouts started with no paired wearable, and requests the permission at runtime before the first such workout. Its bundled manifest already declares the permission, so you don't need to add it yourself. |
 
 ### Foreground Service
 
