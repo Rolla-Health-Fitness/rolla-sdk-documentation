@@ -68,12 +68,12 @@ Feature support comparison between iOS and Android.
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding | Yes | Yes | Colors, logo, Rolla Band wording (`removeRollaBandReferences`) |
-| Module Disabling | Yes | Yes | `disabledModules`; `weight` and `bloodPressure` supported as of `0.1.11` |
+| Module Disabling | Yes | Yes | `disabledModules`; only `weight` and `bloodPressure` can currently be disabled |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
+| Health Connect | No | Yes | Host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
-| Smartphone-Only Workout Tracking | Yes | Yes | Added in `0.1.11`; needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
+| Smartphone-Only Workout Tracking | Yes | Yes | Needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 
