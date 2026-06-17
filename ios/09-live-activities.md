@@ -116,7 +116,7 @@ Create the following files in your `liveworkout` widget extension. The full sour
 - `ContentState` — live-updating fields: metrics, heart rate, pause state, band connection status, and `isPhoneOnly` (whether the workout is being tracked from the phone alone)
 - Static attributes — activity ID, workout name, SF Symbol, start date
 
-> **`0.1.11` added `isPhoneOnly: Bool = false` to `ContentState`.** It is set to `true` when a smartphone-only workout is being tracked (no paired band), so your widget can hide band-specific UI such as the heart-rate row and the band-disconnected banner. **Keep the `= false` default** when you copy the data contract below — it lets Live Activities that were started before a user updates to `0.1.11` continue to decode cleanly across the upgrade. If you previously copied an older `LiveWorkoutAttributes.swift` into your widget, add this field to match the current SDK contract.
+> **`ContentState` includes an `isPhoneOnly: Bool = false` field.** It is set to `true` when a smartphone-only workout is being tracked (no paired band), so your widget can hide band-specific UI such as the heart-rate row and the band-disconnected banner. **Keep the `= false` default** when you copy the data contract below — it lets Live Activities that were started before a user updates to `0.1.11` continue to decode cleanly across the upgrade. If you previously copied an older `LiveWorkoutAttributes.swift` into your widget, add this field to match the current SDK contract.
 
 > **Important:** This file must compile in **both** targets. All other files belong to the widget extension only.
 

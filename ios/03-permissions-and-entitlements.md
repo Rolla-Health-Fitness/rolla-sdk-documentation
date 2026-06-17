@@ -58,7 +58,7 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 ### Motion & Fitness (Required for smartphone-only workouts)
 
-`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's pedometer for steps and cadence. The SDK uses `CMPedometer` for this, which requires a motion usage description:
+Smartphone-only workout tracking lets workouts be started and tracked with no paired wearable, using the phone's pedometer for steps and cadence. The SDK uses `CMPedometer` for this, which requires a motion usage description:
 
 ```xml
 <key>NSMotionUsageDescription</key>

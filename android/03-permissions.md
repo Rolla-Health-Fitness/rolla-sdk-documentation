@@ -22,7 +22,7 @@ You will receive the Mapbox token from Rolla along with your partner credentials
 
 ## Smartphone-Only Workouts (`ACTIVITY_RECOGNITION`)
 
-`0.1.11` adds smartphone-only workout tracking — workouts can be started and tracked with no paired wearable, using the phone's step counter and motion sensors. Reading the phone's step counter on Android 10+ (API 29+) requires the `ACTIVITY_RECOGNITION` permission.
+Smartphone-only workout tracking lets workouts be started and tracked with no paired wearable, using the phone's step counter and motion sensors. Reading the phone's step counter on Android 10+ (API 29+) requires the `ACTIVITY_RECOGNITION` permission.
 
 You can add this permission yourself, or let the manifest merger pull it in from the SDK's bundled manifest — the SDK already declares it, so it merges in automatically:
 
@@ -34,7 +34,7 @@ You can add this permission yourself, or let the manifest merger pull it in from
 
 ## Health Connect (Android)
 
-`0.1.10` adds Google Health Connect support. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
+The SDK supports Google Health Connect. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
 
 Add inside the `<manifest>` element, alongside your other `<uses-permission>` entries:
 
