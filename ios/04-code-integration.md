@@ -28,6 +28,7 @@ let configuration = RollaConfiguration(
     partnerId: "your-partner-id",
     environment: "production",  // or "rnd" for development
     disabledModules: [],  // Optional: modules to hide (default: none disabled)
+    disabledDataSources: [],  // Optional: data sources to hide (default: all offered)
     branding: nil  // Optional: custom branding configuration
 )
 ```

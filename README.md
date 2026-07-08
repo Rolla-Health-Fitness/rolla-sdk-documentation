@@ -69,6 +69,7 @@ Feature support comparison between iOS and Android.
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding | Yes | Yes | Colors, logo, Rolla Band wording (`removeRollaBandReferences`) |
 | Module Disabling | Yes | Yes | `disabledModules`; only `weight` and `bloodPressure` can currently be disabled |
+| Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
 | Health Connect | No | Yes | Host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |

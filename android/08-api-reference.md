@@ -42,6 +42,7 @@ The `RollaConfiguration` class defines all parameters for SDK initialization. Se
 | `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
 | `environment` | `String` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Branding and Modules](05-branding-and-modules.md#module-configuration) and the [`RollaDisabledModule`](#rolladisabledmodule) values below |
+| `disabledDataSources` | `Set<RollaDataSource>` | No | `emptySet()` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Branding and Modules](05-branding-and-modules.md#data-source-configuration) and the [`RollaDataSource`](#rolladatasource) values below |
 | `branding` | `RollaBranding?` | No | `null` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
 | `showSettingsButton` | `Boolean` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button. |
 | `removeRollaBandReferences` | `Boolean` | No | `true` | When `true` (the default), the SDK UI uses generic "fitness device" wording. Set to `false` to show Rolla Band-specific references. See [Branding and Modules](05-branding-and-modules.md#rolla-band-references) |
@@ -56,6 +57,20 @@ The `RollaConfiguration` class defines all parameters for SDK initialization. Se
 | `RollaDisabledModule.BLOOD_PRESSURE` | The Blood Pressure tracking module |
 
 More modules will become disable-able in future releases. Pass `emptySet()` (or omit the parameter) to keep every module enabled.
+
+### RollaDataSource
+
+`disabledDataSources` accepts a set of `RollaDataSource` values. Each value passed hides that source's connect option wherever the user picks a data source to connect (the Data Sources screen and the onboarding data-source step). A source the user has already connected stays visible for viewing/disconnecting; only new connections are suppressed. If you disable every source, the Rolla Band remains available as a floor.
+
+| Value | Hides |
+|-------|-------|
+| `RollaDataSource.BAND` | The Rolla Band pairing option |
+| `RollaDataSource.GARMIN` | Garmin Connect |
+| `RollaDataSource.OURA` | Oura |
+| `RollaDataSource.APPLE_HEALTH` | Apple Health (iOS only) |
+| `RollaDataSource.HEALTH_CONNECT` | Health Connect |
+
+Pass `emptySet()` (or omit the parameter) to offer every data source.
 
 ## Error Handling
 

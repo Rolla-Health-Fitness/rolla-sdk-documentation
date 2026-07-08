@@ -10,6 +10,12 @@
 
 ---
 
+## 0.1.12
+
+### Both platforms
+
+- **[feature] Hide selected data sources from the SDK UI (`disabledDataSources`).** A new `RollaConfiguration` parameter lets you hide specific data-source connect options (band, Garmin, Oura, Apple Health, Health Connect) wherever the user picks a source to connect — the Data Sources screen and the onboarding data-source step. Pass a set of `RollaDataSource` values to hide those sources, or omit it / pass an empty set to offer everything (default, no change for existing integrations). A source the user has already connected stays visible for viewing/disconnecting; if you disable every source the Rolla Band remains available so onboarding never dead-ends. Disabling everything except the band routes users straight to band pairing. See [Android](android/05-branding-and-modules.md#data-source-configuration) and [iOS](ios/05-branding-and-modules.md#data-source-configuration) branding & modules guides and the [Android](android/08-api-reference.md#rolladatasource) / [iOS](ios/10-api-reference.md#rolladatasource) API references.
+
 ## 0.1.11
 
 ### Both platforms

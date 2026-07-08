@@ -34,6 +34,7 @@ val configuration = RollaConfiguration(
     userId = "user-id",                        // Optional: extracted from JWT if not provided
     environment = "production",                // or "rnd" for development
     disabledModules = emptySet(),              // Optional: modules to hide (default: none disabled)
+    disabledDataSources = emptySet(),          // Optional: data sources to hide (default: all offered)
     branding = null                            // Optional: custom branding configuration
 )
 ```
