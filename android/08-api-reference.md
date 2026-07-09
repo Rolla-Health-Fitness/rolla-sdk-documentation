@@ -16,6 +16,10 @@ Complete reference for the Rolla SDK classes, methods, interfaces, error types, 
 | `dismiss()` | Dismiss the SDK UI (engine stays alive) |
 | `updateToken(token, refreshToken?, expiresIn?, callback?)` | Push fresh credentials to the SDK. The `callback` is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. |
 | `clearSession(callback?)` | Clear all persisted session data |
+| `warmUpEngine(context, callback?)` | Start and configure the engine ahead of time, without any UI. See [Headless Methods](#headless-methods) |
+| `getBandBatteryLevel(context, callback)` | Headless live battery read from the paired Rolla band. See [Headless Methods](#headless-methods) |
+| `getPairedBandInfo(context, callback)` | Headless paired-band query — zero Bluetooth. See [Headless Methods](#headless-methods) |
+| `syncHealthData(context, includeSamples = false, callback)` | Headless sync of the user's primary data source. See [Headless Methods](#headless-methods) |
 | `companion fun destroyEngine()` | Destroy the Flutter engine and free memory |
 
 ### RollaListener Interface
@@ -26,8 +30,71 @@ Complete reference for the Rolla SDK classes, methods, interfaces, error types, 
 | `onRollaError(rolla, error)` | Called when an error occurs |
 | `onTokenRefreshed(rolla, token, refreshToken?, expiresIn?)` | Called when the SDK refreshes tokens internally |
 | `onTokenExpired(rolla)` | Called when the host app must provide new tokens |
+| `onSyncHealthDataCompleted(rolla, result)` | Called when a headless `syncHealthData` reaches a terminal outcome, with the same `RollaSyncResult` the callback receives |
+| `onActivityStarted(rolla, activity)` | A live tracking session started — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume. See [Host Events](#host-events) |
+| `onActivityCompleted(rolla, activity)` | An activity reached a lifecycle phase: `FINISHED` (saved in-SDK), then `UPLOADED` or `UPLOAD_FAILED`. Key idempotency on `(activityId, phase)` |
+| `onActivityRemoved(rolla, activity)` | An activity's record was removed without a kept result — `reason` is `CANCELED` (crash-recovery discard; the "activity canceled" case) or `DELETED` (user deleted it, backend-confirmed) |
+| `onUiSyncCompleted(rolla, result)` | A sync completed inside the SDK UI (auto-sync on open, return from background, manual refresh) |
+| `onBandPaired(rolla, band)` | The user paired a band inside the SDK UI |
+| `onBandUnpaired(rolla, band)` | The user unpaired the band inside the SDK UI (backend-confirmed) |
+| `onBandConnected(rolla, band)` | The paired band established a live BLE link. See [Host Events](#host-events) for the link-event caveats |
+| `onBandDisconnected(rolla, band)` | The paired band lost its live BLE link (debounced a few seconds) |
+| `onPrimarySourceChanged(rolla, change)` | The user's primary data source changed |
+| `onGoalsChanged(rolla, change)` | The user saved goal changes inside the SDK UI (backend-confirmed) |
+| `onProfileUpdated(rolla, update)` | The user updated profile data inside the SDK UI — carries only the changed fields |
 
-All methods have default empty implementations.
+All methods have default empty implementations, so existing integrations compile unchanged — implement only the ones you need.
+
+## Host Events
+
+The event callbacks above (`onActivityStarted` through `onProfileUpdated`) let your app observe what happens inside the SDK without polling. Delivery semantics:
+
+- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `warmUpEngine`, `getBandBatteryLevel`, `getPairedBandInfo`, or `syncHealthData`, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Main thread.** Like all SDK callbacks, events arrive on the main thread.
+- **Activity lifecycle.** Every started activity terminates in a `FINISHED` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `onActivityStarted` with origin `CRASH_RECOVERY`). Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `UPLOADED`/`UPLOAD_FAILED` can re-fire across retries. Manually logged activities enter the lifecycle at `FINISHED` (no started event); pause/resume inside a session fires nothing.
+- **Band link events are not a proximity signal.** `onBandConnected`/`onBandDisconnected` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use `getPairedBandInfo` for the pairing state.
+- **`syncedData` on UI syncs.** On a successful band / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `null` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+## Headless Methods
+
+Four methods run **headlessly** — no SDK UI needs to be opened. Each starts the engine automatically on first use; `warmUpEngine(context, callback?)` only moves that one-time cost off the first call (a common pattern is warming up right after login so the first `show()` presents instantly). Because there is no UI to prompt from, **your app owns OS permissions**: when one is missing, the methods fail fast with a typed reason instead of prompting.
+
+### `syncHealthData(context, includeSamples, callback)`
+
+Runs a full sync of the user's primary data source (band over BLE, or Health Connect) and resolves to a typed `RollaSyncResult` — the call never throws, and the same result is also delivered to `onSyncHealthDataCompleted(rolla, result)`:
+
+| Field | Meaning |
+|-------|---------|
+| `outcome` | `SUCCESS`, `SKIPPED` (expectedly did nothing — see `skipReason`), or `FAILURE` (see `error`) |
+| `hasNewData` | Whether anything new was uploaded (success only) |
+| `source` | `BAND`, `APPLE_HEALTH`, `HEALTH_CONNECT`, `GARMIN`, `OURA` |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran); `lastSyncAt` is present only on success |
+| `skipReason` | `NO_BAND_CONNECTED`, `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE` |
+| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays |
+
+### `getBandBatteryLevel(context, callback)`
+
+A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `AVAILABLE`, otherwise a documented reason (`NO_BAND_PAIRED`, `DISCONNECTED`, `TIMEOUT`, `BLUETOOTH_UNAVAILABLE`, `BLUETOOTH_PERMISSION_REQUIRED`, `UNKNOWN_ERROR`). Never a stale value reported as live.
+
+### `getPairedBandInfo(context, callback)`
+
+Answers "does this account currently have a Rolla band?" with **zero Bluetooth** — no scan, no connect, no BLE permission; works with Bluetooth off. Resolves to a typed `RollaPairedBandResult`:
+
+| Status | Meaning |
+|--------|---------|
+| `PAIRED` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
+| `NOT_PAIRED` | The user's profile confirms no band is paired |
+| `UNKNOWN` | Could not be determined (offline with no local record) — reported instead of guessing |
+
+The lookup is network-first: the profile is the authoritative pairing record, so a band unpaired remotely from another device is reported correctly. This is a pairing-state query, not a link-state one — live connect/disconnect transitions arrive via `onBandConnected`/`onBandDisconnected`.
+
+```kotlin
+rolla.getPairedBandInfo(context) { result ->
+    result.onSuccess { info ->
+        if (info.isPaired) println("Band: ${info.band!!.macAddress}")
+    }
+}
+```
 
 ## RollaConfiguration
 

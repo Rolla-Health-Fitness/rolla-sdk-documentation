@@ -19,6 +19,18 @@ The SDK manages a Flutter engine internally. By default, the engine stays alive 
 - **First `show(activity)`** — Creates the Flutter engine and presents the SDK UI.
 - **`dismiss()`** — Dismisses the SDK UI but keeps the engine alive. The next `show()` will present the SDK instantly in its last state.
 
+### Warming Up the Engine
+
+The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](08-api-reference.md#headless-methods)), so none of them require a prior `show()`. To move the one-time start-up cost to a moment you control — a common pattern is right after login, so the first `show()` presents instantly:
+
+```kotlin
+rolla.warmUpEngine(context) { result ->
+    // Engine configured and ready — headless calls and host events now have zero start-up latency.
+}
+```
+
+Safe to call repeatedly: a repeat call for the same user is a no-op that preserves the session. The warmed engine holds memory until `destroyEngine()`.
+
 ### Destroying the Engine
 
 If you need to free memory (e.g., on logout), call:
@@ -27,7 +39,7 @@ If you need to free memory (e.g., on logout), call:
 Rolla.destroyEngine()
 ```
 
-The engine will be recreated automatically on the next `show()` call.
+The engine will be recreated automatically on the next `show()` call. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
 
 ### `clearSession` vs `destroyEngine`
 
