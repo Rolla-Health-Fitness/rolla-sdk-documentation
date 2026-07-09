@@ -61,7 +61,7 @@ extension YourViewController: RollaDelegate {
         // Clean up any references
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         // Handle errors
         print("Rolla SDK error: \(error.localizedDescription)")
     }
@@ -99,7 +99,7 @@ All public SDK methods dispatch to the main thread internally — you can safely
 | `updateToken(...)` | Yes | Dispatches to main queue; completion fires on main thread |
 | `clearSession(...)` | Yes | Dispatches to main queue; completion fires on main thread |
 
-**Delegate callbacks** also arrive on the main thread. Flutter's platform channel delivers messages on the main thread, and the SDK does not re-dispatch to a background queue. You can safely update your UI directly inside delegate methods like `rollaDidClose(_:reason:)` or `rolla(_:didFailWithError:)`.
+**Delegate callbacks** also arrive on the main thread. Flutter's platform channel delivers messages on the main thread, and the SDK does not re-dispatch to a background queue. You can safely update your UI directly inside delegate methods like `rollaDidClose(_:reason:)` or `rollaDidFailWithError(_:error:)`.
 
 > **Summary:** You do not need to wrap any SDK call or delegate handler in `DispatchQueue.main.async` — the SDK handles this for you.
 

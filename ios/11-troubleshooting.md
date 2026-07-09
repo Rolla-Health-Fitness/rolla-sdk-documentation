@@ -29,7 +29,7 @@ This section provides solutions to common issues encountered when integrating an
 If you call `show(from:)` while the SDK UI is already on screen, the SDK does **not** crash or queue a second presentation. Instead, it immediately fires a `.alreadyPresenting` error through your delegate:
 
 ```swift
-func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
     if case .alreadyPresenting = error {
         // SDK is already showing — no action needed
     }

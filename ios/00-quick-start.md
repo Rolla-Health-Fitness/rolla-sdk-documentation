@@ -84,7 +84,7 @@ extension YourViewController: RollaDelegate {
         self.rolla = nil
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         print("Rolla SDK error: \(error.localizedDescription)")
     }
 
@@ -164,7 +164,7 @@ class RollaViewController: UIViewController, RollaDelegate {
         self.rolla = nil
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         print("Rolla error: \(error.localizedDescription)")
     }
 
