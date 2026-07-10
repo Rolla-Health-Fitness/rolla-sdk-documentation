@@ -68,12 +68,12 @@ Runs a full sync of the user's primary data source (band over BLE, or Apple Heal
 | `hasNewData` | Whether anything new was uploaded (success only) |
 | `source` | `band`, `appleHealth`, `healthConnect`, `garmin`, `oura` |
 | `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran); `lastSyncAt` is present only on success |
-| `skipReason` | `noBandConnected`, `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
+| `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
 | `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays |
 
 ### `getBandBatteryLevel(completion:)`
 
-A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `disconnected`, `timeout`, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
+A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected` — a band is paired but couldn't be reached, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
 
 ### `getPairedBandInfo(completion:)`
 
@@ -81,8 +81,8 @@ Answers "does this account currently have a Rolla band?" with **zero Bluetooth**
 
 | Status | Meaning |
 |--------|---------|
-| `paired` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
-| `notPaired` | The user's profile confirms no band is paired |
+| `bandPaired` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
+| `noBandPaired` | The user's profile confirms no band is paired |
 | `unknown` | Could not be determined (offline with no local record) — reported instead of guessing |
 
 The lookup is network-first: the profile is the authoritative pairing record, so a band unpaired remotely from another device is reported correctly. This is a pairing-state query, not a link-state one — live connect/disconnect transitions arrive via `rollaDidConnectBand`/`rollaDidDisconnectBand`.

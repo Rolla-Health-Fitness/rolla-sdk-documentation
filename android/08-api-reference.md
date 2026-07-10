@@ -69,12 +69,12 @@ Runs a full sync of the user's primary data source (band over BLE, or Health Con
 | `hasNewData` | Whether anything new was uploaded (success only) |
 | `source` | `BAND`, `APPLE_HEALTH`, `HEALTH_CONNECT`, `GARMIN`, `OURA` |
 | `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran); `lastSyncAt` is present only on success |
-| `skipReason` | `NO_BAND_CONNECTED`, `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE` |
+| `skipReason` | `NO_BAND_PAIRED` (no band on the account), `BAND_NOT_CONNECTED` (a band is paired but couldn't be reached right now), `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE` |
 | `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays |
 
 ### `getBandBatteryLevel(context, callback)`
 
-A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `AVAILABLE`, otherwise a documented reason (`NO_BAND_PAIRED`, `DISCONNECTED`, `TIMEOUT`, `BLUETOOTH_UNAVAILABLE`, `BLUETOOTH_PERMISSION_REQUIRED`, `UNKNOWN_ERROR`). Never a stale value reported as live.
+A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `AVAILABLE`, otherwise a documented reason (`NO_BAND_PAIRED`, `BAND_NOT_CONNECTED` — a band is paired but couldn't be reached, `BLUETOOTH_UNAVAILABLE`, `BLUETOOTH_PERMISSION_REQUIRED`, `UNKNOWN_ERROR`). Never a stale value reported as live.
 
 ### `getPairedBandInfo(context, callback)`
 
@@ -82,8 +82,8 @@ Answers "does this account currently have a Rolla band?" with **zero Bluetooth**
 
 | Status | Meaning |
 |--------|---------|
-| `PAIRED` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
-| `NOT_PAIRED` | The user's profile confirms no band is paired |
+| `BAND_PAIRED` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
+| `NO_BAND_PAIRED` | The user's profile confirms no band is paired |
 | `UNKNOWN` | Could not be determined (offline with no local record) — reported instead of guessing |
 
 The lookup is network-first: the profile is the authoritative pairing record, so a band unpaired remotely from another device is reported correctly. This is a pairing-state query, not a link-state one — live connect/disconnect transitions arrive via `onBandConnected`/`onBandDisconnected`.
