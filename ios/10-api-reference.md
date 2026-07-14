@@ -50,7 +50,7 @@ The event callbacks above (`rollaDidStartActivity` through `rollaDidUpdateProfil
 
 - **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `warmUpEngine`, `getBandBatteryLevel`, `getPairedBandInfo`, or `syncHealthData`, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
-- **Activity lifecycle.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between; the one exception is a session abandoned mid-tracking for over a day, which is cleaned up silently without an event (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
+- **Activity lifecycle.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
 - **Band link events are not a proximity signal.** `rollaDidConnectBand`/`rollaDidDisconnectBand` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use `getPairedBandInfo` for the pairing state.
 - **`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
 
@@ -67,7 +67,7 @@ Runs a full sync of the user's primary data source (band over BLE, or Apple Heal
 | `outcome` | `success`, `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error`) |
 | `hasNewData` | Whether anything new was uploaded (success only) |
 | `source` | `band`, `appleHealth`, `healthConnect`, `garmin`, `oura` |
-| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran); `lastSyncAt` is present only on success |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on success |
 | `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
 | `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays |
 
@@ -81,7 +81,7 @@ Answers "does this account currently have a Rolla band?" with **zero Bluetooth**
 
 | Status | Meaning |
 |--------|---------|
-| `bandPaired` | A band is paired — `band` carries its MAC address (authoritative) plus best-effort cached battery/firmware/serial |
+| `bandPaired` | A band is paired — `band` carries its MAC address (always present) plus the last cached battery/firmware/serial, each possibly nil if the SDK hasn't read the band recently |
 | `noBandPaired` | The user's profile confirms no band is paired |
 | `unknown` | Could not be determined (offline with no local record) — reported instead of guessing |
 
