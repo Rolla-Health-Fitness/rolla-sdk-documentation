@@ -4,7 +4,7 @@ This section covers setting up the user's profile from your app — and how doin
 
 **Set as much profile data as your app holds.** The required fields unlock the onboarding skip, and each optional field brings the profile a step closer to complete — the SDK feels like the user's own from the very first open.
 
-Profile endpoints use `application/x-www-form-urlencoded` request bodies and are authenticated with the user's access token (`Authorization: Bearer`) — the same token you pass to `RollaConfiguration`.
+Profile endpoints use `application/x-www-form-urlencoded` request bodies and require **both** the user's access token (`Authorization: Bearer`) — the same token you pass to `RollaConfiguration` — and your `Partner-ID` header, exactly like the authentication endpoints.
 
 ---
 
@@ -23,6 +23,7 @@ Setting the profile isn't necessarily a one-time step: whenever the user edits t
 | Header | Required | Description |
 |--------|----------|-------------|
 | `Authorization` | Yes | `Bearer <access_token>` |
+| `Partner-ID` | Yes | Your partner identifier |
 | `Content-Type` | Yes | `application/x-www-form-urlencoded` |
 
 ### Parameters
@@ -35,21 +36,39 @@ Setting the profile isn't necessarily a one-time step: whenever the user edits t
 | `height` | float | No | Height in cm, 100–255 |
 | `weight` | float | No | Weight in kg, 40–300 (the SDK's own forms work in 40–180 — stay ≤ 180 for consistency) |
 | `units` | string | No | `metric` or `imperial`. Unset ⇒ the SDK renders metric |
-| `country` | string | No | ISO 3166-1 alpha-2 code (e.g. `RS`) |
+| `country` | string | No | ISO 3166-1 alpha-2 code (e.g. `GB`) |
 | `city` | int | No | A **city ID** from [Countries and Cities](#countries-and-cities) — never free text |
-| `language` | string | No | 2-letter language code. Unset ⇒ the SDK resolves the device locale |
+| `language` | string | No | SDK UI language code (see the supported list below). **Strongly recommended** — see the note after the table |
 | `timezone` | string | No | IANA timezone name (e.g. `Europe/Belgrade`). Unset ⇒ the SDK auto-syncs the device timezone |
 | `max_heart_rate` | int | No | Max heart rate in bpm, or an empty string to have it determined automatically |
 
 Send measurements in metric regardless of `units` — `units` only controls how the SDK displays them.
+
+**Supported `language` codes** — the SDK ships these languages; send one of these exact codes:
+
+| Language | Code |
+|----------|------|
+| English | `en` |
+| German | `de` |
+| Spanish | `es` |
+| Croatian | `hr` |
+| Bosnian | `bs` |
+| Serbian (Latin) | `sr-Latn` |
+| Serbian (Cyrillic) | `sr-Cyrl` |
+| Arabic | `ar` |
+
+Serbian is the only language with a script distinction — send `sr-Latn` or `sr-Cyrl` explicitly (a bare `sr` is treated as Latin).
+
+> **Set `language` to match the SDK's UI language.** The Rolla backend generates localized content — goal labels, insights, and other server-produced text — from the profile's `language` field, independently of the language your app renders the SDK UI in. If they disagree (for example the SDK UI is Serbian but the profile language is left at its default `en`), goals and insights come back in the profile's language while the rest of the UI is Serbian. Set `language` here to the same language you configure the SDK with so everything the user sees is consistent.
 
 ### Example Request
 
 ```bash
 curl -X POST "https://ross-rnd.rolla.cloud/api/setprofile" \
   -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Partner-ID: your-partner-id" \
   -H "Content-Type: application/x-www-form-urlencoded" \
-  -d "username=Jane Runner&birthdate=1990-04-12&gender=female&height=170&weight=65&units=metric&country=RS"
+  -d "username=Jane Runner&birthdate=1990-04-12&gender=female&height=170&weight=65&units=metric&country=GB"
 ```
 
 ### Example Response
@@ -118,7 +137,8 @@ Returns the authenticated user's profile — use it to verify what you've set.
 
 ```bash
 curl "https://ross-rnd.rolla.cloud/api/getprofile" \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Partner-ID: your-partner-id"
 ```
 
 ### Example Response
@@ -133,7 +153,7 @@ curl "https://ross-rnd.rolla.cloud/api/getprofile" \
     "height": 170,
     "weight": 65,
     "units": "metric",
-    "country_code": "RS",
+    "country_code": "GB",
     "language": "en",
     "timezone": "Europe/Belgrade"
   }
@@ -144,14 +164,14 @@ curl "https://ross-rnd.rolla.cloud/api/getprofile" \
 
 ## Countries and Cities
 
-The `city` parameter takes a numeric city ID, resolved via these two endpoints (both `Authorization: Bearer`):
+The `city` parameter takes a numeric city ID, resolved via these two endpoints (both need the `Authorization: Bearer` and `Partner-ID` headers):
 
 ```
 GET /api/countries
 GET /api/cities/{countryCode}
 ```
 
-`/api/countries` returns `{ "success": true, "countries": [{ "code": "RS", "name": "Serbia" }, ...] }`; `/api/cities/RS` returns `{ "success": true, "cities": [{ "id": 1234, "city": "Beograd", ... }, ...] }`. Match your city name against the list and send the `id`. If you can't resolve a city, simply omit it — `city` never blocks the onboarding skip.
+`/api/countries` returns `{ "success": true, "countries": [{ "code": "GB", "name": "United Kingdom" }, ...] }`; `/api/cities/GB` returns `{ "success": true, "cities": [{ "id": 1234, "city": "London", ... }, ...] }`. Match your city name against the list and send the `id`. If you can't resolve a city, simply omit it — `city` never blocks the onboarding skip.
 
 ---
 
