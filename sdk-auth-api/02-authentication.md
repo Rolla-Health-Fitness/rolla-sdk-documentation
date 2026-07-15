@@ -45,7 +45,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/register" \
 }
 ```
 
-> **Note:** Profile data (name, date of birth, weight, height, gender, timezone) is **not** required at registration. The SDK collects this information through its built-in onboarding flow when the user first opens it.
+> **Note:** Profile data (name, date of birth, weight, height, gender, timezone) is **not** required at registration. The SDK collects this information through its built-in onboarding flow when the user first opens it — or your app can set it in advance via [Profile](03-profile.md) so the onboarding is skipped.
 
 ---
 
@@ -187,4 +187,4 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
 
 ---
 
-**Prev:** [Overview](01-overview.md) | **Next:** [Error Handling](03-error-handling.md) | **Home:** [README](README.md)
+**Prev:** [Overview](01-overview.md) | **Next:** [Profile](03-profile.md) | **Home:** [README](README.md)

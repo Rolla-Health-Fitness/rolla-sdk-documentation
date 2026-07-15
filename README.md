@@ -54,7 +54,8 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 |---|---------|-------------|
 | 1 | [Overview](sdk-auth-api/01-overview.md) | Auth architecture, base URLs, environments, onboarding |
 | 2 | [Authentication](sdk-auth-api/02-authentication.md) | Register users, log in, obtain tokens, refresh tokens |
-| 3 | [Error Handling](sdk-auth-api/03-error-handling.md) | Error format, status codes, retry strategies, checklist |
+| 3 | [Profile](sdk-auth-api/03-profile.md) | Set profile data in advance, skip the SDK's onboarding |
+| 4 | [Error Handling](sdk-auth-api/04-error-handling.md) | Error format, status codes, retry strategies, checklist |
 
 > **Server-to-server data integration:** Rolla also offers a Partner API for backend-to-backend access to user health data, activity data, and user management. This is separate from the SDK integration. Contact [support@rolla.app](mailto:support@rolla.app) for Partner API access.
 
@@ -112,7 +113,7 @@ The Rolla SDK provides a complete health and fitness experience embedded inside 
 ### Integration Flow
 
 1. **Obtain your Partner ID** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` during onboarding
-2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI, not at registration time.
+2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI — or your app [sets it in advance](sdk-auth-api/03-profile.md) after login so the SDK's onboarding is skipped.
 3. **Log in** — your app calls `POST /api/login` with the user's email, password, and `Partner-ID` header to obtain an access token and refresh token
 4. **Present the SDK** — initialize with the tokens and call `show()` — the SDK handles everything from there
 

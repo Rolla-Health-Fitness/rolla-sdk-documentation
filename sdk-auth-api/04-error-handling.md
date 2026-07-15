@@ -60,4 +60,4 @@ Before going to production, verify the following:
 
 ---
 
-**Prev:** [Authentication](02-authentication.md) | **Home:** [README](README.md)
+**Prev:** [Profile](03-profile.md) | **Home:** [README](README.md)
