@@ -4,18 +4,15 @@ This section covers custom branding options and module configuration.
 
 ## Custom Branding (Optional)
 
+Every `RollaBranding` field is optional: a set field overrides the SDK's built-in default individually, and an unset field keeps it. Passing no branding at all keeps the complete default look.
+
 ```swift
 let branding = RollaBranding(
-    appName: "Your App Name",
-    primaryColor: .systemBlue,
-    secondaryColor: .systemGray,
-    accentColor: .systemGreen,
-    brightness: "light",  // or "dark"
-    defaultThemeMode: "system",  // "light", "dark", or "system"
-    defaultLocale: "en",  // Optional
-    headerLogoAsset: nil,  // Optional: partner logo asset path (provided by Rolla)
-    termsUrl: "https://example.com/terms",  // Optional
-    privacyUrl: "https://example.com/privacy"  // Optional
+    hostAppName: "Your App Name",              // names your app in SDK copy — see below
+    primaryColor: .systemBlue,                 // seeds the SDK's entire color scheme
+    defaultThemeMode: .system,                 // RollaThemeMode: .system, .light, or .dark
+    headerLogoAsset: nil,                      // partner logo asset path (provided by Rolla)
+    privacyUrl: "https://example.com/privacy"  // privacy link on the consent screen
 )
 
 let configuration = RollaConfiguration(
@@ -24,6 +21,12 @@ let configuration = RollaConfiguration(
     branding: branding
 )
 ```
+
+- **`hostAppName`** — your app's display name. When set, SDK copy that refers to the app names it explicitly — the consent screen's legal intro and the battery-optimization / motion-permission prompts — in every SDK language. Unset keeps the generic "this app" wording.
+- **`primaryColor`** — seeds the whole SDK color scheme (buttons, navigation, inputs, charts, share cards) in both light and dark themes; it is not just an accent.
+- **`defaultThemeMode`** — the theme the SDK UI starts in, until the user picks a theme inside SDK settings.
+- **`headerLogoAsset`** — path of your logo inside the SDK bundle (see Branding Assets below).
+- **`privacyUrl`** — your privacy policy, linked from the consent screen's "privacy policy" text. Unset keeps the SDK's default policy link.
 
 ## Branding Assets
 

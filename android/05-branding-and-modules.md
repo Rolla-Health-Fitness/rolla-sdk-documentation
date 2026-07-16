@@ -4,20 +4,15 @@ Customize the SDK appearance through branding configuration and control which mo
 
 ## Custom Branding (Optional)
 
-Colors are passed as ARGB integers (e.g. `0xFF6750A4.toInt()`):
+Every `RollaBranding` field is optional: a set field overrides the SDK's built-in default individually, and an unset field keeps it. Passing no branding at all keeps the complete default look. Colors are passed as ARGB integers (e.g. `0xFF6750A4.toInt()`):
 
 ```kotlin
 val branding = RollaBranding(
-    appName = "Your App Name",
-    primaryColor = 0xFF1976D2.toInt(),         // Blue
-    secondaryColor = 0xFF625B71.toInt(),       // Gray
-    accentColor = 0xFF7D5260.toInt(),          // Accent
-    brightness = "light",                       // or "dark"
-    defaultThemeMode = "system",               // "light", "dark", or "system"
-    defaultLocale = "en",                      // Optional
-    headerLogoAsset = null,                    // Optional: partner logo asset path (provided by Rolla)
-    termsUrl = "https://example.com/terms",    // Optional
-    privacyUrl = "https://example.com/privacy" // Optional
+    hostAppName = "Your App Name",              // names your app in SDK copy — see below
+    primaryColor = 0xFF1976D2.toInt(),          // seeds the SDK's entire color scheme
+    defaultThemeMode = RollaThemeMode.SYSTEM,   // SYSTEM, LIGHT, or DARK
+    headerLogoAsset = null,                     // partner logo asset path (provided by Rolla)
+    privacyUrl = "https://example.com/privacy"  // privacy link on the consent screen
 )
 
 val configuration = RollaConfiguration(
@@ -26,6 +21,12 @@ val configuration = RollaConfiguration(
     branding = branding
 )
 ```
+
+- **`hostAppName`** — your app's display name. When set, SDK copy that refers to the app names it explicitly — the consent screen's legal intro and the battery-optimization / motion-permission prompts — in every SDK language. Unset keeps the generic "this app" wording.
+- **`primaryColor`** — seeds the whole SDK color scheme (buttons, navigation, inputs, charts, share cards) in both light and dark themes; it is not just an accent.
+- **`defaultThemeMode`** — the theme the SDK UI starts in, until the user picks a theme inside SDK settings.
+- **`headerLogoAsset`** — path of your logo inside the SDK bundle (see the branding-assets note below).
+- **`privacyUrl`** — your privacy policy, linked from the consent screen's "privacy policy" text. Unset keeps the SDK's default policy link.
 
 > **Branding assets:** Image assets (such as partner logos) must be pre-bundled inside the SDK — they cannot be transferred from the host app at runtime. During onboarding, coordinate with Rolla to supply your partner logo (SVG format preferred) and any other brand assets. Rolla will bundle these into the SDK and provide the correct asset path to use in your `RollaBranding` configuration.
 
