@@ -27,6 +27,7 @@ let configuration = RollaConfiguration(
 - **`defaultThemeMode`** — the theme the SDK UI starts in, until the user picks a theme inside SDK settings.
 - **`headerLogoAsset`** — path of your logo inside the SDK bundle (see Branding Assets below).
 - **`privacyUrl`** — your privacy policy, linked from the consent screen's "privacy policy" text. Unset keeps the SDK's default policy link.
+- **`removeRollaBandReferences`** — whether the SDK uses generic "fitness device" wording or Rolla Band-specific naming. See [Rolla Band References](#rolla-band-references) below.
 
 ## Branding Assets
 
@@ -41,17 +42,19 @@ Rolla will bundle these into the SDK and provide the correct asset path to use i
 
 ## Rolla Band References
 
-The SDK can refer to the paired wearable either generically ("fitness device") or specifically as the "Rolla Band" throughout its UI. This is controlled by the `removeRollaBandReferences` flag on `RollaConfiguration`:
+The SDK can refer to the paired wearable either generically ("fitness device") or specifically as the "Rolla Band" throughout its UI. This is controlled by the `removeRollaBandReferences` flag on `RollaBranding`:
 
 ```swift
 let configuration = RollaConfiguration(
     token: token,
     partnerId: partnerId,
-    removeRollaBandReferences: true  // Default — generic "fitness device" wording
+    branding: RollaBranding(
+        removeRollaBandReferences: true  // Default — generic "fitness device" wording
+    )
 )
 ```
 
-- `true` (**default**) — the SDK uses generic "fitness device" wording. This is the right choice for most partner apps, which pair with their own-branded or third-party wearables rather than a Rolla-branded band.
+- `true` (**default**, also when unset) — the SDK uses generic "fitness device" wording. This is the right choice for most partner apps, which pair with their own-branded or third-party wearables rather than a Rolla-branded band.
 - `false` — the SDK shows Rolla Band-specific references (naming, imagery, and copy that call out the Rolla Band by name).
 
 ## Module Configuration

@@ -68,7 +68,7 @@ Feature support comparison between iOS and Android.
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding | Yes | Yes | Colors, logo, Rolla Band wording (`removeRollaBandReferences`) |
+| Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
 | Module Disabling | Yes | Yes | `disabledModules`; only `weight` and `bloodPressure` can currently be disabled |
 | Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
 | Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
