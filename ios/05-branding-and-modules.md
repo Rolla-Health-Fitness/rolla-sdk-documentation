@@ -10,7 +10,7 @@ Every `RollaBranding` field is optional: a set field overrides the SDK's built-i
 let branding = RollaBranding(
     hostAppName: "Your App Name",              // names your app in SDK copy — see below
     primaryColor: .systemBlue,                 // seeds the SDK's entire color scheme
-    defaultThemeMode: .system,                 // RollaThemeMode: .system, .light, or .dark
+    themeMode: .system,                        // RollaThemeMode: .system, .light, or .dark
     headerLogoAsset: nil,                      // partner logo asset path (provided by Rolla)
     privacyUrl: "https://example.com/privacy"  // privacy link on the consent screen
 )
@@ -24,7 +24,7 @@ let configuration = RollaConfiguration(
 
 - **`hostAppName`** — your app's display name. When set, SDK copy that refers to the app names it explicitly — the consent screen's legal intro and the battery-optimization / motion-permission prompts — in every SDK language. Unset keeps the generic "this app" wording.
 - **`primaryColor`** — seeds the whole SDK color scheme (buttons, navigation, inputs, charts, share cards) in both light and dark themes; it is not just an accent.
-- **`defaultThemeMode`** — the theme the SDK UI starts in, until the user picks a theme inside SDK settings.
+- **`themeMode`** — the theme the SDK UI runs in: light, dark, or following the device setting (system).
 - **`headerLogoAsset`** — path of your logo inside the SDK bundle (see Branding Assets below).
 - **`privacyUrl`** — your privacy policy, linked from the consent screen's "privacy policy" text. Unset keeps the SDK's default policy link.
 - **`removeRollaBandReferences`** — whether the SDK uses generic "fitness device" wording or Rolla Band-specific naming. See [Rolla Band References](#rolla-band-references) below.

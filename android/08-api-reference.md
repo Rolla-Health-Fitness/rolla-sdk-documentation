@@ -110,7 +110,7 @@ The `RollaConfiguration` class defines all parameters for SDK initialization. Se
 | `environment` | `String` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Branding and Modules](05-branding-and-modules.md#module-configuration) and the [`RollaDisabledModule`](#rolladisabledmodule) values below |
 | `disabledDataSources` | `Set<RollaDataSource>` | No | `emptySet()` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Branding and Modules](05-branding-and-modules.md#data-source-configuration) and the [`RollaDataSource`](#rolladatasource) values below |
-| `branding` | `RollaBranding?` | No | `null` | Visual identity: `hostAppName`, `primaryColor`, `defaultThemeMode` (`RollaThemeMode`), `headerLogoAsset`, `privacyUrl`, `removeRollaBandReferences` — every field optional; set fields override the SDK defaults individually. See [Branding and Modules](05-branding-and-modules.md) |
+| `branding` | `RollaBranding?` | No | `null` | Visual identity: `hostAppName`, `primaryColor`, `themeMode` (`RollaThemeMode`), `headerLogoAsset`, `privacyUrl`, `removeRollaBandReferences` — every field optional; set fields override the SDK defaults individually. See [Branding and Modules](05-branding-and-modules.md) |
 | `showSettingsButton` | `Boolean` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button. |
 
 ### RollaDisabledModule
