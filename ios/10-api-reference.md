@@ -54,10 +54,10 @@ All sixteen methods have default empty implementations — implement only the on
 
 | Callback | Method | Called when |
 |----------|--------|-------------|
-| SDK closed | `rollaDidClose(_:reason:)` | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
-| Error occurred | `rollaDidFailWithError(_:error:)` | An error occurred — see [RollaError](#rollaerror) |
-| Token refreshed | `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | The SDK refreshed tokens internally — store them for future use |
-| Token refresh needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
+| SDK&nbsp;closed | `rollaDidClose(_:reason:)` | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
+| Error&nbsp;occurred | `rollaDidFailWithError(_:error:)` | An error occurred — see [RollaError](#rollaerror) |
+| Token&nbsp;refreshed | `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | The SDK refreshed tokens internally — store them for future use |
+| Token&nbsp;refresh&nbsp;needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
 
 ## Host Events
 
@@ -70,8 +70,8 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 
 | Event | Method | Fires when |
 |-------|--------|-----------|
-| Headless sync completed | `rollaDidCompleteHealthDataSync(_:result:)` | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the completion handler receives |
-| UI sync completed | `rollaDidCompleteUISync(_:result:)` | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
+| Headless&nbsp;sync&nbsp;completed | `rollaDidCompleteHealthDataSync(_:result:)` | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the completion handler receives |
+| UI&nbsp;sync&nbsp;completed | `rollaDidCompleteUISync(_:result:)` | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
 
 **`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
 
@@ -79,9 +79,9 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 
 | Event | Method | Fires when |
 |-------|--------|-----------|
-| Activity started | `rollaDidStartActivity(_:activity:)` | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
-| Activity completed | `rollaDidCompleteActivity(_:activity:)` | An activity reaches a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed` |
-| Activity removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (crash-recovery discard) or `deleted` (user deleted it, backend-confirmed) |
+| Activity&nbsp;started | `rollaDidStartActivity(_:activity:)` | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
+| Activity&nbsp;completed | `rollaDidCompleteActivity(_:activity:)` | An activity reaches a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed` |
+| Activity&nbsp;removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (crash-recovery discard) or `deleted` (user deleted it, backend-confirmed) |
 
 **Lifecycle guarantees.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
 
@@ -89,10 +89,10 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 
 | Event | Method | Fires when |
 |-------|--------|-----------|
-| Band paired | `rollaDidPairBand(_:band:)` | The user pairs a band inside the SDK UI |
-| Band unpaired | `rollaDidUnpairBand(_:band:)` | The user unpairs the band inside the SDK UI (backend-confirmed) |
-| Band connected | `rollaDidConnectBand(_:band:)` | The paired band establishes a live BLE link |
-| Band disconnected | `rollaDidDisconnectBand(_:band:)` | The paired band loses its live BLE link (debounced a few seconds) |
+| Band&nbsp;paired | `rollaDidPairBand(_:band:)` | The user pairs a band inside the SDK UI |
+| Band&nbsp;unpaired | `rollaDidUnpairBand(_:band:)` | The user unpairs the band inside the SDK UI (backend-confirmed) |
+| Band&nbsp;connected | `rollaDidConnectBand(_:band:)` | The paired band establishes a live BLE link |
+| Band&nbsp;disconnected | `rollaDidDisconnectBand(_:band:)` | The paired band loses its live BLE link (debounced a few seconds) |
 
 **Link events are not a proximity signal.** `rollaDidConnectBand`/`rollaDidDisconnectBand` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use [`getPairedBandInfo`](#getpairedbandinfo) for the pairing state.
 
@@ -100,9 +100,9 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 
 | Event | Method | Fires when |
 |-------|--------|-----------|
-| Primary source changed | `rollaDidChangePrimarySource(_:change:)` | The user's primary data source changes |
-| Goals changed | `rollaDidChangeGoals(_:change:)` | The user saves goal changes inside the SDK UI (backend-confirmed) — one call per save |
-| Profile updated | `rollaDidUpdateProfile(_:update:)` | The user updates profile data inside the SDK UI — carries only the changed fields |
+| Primary&nbsp;source&nbsp;changed | `rollaDidChangePrimarySource(_:change:)` | The user's primary data source changes |
+| Goals&nbsp;changed | `rollaDidChangeGoals(_:change:)` | The user saves goal changes inside the SDK UI (backend-confirmed) — one call per save |
+| Profile&nbsp;updated | `rollaDidUpdateProfile(_:update:)` | The user updates profile data inside the SDK UI — carries only the changed fields |
 
 ## Headless Methods
 
