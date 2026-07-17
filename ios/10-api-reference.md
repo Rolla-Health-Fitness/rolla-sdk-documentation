@@ -18,10 +18,10 @@ rolla.show(from: self)
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `init(configuration:)` | Create an instance — see [Configuration](05-configuration.md) for every option |
-| `var delegate: RollaDelegate?` | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
-| `var isPresenting: Bool` | `true` from `show(from:)` until the SDK UI closes — the same flag behind the `.alreadyPresenting` guard |
-| `show(from: UIViewController)` | Present the SDK UI modally |
+| <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
+| <code>var&nbsp;delegate:&nbsp;RollaDelegate?</code> | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
+| <code>var&nbsp;isPresenting:&nbsp;Bool</code> | `true` from `show(from:)` until the SDK UI closes |
+| <code>show(from:&nbsp;UIViewController)</code> | Present the SDK UI modally |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -41,7 +41,7 @@ rolla.show(from: self)
 | `syncHealthData(includeSamples:completion:)` | Headless sync of the user's primary data source — see [Headless Methods](#synchealthdata) |
 | `getBandBatteryLevel(completion:)` | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
 | `getPairedBandInfo(completion:)` | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
-| `static destroyEngine()` | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](08-engine-lifecycle.md) |
+| <code>static&nbsp;destroyEngine()</code> | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
 ## RollaDelegate Protocol
 

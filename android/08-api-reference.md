@@ -18,18 +18,18 @@ rolla.show(activity)
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `Rolla(configuration)` | Create an instance — see [Configuration](05-configuration.md) for every option |
-| `var listener: RollaListener?` | Receives every callback — see [RollaListener](#rollalistener-interface) |
-| `val isPresenting: Boolean` | `true` from `show()` until the SDK UI closes — the same flag behind the `AlreadyPresenting` guard |
-| `show(activity: Activity)` | Present the SDK UI from an Activity |
-| `show(fragment: Fragment)` | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
+| <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
+| <code>var&nbsp;listener:&nbsp;RollaListener?</code> | Receives every callback — see [RollaListener](#rollalistener-interface) |
+| <code>val&nbsp;isPresenting:&nbsp;Boolean</code> | `true` from `show()` until the SDK UI closes |
+| <code>show(activity:&nbsp;Activity)</code> | Present the SDK UI from an Activity |
+| <code>show(fragment:&nbsp;Fragment)</code> | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](07-engine-lifecycle.md) |
 
 ### Session & Tokens
 
 | Method | Description |
 |--------|-------------|
-| `updateToken(token, refreshToken?, expiresIn?, callback?)` | Push fresh credentials to the SDK. The `callback` is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. See [Token Management](06-token-management.md) |
+| <code>updateToken(token,&nbsp;refreshToken?,&nbsp;expiresIn?,&nbsp;callback?)</code> | Push fresh credentials to the SDK. The `callback` is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. See [Token Management](06-token-management.md) |
 | `clearSession(callback?)` | Purge all persisted session data (tokens, auth metadata) — call on logout |
 
 ### Headless & Engine
@@ -38,11 +38,11 @@ rolla.show(activity)
 
 | Method | Description |
 |--------|-------------|
-| `warmUpEngine(context, callback?)` | Start and configure the engine ahead of time, without any UI — see [Headless Methods](#warmupengine) |
-| `syncHealthData(context, includeSamples = false, callback)` | Headless sync of the user's primary data source — see [Headless Methods](#synchealthdata) |
-| `getBandBatteryLevel(context, callback)` | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
-| `getPairedBandInfo(context, callback)` | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
-| `companion fun destroyEngine()` | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](07-engine-lifecycle.md) |
+| <code>warmUpEngine(context,&nbsp;callback?)</code> | Start and configure the engine ahead of time, without any UI — see [Headless Methods](#warmupengine) |
+| <code>syncHealthData(context,&nbsp;includeSamples&nbsp;=&nbsp;false,&nbsp;callback)</code> | Headless sync of the user's primary data source — see [Headless Methods](#synchealthdata) |
+| <code>getBandBatteryLevel(context,&nbsp;callback)</code> | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
+| <code>getPairedBandInfo(context,&nbsp;callback)</code> | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
+| <code>companion&nbsp;fun&nbsp;destroyEngine()</code> | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](07-engine-lifecycle.md) |
 
 ## RollaListener Interface
 
