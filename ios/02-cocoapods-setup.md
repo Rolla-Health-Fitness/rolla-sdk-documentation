@@ -2,7 +2,7 @@
 
 This section covers adding the Rolla SDK to your project via CocoaPods, configuring build settings, and installing dependencies.
 
-> **Package Manager Support:** CocoaPods is the only supported package manager at this time. Swift Package Manager (SPM) is not currently supported.
+> **Package Manager Support:** CocoaPods is the only supported package manager at this time. Swift Package Manager (SPM) is not currently supported, but will be supported soon.
 
 ## Update Podfile
 
@@ -19,7 +19,7 @@ target 'YourApp' do
   use_frameworks!
 
   # Add Rolla SDK
-  pod 'RollaSDK', '0.1.11'
+  pod 'RollaSDK', '0.1.12'
 end
 ```
 

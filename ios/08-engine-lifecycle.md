@@ -8,6 +8,18 @@ The SDK uses a Flutter engine internally. This section covers engine creation, d
 - **`dismiss()`** — Dismisses the SDK UI but **keeps the engine alive** in the background. The next `show(from:)` call will present the SDK instantly in its last state (no reload).
 - This is the recommended behavior for most apps.
 
+## Warming Up the Engine
+
+The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](10-api-reference.md#headless-methods)), so none of them require a prior `show(from:)`. Call `warmUpEngine()` to pay the start-up cost early — typically right after login — so the first `show(from:)` presents instantly:
+
+```swift
+rolla.warmUpEngine { result in
+    // Engine configured and ready — headless calls and host events now have zero start-up latency.
+}
+```
+
+Safe to call repeatedly: a repeat call for the same user is a no-op that preserves the session. The warmed engine holds memory until `destroyEngine()`.
+
 ## Destroying the Engine
 
 If you need to free memory (e.g., on user logout or when the user won't return to the SDK for a while):
@@ -19,6 +31,8 @@ Rolla.destroyEngine()
 - This fully tears down the Flutter engine and frees its resources.
 - The next `show(from:)` call will create a fresh engine automatically (with a brief loading time).
 - Call this **after** `dismiss()`, not while the SDK is presenting.
+- Host-event delivery (see [API Reference](10-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
+- Destroying the engine is also how a new `RollaConfiguration` is applied — a changed language, branding, or module set takes effect on the next engine start. See [Configuration](05-configuration.md).
 
 ## `clearSession` vs `destroyEngine`
 
@@ -39,10 +53,14 @@ func rollaDidClose(_ rolla: Rolla, reason: RollaCloseReason) {
 
 // User logs out of your app
 func logout() {
-    rolla.clearSession { _ in }
-    Rolla.destroyEngine()
+    rolla.clearSession { _ in
+        // Tear the engine down only after the session is cleared.
+        Rolla.destroyEngine()
+    }
 }
 ```
+
+> **Order matters on logout.** `clearSession` completes asynchronously — call `Rolla.destroyEngine()` from its completion handler, never immediately after it. Destroying the engine first cancels the pending clear, and the session data silently survives.
 
 ---
 

@@ -10,13 +10,68 @@
 
 ---
 
+## 0.1.12
+
+### Both platforms
+
+- **[feature] New headless public SDK methods.** Four methods run **headlessly** — no SDK UI needs to be opened:
+  - **`warmUpEngine()`** — start the engine ahead of time so the first `show()` presents instantly.
+  - **`syncHealthData()`** — full sync of the user's primary data source, returning a typed result: outcome, skip reason, per-stream `syncedData` breakdown, and `startedAt`/`lastSyncAt` timing.
+  - **`getBandBatteryLevel()`** — live battery read from the paired Rolla band, or a typed "unavailable" reason.
+  - **`getPairedBandInfo()`** — paired-band query with zero Bluetooth: `bandPaired`/`noBandPaired`/`unknown`.
+
+  See the [Android](android/08-api-reference.md#headless-methods) / [iOS](ios/10-api-reference.md#headless-methods) API references and the [Android](android/07-engine-lifecycle.md#warming-up-the-engine) / [iOS](ios/08-engine-lifecycle.md#warming-up-the-engine) engine-lifecycle guides.
+
+- **[feature] Host event callbacks: twelve new delegate/listener methods.** `RollaDelegate` (iOS) / `RollaListener` (Android) gains methods your app can override to observe the SDK without polling — all with default no-op bodies, delivered for the engine's lifetime (they keep flowing after the SDK UI closes):
+
+  | Event | iOS | Android |
+  |-------|-----|---------|
+  | Activity&nbsp;started | `rollaDidStartActivity` | `onActivityStarted` |
+  | Activity&nbsp;completed | `rollaDidCompleteActivity` | `onActivityCompleted` |
+  | Activity&nbsp;removed | `rollaDidRemoveActivity` | `onActivityRemoved` |
+  | UI&nbsp;sync&nbsp;completed | `rollaDidCompleteUISync` | `onUiSyncCompleted` |
+  | Headless&nbsp;sync&nbsp;completed | `rollaDidCompleteHealthDataSync` | `onSyncHealthDataCompleted` |
+  | Band&nbsp;paired | `rollaDidPairBand` | `onBandPaired` |
+  | Band&nbsp;unpaired | `rollaDidUnpairBand` | `onBandUnpaired` |
+  | Band&nbsp;connected | `rollaDidConnectBand` | `onBandConnected` |
+  | Band&nbsp;disconnected | `rollaDidDisconnectBand` | `onBandDisconnected` |
+  | Primary&nbsp;source&nbsp;changed | `rollaDidChangePrimarySource` | `onPrimarySourceChanged` |
+  | Goals&nbsp;changed | `rollaDidChangeGoals` | `onGoalsChanged` |
+  | Profile&nbsp;updated | `rollaDidUpdateProfile` | `onProfileUpdated` |
+
+  See the [Android](android/08-api-reference.md#host-events) / [iOS](ios/10-api-reference.md#host-events) Host Events sections for the payloads and delivery semantics.
+
+- **[feature] Host-controlled SDK language (`language` on `RollaConfiguration`).** Typed by the new `RollaLanguage` enum; when set it is authoritative for the engine's lifetime — persisted in-SDK picks and the backend profile can't override it — and is written to the user's backend profile at startup so backend-generated content (goal labels, insights) matches the UI language. Unset keeps the profile-driven behavior. The SDK now ships eight languages: English, German, **Spanish (new)**, Croatian, Bosnian, **Serbian — Latin and Cyrillic (new)**, and Arabic. See the [Android](android/05-configuration.md#language) / [iOS](ios/05-configuration.md#language) configuration guides.
+
+- **[feature] New Leaderboards module — and a `leaderboards` value in `RollaDisabledModule` to hide it.** Opt-in weekly/monthly rankings comparing users in your tenant on Health Score or Active Points, with join/leave controls. Enabled by default; pass `RollaDisabledModule.leaderboards` in `disabledModules` to hide it everywhere in the SDK UI. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
+
+- **[feature] Hide selected data sources from the SDK UI (`disabledDataSources`).** A new `RollaConfiguration` parameter that hides specific connect options (band, Garmin, Oura, Apple Health, Health Connect) wherever the user picks a source. Deny-list semantics: omit it or pass an empty set to offer everything; already-connected sources stay visible for viewing/disconnecting; disabling every source keeps the Rolla Band as a floor, and when the band is the only source left the picker is skipped — onboarding goes straight to pairing. See the [Android](android/05-configuration.md#data-source-configuration) / [iOS](ios/05-configuration.md#data-source-configuration) configuration guides.
+
+- **[breaking] `RollaBranding` reworked to hold exactly the options that affect the SDK.** Six fields, all optional: `hostAppName`, `primaryColor`, `themeMode` (renamed from `defaultThemeMode`, typed by the new `RollaThemeMode` enum), `headerLogoAsset`, `privacyUrl`, and `removeRollaBandReferences` (moved from `RollaConfiguration`, same semantics). A set field overrides the SDK default individually; an unset field keeps it — previously, passing any branding replaced all defaults at once. The removed options — `appName`, `secondaryColor`, `accentColor`, `brightness`, `defaultLocale`, `termsUrl` — had no effect on the SDK UI. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) configuration guides.
+
+- **[improvement] Skip the SDK's onboarding by setting the profile in advance.** Call `POST /api/setprofile` before first presenting the SDK: a profile carrying username, birthdate, gender, height, and weight skips the account-details onboarding entirely; a partial profile pre-fills the form. Weight is always required — the SDK uses it to calculate calories, even with the weight module disabled. See the new [Profile](sdk-auth-api/03-profile.md) guide.
+
+- **[improvement] Split the combined permission screen into separate Bluetooth and Location pages.** Each permission now has its own page with contextual copy explaining why it is needed.
+
+- **[fix] Bugs and stability fixes.** Various internal fixes and stability improvements.
+
+- **[documentation] Updated and restructured the documentation for this release's many new features and breaking changes.** The *Branding & Modules* pages became the per-platform [Configuration](ios/05-configuration.md) guides ([Android](android/05-configuration.md)) covering every `RollaConfiguration` option, and the `RollaConfiguration` reference moved there from the API references.
+
+### Android
+
+- **[improvement] Brand-neutral notification channel names.** The two SDK-created notification channels end users see in system settings were renamed from "Rolla Warnings" and "Engagement" to "Important Alerts" and "Engagement Tips", so they read naturally under the host app's branding. A new [Notification Channels](android/03-permissions.md#notification-channels) section documents every channel the SDK creates.
+
+### iOS
+
+- **[breaking] `RollaDelegate` error method renamed: `rolla(_:didFailWithError:)` → `rollaDidFailWithError(_:error:)`.** A signature-only change aligning the one anonymous-form method with the rest of the `rollaDid…` delegate family — same parameters, same behavior: `func rollaDidFailWithError(_ rolla: Rolla, error: RollaError)`. See the [iOS API reference](ios/10-api-reference.md#rolladelegate-protocol).
+
 ## 0.1.11
 
 ### Both platforms
 
-- **[breaking] Module configuration switched from an enable-list to an opt-out list (`disabledModules`).** The previous enable-list parameter — documented as `modules`, named `enabledModules` in the SDK — has been removed and replaced by `disabledModules`. Pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit it to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed an enable-list must switch to `disabledModules`. See [Android](android/05-branding-and-modules.md#module-configuration) and [iOS](ios/05-branding-and-modules.md#module-configuration) branding & modules guides and the [Android](android/08-api-reference.md#rolladisabledmodule) / [iOS](ios/10-api-reference.md#rolladisabledmodule) API references.
+- **[breaking] Module configuration switched from an enable-list to an opt-out list (`disabledModules`).** The previous enable-list parameter — documented as `modules`, named `enabledModules` in the SDK — has been removed and replaced by `disabledModules`. Pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit it to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed an enable-list must switch to `disabledModules`. See the [Android](android/05-configuration.md#module-configuration) and [iOS](ios/05-configuration.md#module-configuration) configuration guides and the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) `RollaDisabledModule` values.
 
-- **[feature] Added the `removeRollaBandReferences` flag to `RollaConfiguration`, default `true`.** When `true` the SDK UI uses generic "fitness device" wording; set it to `false` to show Rolla Band-specific references. See [Android](android/05-branding-and-modules.md#rolla-band-references) and [iOS](ios/05-branding-and-modules.md#rolla-band-references) branding & modules guides.
+- **[feature] Added the `removeRollaBandReferences` flag to `RollaConfiguration`, default `true`.** When `true` the SDK UI uses generic "fitness device" wording; set it to `false` to show Rolla Band-specific references. See the [Android](android/05-configuration.md#rolla-band-references) and [iOS](ios/05-configuration.md#rolla-band-references) configuration guides.
 
 - **[feature] Smartphone-only workout tracking.** Workouts can now be started and tracked without a paired wearable, using the phone's pedometer and motion sensors. This adds a new permission requirement on each platform — see the Android and iOS notes below.
 
@@ -52,7 +107,7 @@
 
 ### Both platforms
 
-- **[feature] Added the `showSettingsButton` boolean config on `RollaConfiguration`.** Renders a Settings button on the Home screen that opens a sheet with Data Sources and Goals shortcuts. Defaults to `true` since most partners need it automatically. See [Android](android/08-api-reference.md) and [iOS](ios/10-api-reference.md) API references.
+- **[feature] Added the `showSettingsButton` boolean config on `RollaConfiguration`.** Renders a Settings button on the Home screen that opens a sheet with Data Sources and Goals shortcuts. Defaults to `true` since most partners need it automatically. See the [Android](android/05-configuration.md#rollaconfiguration) and [iOS](ios/05-configuration.md#rollaconfiguration) configuration guides.
 
 - **[improvement] Improved the GPS tracking to be more accurate on iOS and Android.** The location pipeline has been refactored on both platforms to hold steady when you're standing still, filter out GPS zig-zags, and recover cleanly when you start moving again. Additionally, the in-app map views got some general UX improvements and polishing.
 
@@ -70,7 +125,7 @@
 
 ### iOS
 
-- **[improvement] Simulator support added (Debug configuration).** `0.1.10` runs on iPhone simulators under the Debug configuration, in addition to the existing Release-on-device support. Hardware-backed features (Bluetooth, etc.) still only work on physical devices. See [iOS Prerequisites](ios/01-prerequisites.md).
+- **[improvement] Simulator support added (Debug configuration).** `0.1.10` runs on iPhone simulators under the Debug configuration, in addition to the existing Release-on-device support. Hardware-backed features (Bluetooth, etc.) still only work on physical devices. See the [iOS Quick Start](ios/00-quick-start.md).
 
 ---
 

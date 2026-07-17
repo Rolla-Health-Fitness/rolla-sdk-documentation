@@ -11,7 +11,7 @@ A complete, step-by-step guide to integrating the Rolla SDK into your iOS applic
 2. **[CocoaPods Setup](02-cocoapods-setup.md)** — Add the SDK via CocoaPods, configure build settings, install dependencies
 3. **[Permissions & Entitlements](03-permissions-and-entitlements.md)** — Configure Info.plist and .entitlements files for permissions, Bluetooth, location, Mapbox, and HealthKit
 4. **[Code Integration](04-code-integration.md)** — Import the SDK, create configuration, initialize, present, and implement delegate callbacks
-5. **[Branding & Modules](05-branding-and-modules.md)** — Custom branding with RollaBranding and module configuration (disabling modules via `disabledModules`)
+5. **[Configuration](05-configuration.md)** — Every `RollaConfiguration` option: branding, language, module disabling, data-source hiding
 6. **[Apple Health Integration](06-apple-health.md)** — Set up Apple Health, supported data types (14 types), availability, and platform notes
 7. **[Token Management](07-token-management.md)** — Token lifecycle, delegate callbacks, pushing new tokens, clearing sessions
 8. **[Engine Lifecycle](08-engine-lifecycle.md)** — Flutter engine initialization, dismissal, memory management, and recommended usage patterns
@@ -21,7 +21,7 @@ A complete, step-by-step guide to integrating the Rolla SDK into your iOS applic
 
 ---
 
-## Quick Start
+## Suggested Reading Order
 
 1. Start with [Prerequisites](01-prerequisites.md) to verify your environment
 2. Follow [CocoaPods Setup](02-cocoapods-setup.md) to add the SDK

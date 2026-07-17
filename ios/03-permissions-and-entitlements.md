@@ -109,7 +109,7 @@ This section is the partner-facing justification for every permission the SDK re
 | `NSLocationWhenInUseUsageDescription` | Required for any GPS-tracked activity | During an outdoor activity the SDK records the user's GPS trace via `CLLocationManager` to draw the route polyline, compute distance, pace, and elevation. *While Using the App* authorization is enough to record a workout that stays in the foreground (e.g. on a phone-mounted handlebar with the screen on). |
 | `NSLocationAlwaysAndWhenInUseUsageDescription` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. *Always* authorization combined with `UIBackgroundModes: location` lets `CLLocationManager` keep delivering fixes when the app is backgrounded or the phone is locked. Without it, **the polyline drops out as soon as the user locks the phone** — runs longer than the screen-on timeout will record incomplete routes. The SDK explicitly sets `allowsBackgroundLocationUpdates = true` (`CoreLocationManager.swift:70`) and `pausesLocationUpdatesAutomatically = false` so iOS does not opportunistically pause the stream during a workout. |
 
-> **Note on `NSLocationAlwaysUsageDescription`:** This is a legacy iOS-10-and-below key. iOS 11+ uses `NSLocationAlwaysAndWhenInUseUsageDescription` exclusively. Declaring the legacy key alongside it is harmless and is what the white-label app does for safety; new integrations targeting iOS 12+ can omit it.
+> **Note on `NSLocationAlwaysUsageDescription`:** This is a legacy iOS-10-and-below key. iOS 11+ uses `NSLocationAlwaysAndWhenInUseUsageDescription` exclusively. Declaring the legacy key alongside it is harmless and is what Rolla's own app does for safety; new integrations targeting iOS 12+ can omit it.
 
 ### Bluetooth
 
@@ -123,10 +123,10 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSHealthShareUsageDescription` | Optional, strongly recommended | The SDK reads the user's HealthKit data — heart rate, steps, distance, calories, sleep, workouts — via `HKHealthStore.requestAuthorization(toShare: [], read: readTypes)` (`AppleHealthManager.swift:43`) so the Rolla feed reflects every workout the user does, including ones recorded by Apple Watch, Strava, Nike Run Club, etc. Without it, the user only sees workouts recorded inside Rolla. |
+| `NSHealthShareUsageDescription` | Optional, strongly recommended | The SDK reads the user's HealthKit data — heart rate, steps, distance, calories, sleep, workouts — via `HKHealthStore.requestAuthorization(toShare: [], read: readTypes)` (`AppleHealthManager.swift:76`) so the Rolla feed reflects every workout the user does, including ones recorded by Apple Watch, Strava, Nike Run Club, etc. Without it, the user only sees workouts recorded inside Rolla. |
 | HealthKit Entitlement | Required if Apple Health is enabled (build-time) | App Store capability that authorizes the HealthKit APIs the SDK uses to read Apple Health data. Configured in `.entitlements`, not `Info.plist`. |
 
-> **Note on `NSHealthUpdateUsageDescription`:** The SDK passes an empty `toShare` array — it does **not** write back to HealthKit. The white-label app declares the write key out of caution, but a partner integration whose product does not write to HealthKit can omit it. If you call any HealthKit write API in your own host code, declare it.
+> **Note on `NSHealthUpdateUsageDescription`:** The SDK passes an empty `toShare` array — it does **not** write back to HealthKit. Rolla's own app declares the write key out of caution, but a partner integration whose product does not write to HealthKit can omit it. If you call any HealthKit write API in your own host code, declare it.
 
 ### Motion & Fitness
 
@@ -140,13 +140,13 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `UIBackgroundModes: location` | Required for full-route recording with *Always* location | Pairs with `NSLocationAlwaysAndWhenInUseUsageDescription` to let `CLLocationManager` deliver fixes while the app is backgrounded. |
 | `UIBackgroundModes: bluetooth-central` | Required for sustained band connection | Allows the SDK's `CBCentralManager` to maintain its GATT connection to the band when the user locks the phone or switches apps mid-workout. Without this background mode, iOS suspends the connection within ~10 seconds of the app going to the background and the band shows as "disconnected" on the workout screen. |
-| `UIBackgroundModes: remote-notification` | Optional | Currently declared by the white-label app for silent-push delivery of post-workout insights from the Rolla backend. A partner integration that does not subscribe to those silent pushes can omit it. |
+| `UIBackgroundModes: remote-notification` | Optional | Currently declared by Rolla's own app for silent-push delivery of post-workout insights from the Rolla backend. A partner integration that does not subscribe to those silent pushes can omit it. |
 
 ### Live Activities
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSSupportsLiveActivities` | Optional | During an active workout the SDK posts a Live Activity (`LiveWorkoutBridge.swift:180` — `Activity.request(attributes:content:pushType: nil)`) that displays elapsed time, current pace, and heart rate on the lock screen and in the Dynamic Island. |
+| `NSSupportsLiveActivities` | Optional | During an active workout the SDK posts a Live Activity (`LiveWorkoutBridge.swift:182` — `Activity.request(attributes:content:pushType: nil)`) that displays elapsed time, current pace, and heart rate on the lock screen and in the Dynamic Island. |
 | `NSSupportsLiveActivitiesFrequentUpdates` | Optional, recommended alongside the above | Lets the SDK push updates more often than the default ~1/15s budget, which is what makes the on-screen pace number flow rather than tick. |
 
 ---

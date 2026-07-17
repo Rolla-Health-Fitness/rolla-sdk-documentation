@@ -24,13 +24,12 @@ let configuration = RollaConfiguration(
     token: "your-access-token",
     refreshToken: "your-refresh-token",  // Optional
     tokenExpiresIn: TimeInterval(1800),  // Optional: token expiry in seconds (TimeInterval)
-    userId: "user-id",  // Optional: extracted from JWT if not provided
     partnerId: "your-partner-id",
-    environment: "production",  // or "rnd" for development
-    disabledModules: [],  // Optional: modules to hide (default: none disabled)
-    branding: nil  // Optional: custom branding configuration
+    environment: "production"  // or "rnd" for development
 )
 ```
+
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showSettingsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -60,7 +59,7 @@ extension YourViewController: RollaDelegate {
         // Clean up any references
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         // Handle errors
         print("Rolla SDK error: \(error.localizedDescription)")
     }
@@ -87,29 +86,22 @@ extension YourViewController: RollaDelegate {
 
 All delegate methods have default empty implementations, so you only need to implement the ones relevant to your use case.
 
+The four above are the presentation and token callbacks — the minimum for a production integration. `RollaDelegate` has twelve more optional methods that push SDK events to your app (activity lifecycle, sync results, band pairing and live link state, primary source, goals, profile) — see the [RollaDelegate reference](10-api-reference.md#rolladelegate-protocol) and its [Host Events](10-api-reference.md#host-events) delivery semantics.
+
 ## Threading
 
-All public SDK methods dispatch to the main thread internally — you can safely call them from any thread:
+The SDK is thread-safe at its public surface, so you never have to think about threads when calling it:
 
-| Method | Thread-safe | Notes |
-|--------|:-----------:|-------|
-| `show(from:)` | Yes | Dispatches to main queue before presenting |
-| `dismiss()` | Yes | Dispatches to main queue before dismissing |
-| `updateToken(...)` | Yes | Dispatches to main queue; completion fires on main thread |
-| `clearSession(...)` | Yes | Dispatches to main queue; completion fires on main thread |
+- **Every method on a `Rolla` instance** — presentation, token, and headless methods alike — dispatches to the main queue internally. Call them from any thread.
+- **Every callback** — all `RollaDelegate` methods and every completion handler — arrives on the main thread. You can update your UI directly inside them.
+- **The one exception is the static `Rolla.destroyEngine()`**: it runs synchronously on the calling thread, with no internal dispatch — call it from the main thread.
 
-**Delegate callbacks** also arrive on the main thread. Flutter's platform channel delivers messages on the main thread, and the SDK does not re-dispatch to a background queue. You can safely update your UI directly inside delegate methods like `rollaDidClose(_:reason:)` or `rolla(_:didFailWithError:)`.
-
-> **Summary:** You do not need to wrap any SDK call or delegate handler in `DispatchQueue.main.async` — the SDK handles this for you.
+> **Summary:** You never need `DispatchQueue.main.async` around an SDK call or delegate handler.
 
 ## Cross-Platform Note: `tokenExpiresIn` Type
 
-On iOS, `tokenExpiresIn` is a `TimeInterval` (a `Double` representing seconds). On Android, it is an `Int` (seconds).
-
-If you maintain a shared backend or cross-platform token logic, be aware of this difference — passing a floating-point value where an integer is expected (or vice versa) can cause subtle bugs. Both platforms interpret the value as **seconds until expiry**.
-
-The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` delegate callback (`TimeInterval?` on iOS, `Int?` on Android).
+Both platforms mean the same thing — **seconds until expiry** — but the declared type follows each platform's idiom: `TimeInterval?` (a `Double` number of seconds) on iOS, `Int?` on Android. The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` delegate callback. There is no unit difference: if your backend returns `expires_in` in seconds, pass it straight through on both platforms.
 
 ---
 
-**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)
