@@ -88,8 +88,6 @@ A rejected write returns `success: false` with a `reason`, e.g. `"Invalid birth 
 
 > **Important:** `success: false` means the field was **not** stored — and if it was one of the fields required for the onboarding skip, the skip will not happen. Verify the response before presenting the SDK.
 
-> **Note:** The first time `gender` is set on a profile, Rolla's internal `registration` analytics event fires and the registration insight is triggered. Your app controls when a user counts as registered by choosing when to make this call.
-
 ---
 
 ## Skipping SDK Onboarding
@@ -114,8 +112,6 @@ Everything else (`units`, `country`, `city`, `language`, `timezone`, `max_heart_
 2. **You send a partial set** — e.g. `username`, `birthdate`, `gender`, but no `height`. The onboarding form appears **pre-filled** with everything you sent; the user only completes the gaps (here: height and weight).
 3. **You send nothing** — the SDK runs its full built-in onboarding, exactly as before this feature.
 4. **A write is rejected** (`success: false`) — the field is missing on the profile, so case 2 or 3 applies. Check responses.
-
-> **Important:** `username` and `gender` have **no edit UI inside the SDK** after onboarding. Send them correctly the first time — a wrong or missing name is what other users see on leaderboards.
 
 ### Verifying the skip
 
