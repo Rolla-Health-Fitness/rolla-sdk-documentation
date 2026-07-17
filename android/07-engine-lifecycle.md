@@ -21,7 +21,7 @@ The SDK manages a Flutter engine internally. By default, the engine stays alive 
 
 ### Warming Up the Engine
 
-The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](08-api-reference.md#headless-methods)), so none of them require a prior `show()`. To move the one-time start-up cost to a moment you control — a common pattern is right after login, so the first `show()` presents instantly:
+The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](08-api-reference.md#headless-methods)), so none of them require a prior `show()`. Call `warmUpEngine` to pay the start-up cost early — typically right after login — so the first `show()` presents instantly:
 
 ```kotlin
 rolla.warmUpEngine(context) { result ->

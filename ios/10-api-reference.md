@@ -1,64 +1,124 @@
 # API Reference
 
-This section provides a comprehensive reference of the Rolla SDK's public API, including the main Rolla class, delegate protocol, and error types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
+The complete public API of the Rolla SDK on iOS: the `Rolla` class, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-## Native API Reference
+**On this page:** [Rolla Class](#rolla-class) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
-### Rolla Class
+## Rolla Class
+
+One instance per configuration. Create it, assign the delegate, and present:
+
+```swift
+let rolla = Rolla(configuration: configuration)
+rolla.delegate = self
+rolla.show(from: self)
+```
+
+### Presentation
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `init(configuration: RollaConfiguration)` | Initialize with a configuration — see [Configuration](05-configuration.md) for every option |
-| `var delegate: RollaDelegate?` | Set the delegate for callbacks |
-| `var isPresenting: Bool` | Whether the SDK is currently visible |
-| `show(from: UIViewController)` | Present the SDK modally |
-| `dismiss()` | Dismiss the SDK UI (engine stays alive) |
-| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK. The `completion` handler is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. |
-| `clearSession(completion:)` | Clear all persisted session data |
-| `warmUpEngine(completion:)` | Start and configure the engine ahead of time, without any UI. See [Headless Methods](#headless-methods) |
-| `getBandBatteryLevel(completion:)` | Headless live battery read from the paired Rolla band. See [Headless Methods](#headless-methods) |
-| `getPairedBandInfo(completion:)` | Headless paired-band query — zero Bluetooth. See [Headless Methods](#headless-methods) |
-| `syncHealthData(includeSamples:completion:)` | Headless sync of the user's primary data source. See [Headless Methods](#headless-methods) |
-| `static destroyEngine()` | Destroy the Flutter engine and free memory |
+| `init(configuration: RollaConfiguration)` | Create an instance — see [Configuration](05-configuration.md) for every option |
+| `var delegate: RollaDelegate?` | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
+| `var isPresenting: Bool` | `true` from `show(from:)` until the SDK UI closes — the same flag behind the `.alreadyPresenting` guard |
+| `show(from: UIViewController)` | Present the SDK UI modally |
+| `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
-### RollaDelegate Protocol
+### Session & Tokens
 
 | Method | Description |
 |--------|-------------|
-| `rollaDidClose(_:reason:)` | Called when the SDK UI is dismissed |
-| `rollaDidFailWithError(_:error:)` | Called when an error occurs |
-| `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | Called when the SDK refreshes tokens internally |
-| `rollaDidRequestTokenRefresh(_:)` | Called when the host app must provide new tokens |
-| `rollaDidCompleteHealthDataSync(_:result:)` | Called when a headless `syncHealthData` reaches a terminal outcome, with the same `RollaSyncResult` the completion handler receives |
-| `rollaDidStartActivity(_:activity:)` | A live tracking session started — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume. See [Host Events](#host-events) |
-| `rollaDidCompleteActivity(_:activity:)` | An activity reached a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed`. Key idempotency on `(activityId, phase)` |
-| `rollaDidRemoveActivity(_:activity:)` | An activity's record was removed without a kept result — `reason` is `canceled` (crash-recovery discard; the "activity canceled" case) or `deleted` (user deleted it, backend-confirmed) |
-| `rollaDidCompleteUISync(_:result:)` | A sync completed inside the SDK UI (auto-sync on open, return from background, manual refresh) |
-| `rollaDidPairBand(_:band:)` | The user paired a band inside the SDK UI |
-| `rollaDidUnpairBand(_:band:)` | The user unpaired the band inside the SDK UI (backend-confirmed) |
-| `rollaDidConnectBand(_:band:)` | The paired band established a live BLE link. See [Host Events](#host-events) for the link-event caveats |
-| `rollaDidDisconnectBand(_:band:)` | The paired band lost its live BLE link (debounced a few seconds) |
-| `rollaDidChangePrimarySource(_:change:)` | The user's primary data source changed |
-| `rollaDidChangeGoals(_:change:)` | The user saved goal changes inside the SDK UI (backend-confirmed) |
-| `rollaDidUpdateProfile(_:update:)` | The user updated profile data inside the SDK UI — carries only the changed fields |
+| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK. The `completion` handler is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. See [Token Management](07-token-management.md) |
+| `clearSession(completion:)` | Purge all persisted session data (tokens, auth metadata) — call on logout |
 
-All methods have default empty implementations, so existing integrations compile unchanged — implement only the ones you need.
+### Headless & Engine
+
+| Method | Description |
+|--------|-------------|
+| `warmUpEngine(completion:)` | Start and configure the engine ahead of time, without any UI — see [Headless Methods](#warmupengine) |
+| `syncHealthData(includeSamples:completion:)` | Headless sync of the user's primary data source — see [Headless Methods](#synchealthdata) |
+| `getBandBatteryLevel(completion:)` | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
+| `getPairedBandInfo(completion:)` | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
+| `static destroyEngine()` | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](08-engine-lifecycle.md) |
+
+## RollaDelegate Protocol
+
+All sixteen methods have default empty implementations — implement only the ones you need, and existing integrations compile unchanged when new methods are added. The protocol has two halves:
+
+- **Presentation & token callbacks** (below) — the SDK needs your app to react: dismissal, errors, token exchange.
+- **[Host events](#host-events)** — the SDK tells your app what happened inside it: syncs, activities, band, profile. Purely observational.
+
+### Presentation & Token Callbacks
+
+| Callback | Method | Called when |
+|----------|--------|-------------|
+| SDK closed | `rollaDidClose(_:reason:)` | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
+| Error occurred | `rollaDidFailWithError(_:error:)` | An error occurred — see [RollaError](#rollaerror) |
+| Token refreshed | `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | The SDK refreshed tokens internally — store them for future use |
+| Token refresh needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
 
 ## Host Events
 
-The event callbacks above (`rollaDidStartActivity` through `rollaDidUpdateProfile`) let your app observe what happens inside the SDK without polling. Delivery semantics:
+Twelve delegate methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `warmUpEngine`, `getBandBatteryLevel`, `getPairedBandInfo`, or `syncHealthData`, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `warmUpEngine`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
-- **Activity lifecycle.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
-- **Band link events are not a proximity signal.** `rollaDidConnectBand`/`rollaDidDisconnectBand` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use `getPairedBandInfo` for the pairing state.
-- **`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+### Sync Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Headless sync completed | `rollaDidCompleteHealthDataSync(_:result:)` | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the completion handler receives |
+| UI sync completed | `rollaDidCompleteUISync(_:result:)` | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
+
+**`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+### Activity Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Activity started | `rollaDidStartActivity(_:activity:)` | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
+| Activity completed | `rollaDidCompleteActivity(_:activity:)` | An activity reaches a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed` |
+| Activity removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (crash-recovery discard) or `deleted` (user deleted it, backend-confirmed) |
+
+**Lifecycle guarantees.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
+
+### Band Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Band paired | `rollaDidPairBand(_:band:)` | The user pairs a band inside the SDK UI |
+| Band unpaired | `rollaDidUnpairBand(_:band:)` | The user unpairs the band inside the SDK UI (backend-confirmed) |
+| Band connected | `rollaDidConnectBand(_:band:)` | The paired band establishes a live BLE link |
+| Band disconnected | `rollaDidDisconnectBand(_:band:)` | The paired band loses its live BLE link (debounced a few seconds) |
+
+**Link events are not a proximity signal.** `rollaDidConnectBand`/`rollaDidDisconnectBand` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use [`getPairedBandInfo`](#getpairedbandinfo) for the pairing state.
+
+### Profile & Settings Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Primary source changed | `rollaDidChangePrimarySource(_:change:)` | The user's primary data source changes |
+| Goals changed | `rollaDidChangeGoals(_:change:)` | The user saves goal changes inside the SDK UI (backend-confirmed) — one call per save |
+| Profile updated | `rollaDidUpdateProfile(_:update:)` | The user updates profile data inside the SDK UI — carries only the changed fields |
 
 ## Headless Methods
 
-Four methods run **headlessly** — no SDK UI needs to be opened. Each starts the engine automatically on first use; `warmUpEngine(completion:)` only moves that one-time cost off the first call (a common pattern is warming up right after login so the first `show(from:)` presents instantly). Because there is no UI to prompt from, **your app owns OS permissions**: when one is missing, the methods fail fast with a typed reason instead of prompting.
+Four methods run **headlessly** — no SDK UI needs to be opened. Each starts the engine automatically on first use. Because there is no UI to prompt from, **your app owns OS permissions**: when one is missing, the methods fail fast with a typed reason instead of prompting.
 
-### `syncHealthData(includeSamples:completion:)`
+### warmUpEngine
+
+```swift
+func warmUpEngine(completion: ((Result<Void, RollaError>) -> Void)? = nil)
+```
+
+Starts and configures the engine ahead of time so the headless calls — and the first `show(from:)` — have zero start-up latency. Optional: the methods below warm the engine themselves if needed; this only moves the one-time cost to a moment you control (a common pattern is right after login). Safe to call repeatedly — a repeat call for the same user is a no-op that preserves the session. See [Engine Lifecycle](08-engine-lifecycle.md#warming-up-the-engine).
+
+### syncHealthData
+
+```swift
+func syncHealthData(includeSamples: Bool = false, completion: @escaping (Result<RollaSyncResult, RollaError>) -> Void)
+```
 
 Runs a full sync of the user's primary data source (band over BLE, or Apple Health) and resolves to a typed `RollaSyncResult` — the call never throws, and the same result is also delivered to `rollaDidCompleteHealthDataSync(_:result:)`:
 
@@ -71,11 +131,19 @@ Runs a full sync of the user's primary data source (band over BLE, or Apple Heal
 | `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
 | `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays |
 
-### `getBandBatteryLevel(completion:)`
+### getBandBatteryLevel
+
+```swift
+func getBandBatteryLevel(completion: @escaping (Result<RollaBatteryResult, RollaError>) -> Void)
+```
 
 A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected` — a band is paired but couldn't be reached, `notRollaDevice` — reserved for forward compatibility, not currently returned, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
 
-### `getPairedBandInfo(completion:)`
+### getPairedBandInfo
+
+```swift
+func getPairedBandInfo(completion: @escaping (Result<RollaPairedBandResult, RollaError>) -> Void)
+```
 
 Answers "does this account currently have a Rolla band?" with **zero Bluetooth** — no scan, no connect, no BLE permission; works with Bluetooth off. Resolves to a typed `RollaPairedBandResult`:
 
@@ -95,9 +163,7 @@ rolla.getPairedBandInfo { result in
 }
 ```
 
-## Error Handling
-
-The SDK provides detailed error information through `RollaError`:
+## RollaError
 
 ```swift
 public enum RollaError: Error {
@@ -111,9 +177,19 @@ public enum RollaError: Error {
 }
 ```
 
-## Close Reasons
+Recommended host app actions for each case:
 
-The SDK provides close reasons through `RollaCloseReason`:
+| Error Case | Code | Meaning | Host App Recovery |
+|------------|------|---------|-------------------|
+| `.engineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
+| `.initializationFailed(String)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
+| `.flutterError(code:message:)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
+| `.alreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
+| `.invalidPresentationContext` | `INVALID_CONTEXT` | View controller not in window hierarchy | Ensure the view controller is visible and in the hierarchy before calling `show(from:)`. |
+| `.underlying(Error)` | `UNDERLYING_ERROR` | Wraps a native error | Inspect the wrapped error. Handle based on underlying cause. |
+| `.unknown` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
+
+## RollaCloseReason
 
 ```swift
 enum RollaCloseReason {
@@ -126,23 +202,7 @@ enum RollaCloseReason {
 }
 ```
 
-## Error Recovery Guide
-
-Recommended host app actions for each `RollaError` case:
-
-| Error Case | Code | Meaning | Host App Recovery |
-|------------|------|---------|-------------------|
-| `.engineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
-| `.initializationFailed(String)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
-| `.flutterError(code:message:)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
-| `.alreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
-| `.invalidPresentationContext` | `INVALID_CONTEXT` | View controller not in window hierarchy | Ensure the view controller is visible and in the hierarchy before calling `show(from:)`. |
-| `.underlying(Error)` | `UNDERLYING_ERROR` | Wraps a native error | Inspect the wrapped error. Handle based on underlying cause. |
-| `.unknown` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
-
-## Close Reason Reference
-
-When each `RollaCloseReason` is triggered:
+When each reason is triggered:
 
 | Close Reason | When Triggered |
 |-------------|----------------|
