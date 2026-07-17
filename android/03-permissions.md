@@ -128,6 +128,21 @@ Before shipping a build with Health Connect enabled, update:
 
 Google's policy review compares the manifest entries above against these two surfaces. A mismatch is the most common reason for a Play rejection on a Health Connect-enabled build.
 
+## Notification Channels
+
+On Android 8.0+ every notification is posted through a notification channel, and channels are user-visible: they appear under **your app's name** in system settings (Settings → Apps → Notifications). The SDK creates its channels automatically with brand-neutral names — you don't declare or configure anything:
+
+| Channel ID | Name | Used for |
+|------------|------|----------|
+| `rolla_warnings` | Important Alerts | Important alerts and warnings (high importance) |
+| `rolla_engagement` | Engagement Tips | Reminders and engagement nudges (default importance) |
+| `location_tracking` | Location Tracking | The persistent notification of the GPS workout-tracking foreground service (low importance) |
+| `ble_workout` | Workout (Bluetooth) | The persistent notification of the Bluetooth workout foreground service (low importance) |
+
+The first two are created when the SDK's notification subsystem initializes inside the engine; the two service channels appear once the respective foreground service first runs during a workout.
+
+> **Channel names are not configurable today.** The names ship brand-neutral precisely so they read naturally under any host app. If you insist on naming these channels yourself, please contact Rolla about the possibility of adding configurable notification-channel names to the SDK configuration.
+
 ## Permissions Rationale
 
 This section is the partner-facing justification for every permission the SDK requests on Android. The wording is intended to be lifted into a privacy policy or pasted into the **Play Console → App content → Data safety** form. Permissions are grouped by the user-visible capability they gate.

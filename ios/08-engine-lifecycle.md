@@ -32,6 +32,7 @@ Rolla.destroyEngine()
 - The next `show(from:)` call will create a fresh engine automatically (with a brief loading time).
 - Call this **after** `dismiss()`, not while the SDK is presenting.
 - Host-event delivery (see [API Reference](10-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
+- Destroying the engine is also how a new `RollaConfiguration` is applied — a changed language, branding, or module set takes effect on the next engine start. See [Configuration](05-configuration.md).
 
 ## `clearSession` vs `destroyEngine`
 

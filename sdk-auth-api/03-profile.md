@@ -59,7 +59,7 @@ Send measurements in metric regardless of `units` — `units` only controls how 
 
 Serbian is the only language with a script distinction — send `sr-Latn` or `sr-Cyrl` explicitly (a bare `sr` is treated as Latin).
 
-> **Set `language` to match the SDK's UI language.** The Rolla backend generates localized content — goal labels, insights, and other server-produced text — from the profile's `language` field, independently of the language your app renders the SDK UI in. If they disagree (for example the SDK UI is Serbian but the profile language is left at its default `en`), goals and insights come back in the profile's language while the rest of the UI is Serbian. Set `language` here to the same language you configure the SDK with so everything the user sees is consistent.
+> **Set `language` to match the SDK's UI language.** The Rolla backend generates localized content — goal labels, insights, and other server-produced text — from the profile's `language` field, independently of the language your app renders the SDK UI in. If they disagree (for example the SDK UI is Serbian but the profile language is left at its default `en`), goals and insights come back in the profile's language while the rest of the UI is Serbian. Set `language` here to the same language you configure the SDK with so everything the user sees is consistent. If you force the SDK language via `RollaConfiguration.language` (see the [iOS](../ios/05-configuration.md#language) / [Android](../android/05-configuration.md#language) configuration guides), the SDK writes it to the profile at startup for you.
 
 ### Example Request
 

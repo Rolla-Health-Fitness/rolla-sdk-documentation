@@ -24,14 +24,12 @@ let configuration = RollaConfiguration(
     token: "your-access-token",
     refreshToken: "your-refresh-token",  // Optional
     tokenExpiresIn: TimeInterval(1800),  // Optional: token expiry in seconds (TimeInterval)
-    userId: "user-id",  // Optional: extracted from JWT if not provided
     partnerId: "your-partner-id",
-    environment: "production",  // or "rnd" for development
-    disabledModules: [],  // Optional: modules to hide (default: none disabled)
-    disabledDataSources: [],  // Optional: data sources to hide (default: all offered)
-    branding: nil  // Optional: custom branding configuration
+    environment: "production"  // or "rnd" for development
 )
 ```
+
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showSettingsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -113,4 +111,4 @@ The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` dele
 
 ---
 
-**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)

@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.11
+**Latest SDK Version:** 0.1.12
 
 ---
 
@@ -17,7 +17,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
-| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, module disabling |
+| 5 | [Configuration](ios/05-configuration.md) | Branding, language, modules, data sources |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
 | 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
 | 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |
@@ -38,7 +38,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 2 | [Gradle Setup](android/02-gradle-setup.md) | Maven repos, SDK dependency, desugaring |
 | 3 | [Permissions](android/03-permissions.md) | Internet, Mapbox token, manifest merger |
 | 4 | [Code Integration](android/04-code-integration.md) | Import, configure, present, listener |
-| 5 | [Branding & Modules](android/05-branding-and-modules.md) | Custom theming, module configuration |
+| 5 | [Configuration](android/05-configuration.md) | Branding, language, modules, data sources |
 | 6 | [Token Management](android/06-token-management.md) | Auth lifecycle, refresh, session clear |
 | 7 | [Engine Lifecycle](android/07-engine-lifecycle.md) | Flutter engine, dismiss, memory |
 | 8 | [API Reference](android/08-api-reference.md) | Rolla class, listener, errors, close reasons |
@@ -69,8 +69,10 @@ Feature support comparison between iOS and Android.
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
-| Module Disabling | Yes | Yes | `disabledModules`; only `weight` and `bloodPressure` can currently be disabled |
+| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, and `leaderboards` can currently be disabled |
 | Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
+| Host-Controlled Language | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
+| Leaderboards | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
 | Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
 | Host Event Callbacks | Yes | Yes | 16 delegate/listener callbacks: activity lifecycle, band pairing & link, sync results, goals, profile |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |

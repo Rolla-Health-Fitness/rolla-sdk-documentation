@@ -41,6 +41,8 @@ Rolla.destroyEngine()
 
 The engine will be recreated automatically on the next `show()` call. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
 
+Destroying the engine is also how a new `RollaConfiguration` is applied — a changed language, branding, or module set takes effect on the next engine start. See [Configuration](05-configuration.md).
+
 ### `clearSession` vs `destroyEngine`
 
 | Method | What It Does | Engine Stays Alive | When to Use |

@@ -58,4 +58,4 @@ rolla.clearSession { result ->
 
 ---
 
-**Previous:** [Branding & Modules](05-branding-and-modules.md) | **Next:** [Engine Lifecycle](07-engine-lifecycle.md) | **Home:** [README](README.md)
+**Previous:** [Configuration](05-configuration.md) | **Next:** [Engine Lifecycle](07-engine-lifecycle.md) | **Home:** [README](README.md)

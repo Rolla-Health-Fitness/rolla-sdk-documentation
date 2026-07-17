@@ -31,13 +31,11 @@ val configuration = RollaConfiguration(
     partnerId = "your-partner-id",
     refreshToken = "your-refresh-token",       // Optional
     tokenExpiresIn = 1800,                     // Optional: token expiry in seconds
-    userId = "user-id",                        // Optional: extracted from JWT if not provided
-    environment = "production",                // or "rnd" for development
-    disabledModules = emptySet(),              // Optional: modules to hide (default: none disabled)
-    disabledDataSources = emptySet(),          // Optional: data sources to hide (default: all offered)
-    branding = null                            // Optional: custom branding configuration
+    environment = "production"                 // or "rnd" for development
 )
 ```
+
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showSettingsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -139,4 +137,4 @@ The same applies to the `expiresIn` parameter in the `onTokenRefreshed` listener
 
 ---
 
-**Previous:** [Permissions](03-permissions.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions](03-permissions.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)

@@ -1,6 +1,6 @@
 # API Reference
 
-This section provides a comprehensive reference of the Rolla SDK's public API, including the main Rolla class, delegate protocol, and error types.
+This section provides a comprehensive reference of the Rolla SDK's public API, including the main Rolla class, delegate protocol, and error types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
 ## Native API Reference
 
@@ -8,7 +8,7 @@ This section provides a comprehensive reference of the Rolla SDK's public API, i
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `init(configuration: RollaConfiguration)` | Initialize with a configuration |
+| `init(configuration: RollaConfiguration)` | Initialize with a configuration — see [Configuration](05-configuration.md) for every option |
 | `var delegate: RollaDelegate?` | Set the delegate for callbacks |
 | `var isPresenting: Bool` | Whether the SDK is currently visible |
 | `show(from: UIViewController)` | Present the SDK modally |
@@ -73,7 +73,7 @@ Runs a full sync of the user's primary data source (band over BLE, or Apple Heal
 
 ### `getBandBatteryLevel(completion:)`
 
-A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected` — a band is paired but couldn't be reached, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
+A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected` — a band is paired but couldn't be reached, `notRollaDevice` — reserved for forward compatibility, not currently returned, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
 
 ### `getPairedBandInfo(completion:)`
 
@@ -94,48 +94,6 @@ rolla.getPairedBandInfo { result in
     }
 }
 ```
-
-## RollaConfiguration
-
-The `RollaConfiguration` struct defines all parameters for SDK initialization. See [Code Integration](04-code-integration.md) for usage examples.
-
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
-| `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
-| `refreshToken` | `String?` | No | `nil` | Refresh token for automatic credential renewal |
-| `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
-| `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
-| `environment` | `String` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
-| `disabledModules` | `Set<RollaDisabledModule>` | No | `[]` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Branding and Modules](05-branding-and-modules.md#module-configuration) and the [`RollaDisabledModule`](#rolladisabledmodule) values below |
-| `disabledDataSources` | `Set<RollaDataSource>` | No | `[]` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Branding and Modules](05-branding-and-modules.md#data-source-configuration) and the [`RollaDataSource`](#rolladatasource) values below |
-| `branding` | `RollaBranding?` | No | `nil` | Visual identity: `hostAppName`, `primaryColor`, `themeMode` (`RollaThemeMode`), `headerLogoAsset`, `privacyUrl`, `removeRollaBandReferences` — every field optional; set fields override the SDK defaults individually. See [Branding and Modules](05-branding-and-modules.md) |
-| `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button. |
-
-### RollaDisabledModule
-
-`disabledModules` accepts a set of `RollaDisabledModule` values. Each value passed hides that module's entire UI everywhere it appears in the SDK. Currently supported:
-
-| Value | Hides |
-|-------|-------|
-| `.weight` | The Weight tracking module |
-| `.bloodPressure` | The Blood Pressure tracking module |
-
-More modules will become disable-able in future releases. Pass `[]` (or omit the parameter) to keep every module enabled.
-
-### RollaDataSource
-
-`disabledDataSources` accepts a set of `RollaDataSource` values. Each value passed hides that source's connect option wherever the user picks a data source to connect (the Data Sources screen and the onboarding data-source step). A source the user has already connected stays visible for viewing/disconnecting; only new connections are suppressed. If you disable every source, the Rolla Band remains available as a floor.
-
-| Value | Hides |
-|-------|-------|
-| `.band` | The Rolla Band pairing option |
-| `.garmin` | Garmin Connect |
-| `.oura` | Oura |
-| `.appleHealth` | Apple Health |
-| `.healthConnect` | Health Connect (Android only) |
-
-Pass `[]` (or omit the parameter) to offer every data source.
 
 ## Error Handling
 
