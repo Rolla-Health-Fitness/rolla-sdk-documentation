@@ -20,7 +20,7 @@
   - **`getBandBatteryLevel()`** — live battery read from the paired Rolla band, or a typed "unavailable" reason.
   - **`getPairedBandInfo()`** — paired-band query with zero Bluetooth: `bandPaired`/`noBandPaired`/`unknown`.
 
-  Headless calls can't prompt, so a missing OS permission fails fast with a typed reason. See the [Android](android/08-api-reference.md#headless-methods) / [iOS](ios/10-api-reference.md#headless-methods) API references and the [Android](android/07-engine-lifecycle.md#warming-up-the-engine) / [iOS](ios/08-engine-lifecycle.md#warming-up-the-engine) engine-lifecycle guides.
+  See the [Android](android/08-api-reference.md#headless-methods) / [iOS](ios/10-api-reference.md#headless-methods) API references and the [Android](android/07-engine-lifecycle.md#warming-up-the-engine) / [iOS](ios/08-engine-lifecycle.md#warming-up-the-engine) engine-lifecycle guides.
 
 - **[feature] Host event callbacks: twelve new delegate/listener methods.** `RollaDelegate` (iOS) / `RollaListener` (Android) gains methods your app can override to observe the SDK without polling — all with default no-op bodies, delivered for the engine's lifetime (they keep flowing after the SDK UI closes):
 
@@ -46,8 +46,6 @@
 - **[feature] New Leaderboards module — and a `leaderboards` value in `RollaDisabledModule` to hide it.** Opt-in weekly/monthly rankings comparing users in your tenant on Health Score or Active Points, with join/leave controls. Enabled by default; pass `leaderboards` in `disabledModules` to hide it everywhere in the SDK UI. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
 
 - **[feature] Hide selected data sources from the SDK UI (`disabledDataSources`).** A new `RollaConfiguration` parameter that hides specific connect options (band, Garmin, Oura, Apple Health, Health Connect) wherever the user picks a source. Deny-list semantics: omit it or pass an empty set to offer everything; already-connected sources stay visible for viewing/disconnecting; disabling every source keeps the Rolla Band as a floor, and when the band is the only source left the picker is skipped — onboarding goes straight to pairing. See the [Android](android/05-configuration.md#data-source-configuration) / [iOS](ios/05-configuration.md#data-source-configuration) configuration guides.
-
-- **[feature] Insights Settings page for personalized context.** A new screen where users provide personal context — lifestyle details, health goals, preferences — so AI-generated insights are more relevant and tailored to the individual.
 
 - **[breaking] `RollaBranding` reworked to hold exactly the options that affect the SDK.** Six fields, all optional: `hostAppName`, `primaryColor`, `themeMode` (renamed from `defaultThemeMode`, typed by the new `RollaThemeMode` enum), `headerLogoAsset`, `privacyUrl`, and `removeRollaBandReferences` (moved from `RollaConfiguration`, same semantics). A set field overrides the SDK default individually; an unset field keeps it — previously, passing any branding replaced all defaults at once. The removed options — `appName`, `secondaryColor`, `accentColor`, `brightness`, `defaultLocale`, `termsUrl` — had no effect on the SDK UI. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) configuration guides.
 
