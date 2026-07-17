@@ -111,8 +111,6 @@ val configuration = RollaConfiguration(
 | `RollaLanguage.SERBIAN_CYRILLIC` | Serbian — Cyrillic script (Српски) |
 | `RollaLanguage.ARABIC` | Arabic (العربية) |
 
-Serbian ships in both scripts — pick the one your users expect; there is no in-SDK script toggle when the language is configured.
-
 ## Module Configuration
 
 By default every module is enabled. To hide a module's entire UI everywhere it appears in the SDK, pass its `RollaDisabledModule` value in the `disabledModules` set (or omit the parameter / pass `emptySet()` to keep everything enabled):
