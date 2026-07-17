@@ -127,7 +127,7 @@ let configuration = RollaConfiguration(
 |-------|-------|
 | `.weight` | The Weight tracking module (weight logging, BMI, and targets) |
 | `.bloodPressure` | The Blood Pressure tracking and manual-logging module |
-| `.leaderboards` | The Leaderboards module (the profile screen's rankings summary card and its detail pages) |
+| `.leaderboards` | The Leaderboards module (weekly/monthly competitive rankings) |
 
 Leaderboards let users compare their Health Score or Active Points against other users in your tenant over weekly and monthly periods, with join/leave controls per challenge type. Disable the module to hide competitive rankings everywhere in the SDK UI.
 
