@@ -104,7 +104,7 @@ When a user first opens the SDK with an incomplete profile, the SDK shows its ac
 | `birthdate` | Set |
 | `gender` | Set |
 | `height` | > 0 |
-| `weight` | > 0 — **only required when your integration includes the weight module** (i.e. `weight` is not in `disabledModules`) |
+| `weight` | > 0 — always required, even when `weight` is in `disabledModules`, because the SDK uses it to calculate calories |
 
 Everything else (`units`, `country`, `city`, `language`, `timezone`, `max_heart_rate`) is optional — it never blocks the skip. The consent step and platform permission flows still run; the goals editor is also skipped, and users get default goals they can edit in-app.
 
