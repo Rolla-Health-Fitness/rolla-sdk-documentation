@@ -18,7 +18,7 @@ rolla.show(from: self)
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `init(configuration: RollaConfiguration)` | Create an instance — see [Configuration](05-configuration.md) for every option |
+| `init(configuration:)` | Create an instance — see [Configuration](05-configuration.md) for every option |
 | `var delegate: RollaDelegate?` | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
 | `var isPresenting: Bool` | `true` from `show(from:)` until the SDK UI closes — the same flag behind the `.alreadyPresenting` guard |
 | `show(from: UIViewController)` | Present the SDK UI modally |
@@ -32,6 +32,8 @@ rolla.show(from: self)
 | `clearSession(completion:)` | Purge all persisted session data (tokens, auth metadata) — call on logout |
 
 ### Headless & Engine
+
+> **Headless** means callable without the SDK UI ever being opened — no `show(from:)` needed, no screen presented. The SDK runs its engine invisibly in the background and hands your app a typed result.
 
 | Method | Description |
 |--------|-------------|

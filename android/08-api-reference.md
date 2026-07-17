@@ -18,7 +18,7 @@ rolla.show(activity)
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `Rolla(configuration: RollaConfiguration)` | Create an instance — see [Configuration](05-configuration.md) for every option |
+| `Rolla(configuration)` | Create an instance — see [Configuration](05-configuration.md) for every option |
 | `var listener: RollaListener?` | Receives every callback — see [RollaListener](#rollalistener-interface) |
 | `val isPresenting: Boolean` | `true` from `show()` until the SDK UI closes — the same flag behind the `AlreadyPresenting` guard |
 | `show(activity: Activity)` | Present the SDK UI from an Activity |
@@ -33,6 +33,8 @@ rolla.show(activity)
 | `clearSession(callback?)` | Purge all persisted session data (tokens, auth metadata) — call on logout |
 
 ### Headless & Engine
+
+> **Headless** means callable without the SDK UI ever being opened — no `show()` needed, no screen presented. The SDK runs its engine invisibly in the background and hands your app a typed result.
 
 | Method | Description |
 |--------|-------------|
