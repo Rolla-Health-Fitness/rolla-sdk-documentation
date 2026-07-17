@@ -53,15 +53,7 @@
 
 - **[improvement] Skip the SDK's onboarding by setting the profile in advance.** Call `POST /api/setprofile` before first presenting the SDK: a profile carrying username, birthdate, gender, height, and weight skips the account-details onboarding entirely; a partial profile pre-fills the form. Weight is always required — the SDK uses it to calculate calories, even with the weight module disabled. See the new [Profile](sdk-auth-api/03-profile.md) guide.
 
-- **[improvement] Clearer guidance for profile metrics and data sources.** Profile details now explain BMI, BMR, and max heart rate with source links, and the Data Sources page clarifies how primary and secondary sources work.
-
 - **[improvement] Split the combined permission screen into separate Bluetooth and Location pages.** Each permission now has its own page with contextual copy explaining why it is needed.
-
-- **[fix] Opening the app without an internet connection no longer signs you out or gets stuck on a loading spinner.** The session is kept and the user lands on the home screen in offline mode, with data refreshing once back online.
-
-- **[fix] Saving an interrupted activity now keeps the duration shown on the recovery prompt.** The saved activity's summary matches the time displayed on the Save button instead of showing a different duration.
-
-- **[fix] Activities with little or no distance no longer show a wrong average pace.** When there isn't enough distance for a meaningful pace, the average pace is left blank instead of displaying an unrealistic value.
 
 - **[fix] Bugs and stability fixes.** Various internal fixes and stability improvements.
 
