@@ -64,7 +64,7 @@ All sixteen methods have default empty implementations — override only the one
 
 Twelve listener methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `warmUpEngine`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
 
 ### Sync Events
