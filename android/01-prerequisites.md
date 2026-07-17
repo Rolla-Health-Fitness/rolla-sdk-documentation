@@ -22,10 +22,8 @@ Key contributors:
 - **Mapbox libraries** — map rendering for activity tracking
 - **Rolla SDK core** — the SDK's compiled Dart application and native plugins
 
-The SDK also contributes a significant method count. If your app targets API levels below 21 or has not yet enabled multidex, ensure `multiDexEnabled true` is set in your `build.gradle.kts` `defaultConfig` block.
-
 > **Note:** Exact size varies by SDK version. Use Android Studio's APK Analyzer (`Build > Analyze APK`) or the [bundletool](https://developer.android.com/tools/bundletool) `get-size` command for a precise measurement. Publishing an App Bundle (`.aab`) with per-ABI splits will yield the smallest download size.
 
 ---
 
-**Next:** [Gradle Setup](02-gradle-setup.md) | **Home:** [README](README.md)
+**Previous:** [Quick Start](00-quick-start.md) | **Next:** [Gradle Setup](02-gradle-setup.md) | **Home:** [README](README.md)

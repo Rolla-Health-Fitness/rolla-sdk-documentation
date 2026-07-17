@@ -57,10 +57,14 @@ Destroying the engine is also how a new `RollaConfiguration` is applied — a ch
 ```kotlin
 // User logs out
 fun logout() {
-    rolla.clearSession { }
-    Rolla.destroyEngine()
+    rolla.clearSession { result ->
+        // Tear the engine down only after the session is cleared.
+        Rolla.destroyEngine()
+    }
 }
 ```
+
+> **Order matters on logout.** `clearSession` completes asynchronously — call `Rolla.destroyEngine()` from its callback, never immediately after it. Destroying the engine first cancels the pending clear, and the session data silently survives.
 
 ---
 

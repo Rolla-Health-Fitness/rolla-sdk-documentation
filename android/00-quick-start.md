@@ -149,7 +149,7 @@ class RollaActivity : AppCompatActivity() {
 
     // --- Present the SDK ---
 
-    fun showRolla(token: String) {
+    fun showRolla(token: String, refreshToken: String) {
         val config = RollaConfiguration(
             token = token,
             partnerId = "your-partner-id",

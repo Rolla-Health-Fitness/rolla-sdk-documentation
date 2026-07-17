@@ -55,7 +55,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 | `liveworkoutLiveActivity.swift` | Yes | SwiftUI UI for Lock Screen and Dynamic Island |
 | `NSSupportsLiveActivities` in main app Info.plist | Yes | Enables Live Activity support |
 | `NSSupportsLiveActivitiesFrequentUpdates` in main app Info.plist | Yes | Enables high-frequency data updates |
-| Push Notifications capability (both targets) | Yes | Required for activity updates |
+| Push Notifications capability (both targets) | Yes | Required for provisioning — the Live Activity updates themselves are delivered locally by the SDK (`pushType: nil`), not via push |
 | Assets.xcassets in widget extension | Yes | Widget won't compile without it |
 | Custom SwiftUI styling | Optional | You can modify colors, fonts, and layout in the widget code (see [Customization](#customization)) |
 

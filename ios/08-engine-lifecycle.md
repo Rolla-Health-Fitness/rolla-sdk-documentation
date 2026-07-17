@@ -53,10 +53,14 @@ func rollaDidClose(_ rolla: Rolla, reason: RollaCloseReason) {
 
 // User logs out of your app
 func logout() {
-    rolla.clearSession { _ in }
-    Rolla.destroyEngine()
+    rolla.clearSession { _ in
+        // Tear the engine down only after the session is cleared.
+        Rolla.destroyEngine()
+    }
 }
 ```
+
+> **Order matters on logout.** `clearSession` completes asynchronously — call `Rolla.destroyEngine()` from its completion handler, never immediately after it. Destroying the engine first cancels the pending clear, and the session data silently survives.
 
 ---
 

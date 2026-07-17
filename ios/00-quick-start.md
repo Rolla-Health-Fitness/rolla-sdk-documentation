@@ -143,7 +143,7 @@ class RollaViewController: UIViewController, RollaDelegate {
 
     // MARK: - Present the SDK
 
-    func showRolla(token: String) {
+    func showRolla(token: String, refreshToken: String) {
         let config = RollaConfiguration(
             token: token,
             refreshToken: refreshToken,

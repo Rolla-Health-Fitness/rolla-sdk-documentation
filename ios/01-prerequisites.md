@@ -22,4 +22,4 @@ Key contributors:
 
 ---
 
-**Next:** [CocoaPods Setup](02-cocoapods-setup.md) | **Home:** [README](README.md)
+**Previous:** [Quick Start](00-quick-start.md) | **Next:** [CocoaPods Setup](02-cocoapods-setup.md) | **Home:** [README](README.md)

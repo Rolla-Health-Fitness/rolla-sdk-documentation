@@ -21,7 +21,7 @@ A complete, step-by-step guide to integrating the Rolla SDK into your iOS applic
 
 ---
 
-## Quick Start
+## Suggested Reading Order
 
 1. Start with [Prerequisites](01-prerequisites.md) to verify your environment
 2. Follow [CocoaPods Setup](02-cocoapods-setup.md) to add the SDK

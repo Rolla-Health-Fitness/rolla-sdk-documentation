@@ -187,4 +187,4 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
 
 ---
 
-**Prev:** [Overview](01-overview.md) | **Next:** [Profile](03-profile.md) | **Home:** [README](README.md)
+**Previous:** [Overview](01-overview.md) | **Next:** [Profile](03-profile.md) | **Home:** [README](README.md)

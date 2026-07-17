@@ -30,7 +30,7 @@ Setting the profile isn't necessarily a one-time step: whenever the user edits t
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `username` | string | No | Display name, 2–64 characters. First and last name go into this **one** field. Shown verbatim on leaderboards and the profile header. |
+| `username` | string | No | Display name — first and last name go into this **one** field. Shown verbatim on leaderboards and the profile header; too-short or too-long values are rejected. |
 | `birthdate` | string | No | `YYYY-MM-DD`; year between 1900 and the current year |
 | `gender` | string | No | Exactly `male` or `female` |
 | `height` | float | No | Height in cm, 100–255 |
@@ -158,7 +158,7 @@ curl "https://ross-rnd.rolla.cloud/api/getprofile" \
 
 ## Countries and Cities
 
-The `city` parameter takes a numeric city ID, resolved via these two endpoints (both need the `Authorization: Bearer` and `Partner-ID` headers):
+The `city` parameter takes a numeric city ID, resolved via these two endpoints (both need the `Partner-ID` header):
 
 ```
 GET /api/countries
@@ -169,4 +169,4 @@ GET /api/cities/{countryCode}
 
 ---
 
-**Prev:** [Authentication](02-authentication.md) | **Next:** [Error Handling](04-error-handling.md) | **Home:** [README](README.md)
+**Previous:** [Authentication](02-authentication.md) | **Next:** [Error Handling](04-error-handling.md) | **Home:** [README](README.md)

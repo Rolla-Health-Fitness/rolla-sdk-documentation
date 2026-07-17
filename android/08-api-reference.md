@@ -213,8 +213,8 @@ When each reason is triggered:
 | `HostNavigationBack` | User pressed the system back button. |
 | `HostModalDismiss` | User dismissed the modal via gesture or system action. |
 | `Programmatic` | Host app called `dismiss()` programmatically. |
-| `HostStackReplaced` | Host app replaced the navigation/activity stack while SDK was presenting. This can occur if the host app finishes the current Activity, launches a new task, or clears the back stack while the SDK is on screen. |
-| `Unknown` | Close reason could not be determined. |
+| `HostStackReplaced` | Reserved — not currently emitted on Android: replacing the activity stack while the SDK is on screen surfaces as `HostModalDismiss`. |
+| `Unknown` | Reserved fallback — not currently emitted on Android. |
 
 ---
 

@@ -34,7 +34,7 @@ You can add this permission yourself, or let the manifest merger pull it in from
 
 ## Health Connect (Android)
 
-The SDK supports Google Health Connect. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
+The SDK supports Google Health Connect. The SDK's bundled manifest declares only part of the Health Connect read set — the rest must come from your app, and Google's policy review evaluates the **merged** manifest under your app's identity. Declare the full set below in your `AndroidManifest.xml` (the manifest merger deduplicates the entries the SDK already carries), so your Play listing and Data Safety declarations match exactly what the app can request.
 
 Add inside the `<manifest>` element, alongside your other `<uses-permission>` entries:
 
@@ -153,7 +153,7 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `ACCESS_FINE_LOCATION` | Required | During an outdoor activity the SDK records the user's GPS trace to draw the route polyline, compute distance, pace, and elevation, and to attribute the workout to a specific place. Fine (GPS-grade) accuracy is what produces a clean, on-the-road polyline; coarse-only fixes drift across blocks and make pace and split data unusable. |
 | `ACCESS_COARSE_LOCATION` | Required | Android pairs fine and coarse location and asks the user to choose between *Precise* and *Approximate* at the runtime prompt. The SDK declares both so the prompt presents the choice; if the user picks Approximate, the route exists but is reduced to neighborhood-level granularity. |
-| `ACCESS_BACKGROUND_LOCATION` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. When the phone locks, Android moves the app to the background and the foreground location service requires this permission to keep streaming GPS fixes. Without it, **the polyline drops out the moment the user locks the phone or switches apps mid-workout**, leaving gaps in the recorded route. The SDK pairs background location with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active. |
+| `ACCESS_BACKGROUND_LOCATION` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. A location foreground service started while the app is in use keeps receiving GPS after the screen locks, but *Always* location covers the cases those semantics alone don't: tracking that must survive the service being restarted while the app is backgrounded, and OEM/Android-version differences in how strictly foreground-service location access is enforced. The SDK pairs it with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active. |
 
 ### Bluetooth
 
@@ -173,7 +173,7 @@ This section is the partner-facing justification for every permission the SDK re
 | `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED` | Optional, recommended | Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view. |
 | `READ_SLEEP` | Optional, recommended | Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.). |
 | `READ_WEIGHT`, `READ_BLOOD_PRESSURE` | Optional, recommended | Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture. |
-| `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect only exposes data recorded *after* the user grants a given permission. This permission lets the SDK read up to 30 days of history written before the grant, so the first-launch dashboard isn't artificially empty. |
+| `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect lets an app read only the last 30 days of data recorded before its first permission grant. This permission unlocks records older than that 30-day window, so a long-time Health Connect user's history isn't artificially cut off. |
 
 ### Activity Recognition
 
