@@ -1,4 +1,4 @@
-# Profile & Goals
+# Profile
 
 This section covers setting up the user's profile from your app — and how doing so lets your users skip the SDK's account-details onboarding entirely. It also covers the [goal endpoints](#goal-endpoints): reading and changing the user's selected goals directly, including pre-selecting them so the SDK never has to ask.
 
@@ -168,7 +168,9 @@ curl "https://ross-rnd.rolla.cloud/api/getprofile" \
 
 ## Goal Endpoints
 
-Goals are the user's selected focus areas (lose weight, improve sleep quality, …) — the Rolla backend generates insights and parts of scoring from them. The SDK ships a full goals UI, but these endpoints let your app read and change the selection directly: drive your own goals screen, or pre-select goals before the user's first SDK open so the [goal-selection step](#goal-selection-after-the-first-data-source-connect) never appears.
+> **Most integrations won't need these.** The SDK's goals UI covers the full experience on its own — selection, editing, and the one-time goal-selection step. The endpoints below are documented for completeness: reach for them only when your app wants direct control, such as showing goal state in its own UI or pre-selecting goals ahead of the user's first SDK open.
+
+Goals are the user's selected focus areas (lose weight, improve sleep quality, …) — the Rolla backend generates insights and parts of scoring from them. These endpoints let your app read and change the selection directly; pre-selecting at least one goal means the [goal-selection step](#goal-selection-after-the-first-data-source-connect) never appears.
 
 All three endpoints require the user's access token (`Authorization: Bearer`) **and** your `Partner-ID` header, exactly like the profile endpoints. The SDK's own goals UI lets users keep up to **5** goals selected at a time — stay within the same limit when pre-selecting.
 

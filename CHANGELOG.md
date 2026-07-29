@@ -22,8 +22,6 @@
 
 - **[fix] Confirmation before changing the primary data source.** Switching the primary data source now asks for confirmation first, so it can no longer happen from an accidental tap.
 
-- **[documentation] Goal endpoints documented, and the onboarding-skip goals behavior corrected.** The new [Goal Endpoints](sdk-auth-api/03-profile.md#goal-endpoints) section covers `GET /goals/get`, `POST /goals/enable`, and `POST /goals/disable` — read and change the user's selected goals from your app, including pre-selecting them in advance. The [Profile & Goals](sdk-auth-api/03-profile.md) guide now also documents that users who skip the SDK's onboarding start with **no goals selected** (previously misdocumented as "default goals") and the one-time [goal selection after the first data-source connect](sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
-
 ## 0.1.12
 
 ### Both platforms

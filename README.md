@@ -54,7 +54,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 |---|---------|-------------|
 | 1 | [Overview](sdk-auth-api/01-overview.md) | Auth architecture, base URLs, environments, onboarding |
 | 2 | [Authentication](sdk-auth-api/02-authentication.md) | Register users, log in, obtain tokens, refresh tokens |
-| 3 | [Profile & Goals](sdk-auth-api/03-profile.md) | Set profile data and goals in advance, skip the SDK's onboarding |
+| 3 | [Profile](sdk-auth-api/03-profile.md) | Set profile data in advance, skip the SDK's onboarding |
 | 4 | [Error Handling](sdk-auth-api/04-error-handling.md) | Error format, status codes, retry strategies, checklist |
 
 > **Server-to-server data integration:** Rolla also offers a Partner API for backend-to-backend access to user health data, activity data, and user management. This is separate from the SDK integration. Contact [support@rolla.app](mailto:support@rolla.app) for Partner API access.
