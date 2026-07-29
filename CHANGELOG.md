@@ -14,17 +14,17 @@
 
 ### Both platforms
 
-- **[feature] Insights on the Home screen.** The Home screen's Overview section now shows an Insights entry carrying the user's unread insights count; it opens the insights feed, and leaving the feed returns to Home. This brings insights to partners who don't use the SDK's bottom navigation bar — where the feed's tab (added in `0.1.11`) was out of reach. A new `insights` value in `RollaDisabledModule` hides the feed and every path to it. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
+- **[feature] Insights entry on the Home screen.** A new Insights entry card in the Home Overview section shows the unread insights count and opens the insights feed page. This option can be disabled alongside all other insights UI by adding `RollaDisabledModule.insights` value to the `disabledModules`. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
 
-- **[feature] Goals on the Home screen (`showGoalsSection`).** A new `RollaConfiguration` boolean, default `false`: when enabled, the bottom of the Home screen shows the user's goals with an edit action — or a select-goals call to action when none are selected yet. See the [Android](android/05-configuration.md#goals-on-home) / [iOS](ios/05-configuration.md#goals-on-home) configuration guides.
+- **[feature] Optional Goals section on Home via the new `showGoalsSection` configuration flag.** `RollaConfiguration` gains an optional `showGoalsSection` (default `false`). When `true`, the bottom of the Home screen shows the user's enabled goals with an edit action — or a select-goals call-to-action when zero goals are selected. See the [Android](android/05-configuration.md#goals-on-home) / [iOS](ios/05-configuration.md#goals-on-home) configuration guides.
 
-- **[feature] Open/close transition option on `show()` (`RollaTransition`).** An optional `transition` parameter on `show()` — `default` (the existing animation, also when omitted) or `fade` (a cross-fade in and out). Existing integrations need no changes. See the [Android](android/08-api-reference.md#rollatransition) / [iOS](ios/10-api-reference.md#rollatransition) API references.
+- **[feature] New `RollaTransition` animation on the `show()` method.** A new optional `transition` parameter controls how the SDK UI opens and closes: `.default` is the existing animation, `.fade` is a cross-fade. The closing transition always mirrors the opening one. See the [Android](android/08-api-reference.md#rollatransition) / [iOS](ios/10-api-reference.md#rollatransition) API references.
+
+- **[fix] Confirmation before changing the primary data source.** Switching your primary data source now asks for confirmation first, so it can no longer happen from an accidental tap.
 
 - **[improvement] Refined Serbian translations.** Both Serbian scripts — Latin and Cyrillic — received a native-speaker terminology pass across the entire SDK UI.
 
 - **[improvement] General bugfixes and stability improvements.**
-
-- **[fix] Confirmation before changing the primary data source.** Switching the primary data source now asks for confirmation first, so it can no longer happen from an accidental tap.
 
 ## 0.1.12
 
