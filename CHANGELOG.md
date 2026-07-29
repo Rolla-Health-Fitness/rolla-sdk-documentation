@@ -20,6 +20,10 @@
 
 - **[feature] Open/close transition option on `show()` (`RollaTransition`).** An optional `transition` parameter on `show()` — `default` (the existing animation, also when omitted) or `fade` (a cross-fade in and out). Existing integrations need no changes. See the [Android](android/08-api-reference.md#rollatransition) / [iOS](ios/10-api-reference.md#rollatransition) API references.
 
+- **[improvement] Refined Serbian translations.** Both Serbian scripts — Latin and Cyrillic — received a native-speaker terminology pass across the entire SDK UI.
+
+- **[improvement] General bugfixes and stability improvements.**
+
 - **[fix] Confirmation before changing the primary data source.** Switching the primary data source now asks for confirmation first, so it can no longer happen from an accidental tap.
 
 ## 0.1.12
