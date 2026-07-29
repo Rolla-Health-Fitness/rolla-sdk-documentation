@@ -2,7 +2,7 @@
 
 The complete public API of the Rolla SDK on Android: the `Rolla` class, the `RollaListener` interface and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-**On this page:** [Rolla Class](#rolla-class) · [RollaListener Interface](#rollalistener-interface) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
+**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [RollaListener Interface](#rollalistener-interface) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
 ## Rolla Class
 
@@ -21,8 +21,8 @@ rolla.show(activity)
 | <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
 | <code>var&nbsp;listener:&nbsp;RollaListener?</code> | Receives every callback — see [RollaListener](#rollalistener-interface) |
 | <code>val&nbsp;isPresenting:&nbsp;Boolean</code> | `true` from `show()` until the SDK UI closes |
-| <code>show(activity:&nbsp;Activity)</code> | Present the SDK UI from an Activity |
-| <code>show(fragment:&nbsp;Fragment)</code> | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
+| <code>show(activity:&nbsp;Activity,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from an Activity. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
+| <code>show(fragment:&nbsp;Fragment,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](07-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -43,6 +43,19 @@ rolla.show(activity)
 | <code>getBandBatteryLevel(context,&nbsp;callback)</code> | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
 | <code>getPairedBandInfo(context,&nbsp;callback)</code> | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
 | <code>companion&nbsp;fun&nbsp;destroyEngine()</code> | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](07-engine-lifecycle.md) |
+
+## RollaTransition
+
+The optional `transition` parameter on both `show` overloads selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes (both overloads are `@JvmOverloads`, so Java callers are unaffected too):
+
+| Value | Animation |
+|-------|-----------|
+| <code>RollaTransition.DEFAULT</code> | The SDK's standard transition — identical to previous releases |
+| <code>RollaTransition.FADE</code> | A 350&nbsp;ms cross-fade, on open and close |
+
+```kotlin
+rolla.show(activity, RollaTransition.FADE)
+```
 
 ## RollaListener Interface
 

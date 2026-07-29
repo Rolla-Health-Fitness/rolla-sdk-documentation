@@ -2,7 +2,7 @@
 
 The complete public API of the Rolla SDK on iOS: the `Rolla` class, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-**On this page:** [Rolla Class](#rolla-class) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
+**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
 ## Rolla Class
 
@@ -21,7 +21,7 @@ rolla.show(from: self)
 | <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
 | <code>var&nbsp;delegate:&nbsp;RollaDelegate?</code> | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
 | <code>var&nbsp;isPresenting:&nbsp;Bool</code> | `true` from `show(from:)` until the SDK UI closes |
-| <code>show(from:&nbsp;UIViewController)</code> | Present the SDK UI modally |
+| <code>show(from:&nbsp;UIViewController,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;.default)</code> | Present the SDK UI modally. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -42,6 +42,19 @@ rolla.show(from: self)
 | `getBandBatteryLevel(completion:)` | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
 | `getPairedBandInfo(completion:)` | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
 | <code>static&nbsp;destroyEngine()</code> | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](08-engine-lifecycle.md) |
+
+## RollaTransition
+
+The optional `transition` parameter on `show(from:)` selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes:
+
+| Value | Animation |
+|-------|-----------|
+| `.default` | The SDK's standard transition — identical to previous releases |
+| `.fade` | A 0.35&nbsp;s cross-fade, on open and close |
+
+```swift
+rolla.show(from: self, transition: .fade)
+```
 
 ## RollaDelegate Protocol
 

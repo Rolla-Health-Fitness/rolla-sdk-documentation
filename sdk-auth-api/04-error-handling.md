@@ -60,4 +60,4 @@ Before going to production, verify the following:
 
 ---
 
-**Previous:** [Profile](03-profile.md) | **Home:** [README](README.md)
+**Previous:** [Profile & Goals](03-profile.md) | **Home:** [README](README.md)

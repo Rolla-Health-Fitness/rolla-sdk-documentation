@@ -19,6 +19,7 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 | `disabledDataSources` | `Set<RollaDataSource>` | No | `[]` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Data Source Configuration](#data-source-configuration) |
 | `branding` | `RollaBranding?` | No | `nil` | Visual identity overrides — every field optional, per-field merge. See [Custom Branding](#custom-branding-optional) |
 | `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button |
+| `showGoalsSection` | `Bool` | No | `false` | Show the user's goals at the bottom of the Home screen, with an edit action. See [Goals on Home](#goals-on-home) |
 
 For the identity and auth essentials (`token`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
 
@@ -128,10 +129,27 @@ let configuration = RollaConfiguration(
 | `.weight` | The Weight tracking module (weight logging, BMI, and targets) |
 | `.bloodPressure` | The Blood Pressure tracking and manual-logging module |
 | `.leaderboards` | The Leaderboards module (weekly/monthly competitive rankings) |
+| `.insights` | The Insights module (the insights feed, the Home screen's Insights entry, and its unread badge) |
 
 Leaderboards let users compare their Health Score or Active Points against other users in your tenant over weekly and monthly periods, with join/leave controls per challenge type. Disable the module to hide competitive rankings everywhere in the SDK UI.
 
+Insights are short personalized reads generated from the user's own health data, refreshed as new data syncs. The Home screen's Overview section shows an Insights entry carrying the unread count; it opens the insights feed, and leaving the feed returns to Home. Disable the module to remove the feed and every path to it from the SDK UI.
+
 Additional modules will become disable-able in future releases. If there is a module you need to hide that isn't listed yet, contact Rolla during onboarding and we will prioritize adding it to `RollaDisabledModule`.
+
+## Goals on Home
+
+Off by default. With `showGoalsSection: true`, the bottom of the Home screen shows a Goals section — the user's selected goals, with an Edit action that opens the goals editor, or a select-goals call to action when none are selected yet:
+
+```swift
+let configuration = RollaConfiguration(
+    token: token,
+    partnerId: partnerId,
+    showGoalsSection: true
+)
+```
+
+The section renders above the Settings button (when that is shown). It is particularly useful together with `showSettingsButton: false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
 
 ## Data Source Configuration
 
