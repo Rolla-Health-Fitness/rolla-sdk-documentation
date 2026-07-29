@@ -9,7 +9,7 @@ Get the Rolla SDK running in your Android app in under 10 minutes.
 - **Android API 26+** (Android 8.0) minimum SDK — required by the bundled Health Connect plugin
 - **Android Studio Hedgehog** (2023.1) or later
 - **Gradle 8.0+**
-- **Build JDK 17+** — SDK `0.1.12` is compiled with Java 17 (class file major version 61)
+- **Build JDK 17+** — SDK `0.1.13` is compiled with Java 17 (class file major version 61)
 - **Kotlin 2.2.0+** required by the bundled Health Connect plugin
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 
@@ -37,7 +37,7 @@ Add the dependency to `app/build.gradle.kts`:
 ```kotlin
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    implementation("com.rolla.sdk:android_release:0.1.12")
+    implementation("com.rolla.sdk:android_release:0.1.13")
 }
 
 android {

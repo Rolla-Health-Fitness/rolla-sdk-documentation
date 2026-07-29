@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.12
+**Latest SDK Version:** 0.1.13
 
 ---
 
@@ -69,10 +69,13 @@ Feature support comparison between iOS and Android.
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
-| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, and `leaderboards` can currently be disabled |
+| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, and `insights` can currently be disabled |
 | Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
 | Host-Controlled Language | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
 | Leaderboards | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
+| Insights | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
+| Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
+| `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
 | Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
 | Host Event Callbacks | Yes | Yes | 16 delegate/listener callbacks: activity lifecycle, band pairing & link, sync results, goals, profile |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |

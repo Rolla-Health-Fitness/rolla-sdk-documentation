@@ -1,6 +1,6 @@
 # Profile
 
-This section covers setting up the user's profile from your app — and how doing so lets your users skip the SDK's account-details onboarding entirely.
+This section covers setting up the user's profile from your app — and how doing so lets your users skip the SDK's account-details onboarding entirely. It also covers the [goal endpoints](#goal-endpoints): reading and changing the user's selected goals directly, including pre-selecting them so the SDK never has to ask.
 
 **Set as much profile data as your app holds.** The required fields unlock the onboarding skip, and each optional field brings the profile a step closer to complete — the SDK feels like the user's own from the very first open.
 
@@ -102,7 +102,7 @@ When a user first opens the SDK with an incomplete profile, the SDK shows its ac
 | `height` | > 0 |
 | `weight` | > 0 — always required, even when `weight` is in `disabledModules`, because the SDK uses it to calculate calories |
 
-Everything else (`units`, `country`, `city`, `language`, `timezone`, `max_heart_rate`) is optional — it never blocks the skip. The consent step and platform permission flows still run; the goals editor is also skipped, and users get default goals they can edit in-app.
+Everything else (`units`, `country`, `city`, `language`, `timezone`, `max_heart_rate`) is optional — it never blocks the skip. The consent step and platform permission flows still run. The SDK's goals editor is also skipped — and a skipped user starts with **no goals selected** (there are no default goals). The SDK closes that gap at the first natural moment instead: see [Goal selection after the first data-source connect](#goal-selection-after-the-first-data-source-connect).
 
 **Order matters:** await the `setprofile` success response **before** initializing and presenting the SDK. A write that lands too late means the onboarding form appears once, pre-filled.
 
@@ -116,6 +116,16 @@ Everything else (`units`, `country`, `city`, `language`, `timezone`, `max_heart_
 ### Verifying the skip
 
 `GET /api/getprofile` and check the required fields are set — the next SDK open is then guaranteed to skip onboarding (the SDK evaluates the fresh profile on every entry). To deterministically test the onboarding form itself, use a fresh test user: `setprofile` is a partial update and cannot unset fields.
+
+## Goal selection after the first data-source connect
+
+Goals matter beyond the UI: the Rolla backend generates insights and parts of scoring from them, so a user without goals gets a reduced experience. Because the onboarding skip also skips the goals editor, the SDK asks such users to choose their goals **once** — right after their first successful data-source connect (band pairing or a health-platform connection), before landing on the Home screen. Saving the selection completes the step.
+
+- **Users who already have goals never see it.** The step is skipped silently — no extra screens for anyone who chose goals at any point.
+- **At most once per device.** Any completed goal selection — in this step, in the goals editor, or in an earlier session — permanently satisfies it on that device, including for a user who later deliberately deselects every goal. On a fresh install, a user who still has no goals selected is simply asked once more.
+- **It never blocks on failures.** If goals can't be verified (offline, backend error), the user continues straight to Home.
+
+To keep goals reachable from the Home screen afterwards, enable the Goals section (`showGoalsSection`) — see the [iOS](../ios/05-configuration.md#goals-on-home) / [Android](../android/05-configuration.md#goals-on-home) configuration guides. Your app can also pre-select goals server-side via the [goal endpoints](#goal-endpoints) below — a user with any enabled goal never sees this step.
 
 ---
 
@@ -152,6 +162,100 @@ curl "https://ross-rnd.rolla.cloud/api/getprofile" \
     "timezone": "Europe/Belgrade"
   }
 }
+```
+
+---
+
+## Goal Endpoints
+
+> **Only for apps that want direct goals control.** The SDK's goals UI covers the full experience on its own — selection, editing, and the one-time goal-selection step. These endpoints cover the exceptions: showing goal state in your own UI, or pre-selecting goals ahead of the user's first SDK open.
+
+Goals are the user's selected focus areas (lose weight, improve sleep quality, …) — the Rolla backend generates insights and parts of scoring from them. These endpoints let your app read and change the selection directly; pre-selecting at least one goal means the [goal-selection step](#goal-selection-after-the-first-data-source-connect) never appears.
+
+All three endpoints require the user's access token (`Authorization: Bearer`) **and** your `Partner-ID` header, exactly like the profile endpoints. The SDK's own goals UI lets users keep up to **5** goals selected at a time — stay within the same limit when pre-selecting.
+
+### Get Goals
+
+```
+GET /goals/get
+```
+
+Returns the full goal catalog with each goal's enabled state. `name` and `description` arrive localized in the user's profile language; `icon` carries inline SVG markup.
+
+#### Example Request
+
+```bash
+curl "https://ross-rnd.rolla.cloud/goals/get" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Partner-ID: your-partner-id"
+```
+
+#### Example Response
+
+```json
+{
+  "success": true,
+  "goals": [
+    {
+      "id": 1,
+      "icon": "<svg …>…</svg>",
+      "name": "Lose weight",
+      "description": "Reduce body weight safely and sustainably.",
+      "enabled": true
+    },
+    {
+      "id": 7,
+      "icon": "<svg …>…</svg>",
+      "name": "Improve sleep quality",
+      "description": "Establish routines that promote deeper, restful sleep.",
+      "enabled": false
+    }
+  ]
+}
+```
+
+A fresh account starts with every goal `enabled: false` — no goals are pre-selected.
+
+### Enable a Goal
+
+```
+POST /goals/enable
+```
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `goal_id` | int | Yes | Goal `id` from `GET /goals/get` |
+
+#### Example Request
+
+```bash
+curl -X POST "https://ross-rnd.rolla.cloud/goals/enable" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Partner-ID: your-partner-id" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "goal_id=1"
+```
+
+#### Example Response
+
+```json
+{"success": true}
+```
+
+### Disable a Goal
+
+```
+POST /goals/disable
+```
+
+Same parameters and headers as [Enable a Goal](#enable-a-goal); disabling a goal that isn't enabled is a harmless no-op.
+
+```bash
+curl -X POST "https://ross-rnd.rolla.cloud/goals/disable" \
+  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
+  -H "Partner-ID: your-partner-id" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "goal_id=1"
 ```
 
 ---
