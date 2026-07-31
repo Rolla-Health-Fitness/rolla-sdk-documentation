@@ -57,10 +57,10 @@ Create a minimal `RollaConfiguration`, initialize the SDK, and show it:
 
 ```kotlin
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaConfiguration
 import com.rolla.sdk.wrapper.RollaListener
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaError
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 
 class YourActivity : AppCompatActivity() {
 
@@ -138,10 +138,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaConfiguration
-import com.rolla.sdk.wrapper.RollaError
 import com.rolla.sdk.wrapper.RollaListener
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 
 class RollaActivity : AppCompatActivity() {
 
@@ -198,6 +198,32 @@ class RollaActivity : AppCompatActivity() {
     }
 }
 ```
+
+## Migrating imports from 0.1.13
+
+**0.1.14 moved the public API types into sub-packages.** No type was renamed and no behavior
+changed, so upgrading is an import-only edit — delete the old `import` lines and let your IDE
+re-add them, or apply the table below.
+
+`Rolla` and `RollaListener` did not move.
+
+| Type | Package in 0.1.14 |
+|---|---|
+| <code>RollaConfiguration</code>, <code>RollaBranding</code>, <code>RollaLanguage</code>, <code>RollaThemeMode</code>, <code>RollaTransition</code>, <code>RollaDataSource</code>, <code>RollaDisabledModule</code> | <code>com.rolla.sdk.wrapper.config</code> |
+| <code>RollaError</code>, <code>RollaCloseReason</code> | <code>com.rolla.sdk.wrapper.features.session</code> |
+| <code>RollaCompletedActivity</code>, <code>RollaStartedActivity</code>, <code>RollaRemovedActivity</code> | <code>com.rolla.sdk.wrapper.features.activity</code> |
+| <code>RollaBandInfo</code>, <code>RollaBatteryResult</code>, <code>RollaPairedBandResult</code> | <code>com.rolla.sdk.wrapper.features.band</code> |
+| <code>RollaSyncResult</code>, <code>RollaPrimarySourceChanged</code> | <code>com.rolla.sdk.wrapper.features.sync</code> |
+| <code>RollaGoalsChanged</code> | <code>com.rolla.sdk.wrapper.features.goals</code> |
+| <code>RollaProfileUpdated</code> | <code>com.rolla.sdk.wrapper.features.profile</code> |
+
+Enums and nested types travel with the file that declares them — for example
+`RollaSyncOutcome` and `RollaSyncedHealthData` are in `…features.sync`, and `RollaBatteryStatus`
+in `…features.band`.
+
+If you declare the SDK activity in your own `AndroidManifest.xml`, update it too — it is now
+`com.rolla.sdk.wrapper.engine.RollaFlutterActivity`. Most integrations rely on the SDK's own
+manifest merge and have nothing to change.
 
 ## Next Steps
 

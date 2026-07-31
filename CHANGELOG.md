@@ -10,6 +10,20 @@
 
 ---
 
+## 0.1.14
+
+### Android
+
+- **[breaking] The public API types moved into sub-packages — update your imports.** `Rolla` and `RollaListener` are unchanged in `com.rolla.sdk.wrapper`. Everything else moved: configuration types to `com.rolla.sdk.wrapper.config`, `RollaError` and `RollaCloseReason` to `com.rolla.sdk.wrapper.features.session`, and each feature's payload types to `com.rolla.sdk.wrapper.features.<feature>`. No type was renamed and no behavior changed, so the fix is import lines only — most IDEs will re-import automatically. See the [migration table](android/00-quick-start.md#migrating-imports-from-0113) in the Android quick start.
+
+### Both platforms
+
+- **[breaking] Removed the per-module configuration API, which never had any effect.** The `moduleConfigs` parameter of `initializeWithToken`, the `RollaModuleConfig` class and all of its `<Module>ModuleConfig` subclasses, and `RollaSDKConfig.moduleConfigs` / `getModuleConfig` are gone. Every value they carried was ignored by the SDK, so removing them changes no behavior — but code that constructed these objects no longer compiles. Delete the `moduleConfigs` argument and any `<Module>ModuleConfig` instances; to hide a module's UI use `disabledModules` instead. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
+
+- **[breaking] Removed the `RollaNavigationDelegate` and `RollaStorageProvider` integration points, which were never implemented.** Along with the `navigationDelegate` and `storageProvider` fields of `RollaSDKConfig`. The SDK never read them, so no behavior changes; remove any references.
+
+- **[fix] Leaderboard messages now follow the selected language.** The notice shown after leaving a leaderboard, which explains that rejoining is not possible for 7 days, along with the leaderboard error messages, always appeared in English regardless of the app language.
+
 ## 0.1.13
 
 ### Both platforms

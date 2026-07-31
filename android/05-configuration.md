@@ -85,7 +85,7 @@ val configuration = RollaConfiguration(
 By default the SDK renders in the language of the user's backend profile (see the [Profile guide](../sdk-auth-api/03-profile.md)). To force a specific UI language instead, set `language`:
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaLanguage
+import com.rolla.sdk.wrapper.config.RollaLanguage
 
 val configuration = RollaConfiguration(
     token = token,
@@ -117,7 +117,7 @@ val configuration = RollaConfiguration(
 By default every module is enabled. To hide a module's entire UI everywhere it appears in the SDK, pass its `RollaDisabledModule` value in the `disabledModules` set (or omit the parameter / pass `emptySet()` to keep everything enabled):
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaDisabledModule
+import com.rolla.sdk.wrapper.config.RollaDisabledModule
 
 val configuration = RollaConfiguration(
     token = token,
@@ -165,7 +165,7 @@ The section renders above the Settings button (when that is shown). It is partic
 By default the SDK offers every data source the user can connect (Rolla Band, Garmin, Oura, Apple Health, Health Connect). To hide specific sources, pass their `RollaDataSource` values in the `disabledDataSources` set (or omit the parameter / pass `emptySet()` to offer everything):
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaDataSource
+import com.rolla.sdk.wrapper.config.RollaDataSource
 
 val configuration = RollaConfiguration(
     token = token,

@@ -6,10 +6,10 @@ Integrate the Rolla SDK into your Android application with proper configuration,
 
 ```kotlin
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaConfiguration
 import com.rolla.sdk.wrapper.RollaListener
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaError
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 ```
 
 ## Authentication & Token Flow
