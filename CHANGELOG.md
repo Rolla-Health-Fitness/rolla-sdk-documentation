@@ -14,7 +14,7 @@
 
 ### Android
 
-- **[breaking] The public API types moved into sub-packages — update your imports.** `Rolla` and `RollaListener` are unchanged in `com.rolla.sdk.wrapper`. Everything else moved: configuration types to `com.rolla.sdk.wrapper.config`, `RollaError` and `RollaCloseReason` to `com.rolla.sdk.wrapper.features.session`, and each feature's payload types to `com.rolla.sdk.wrapper.features.<feature>`. No type was renamed and no behavior changed, so the fix is import lines only — most IDEs will re-import automatically. See the [migration table](android/00-quick-start.md#migrating-imports-from-0113) in the Android quick start.
+- **[breaking] The public API types moved into sub-packages — update your imports.** No type was renamed and no behavior changed, so the fix is import lines only; most IDEs re-import automatically. `Rolla` and `RollaListener` are unchanged in `com.rolla.sdk.wrapper`. Everything else moved: `RollaConfiguration`, `RollaBranding`, `RollaLanguage`, `RollaThemeMode`, `RollaTransition`, `RollaDataSource` and `RollaDisabledModule` to `com.rolla.sdk.wrapper.config`; `RollaError` and `RollaCloseReason` to `…features.session`; the activity payloads to `…features.activity`; the band payloads to `…features.band`; `RollaSyncResult` and `RollaPrimarySourceChanged` to `…features.sync`; `RollaGoalsChanged` to `…features.goals`; `RollaProfileUpdated` to `…features.profile`. Enums travel with the file that declares them — `RollaSyncOutcome` is in `…features.sync`, `RollaBatteryStatus` in `…features.band`. If you declare the SDK activity in your own manifest, it is now `com.rolla.sdk.wrapper.engine.RollaFlutterActivity`.
 
 ### Both platforms
 
