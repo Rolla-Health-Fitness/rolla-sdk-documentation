@@ -29,7 +29,7 @@ let configuration = RollaConfiguration(
 )
 ```
 
-These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showSettingsButton` — see [Configuration](05-configuration.md) for the full reference.
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showOptionsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 

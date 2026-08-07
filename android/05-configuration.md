@@ -18,7 +18,7 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Module Configuration](#module-configuration) |
 | `disabledDataSources` | `Set<RollaDataSource>` | No | `emptySet()` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Data Source Configuration](#data-source-configuration) |
 | `branding` | `RollaBranding?` | No | `null` | Visual identity overrides — every field optional, per-field merge. See [Custom Branding](#custom-branding-optional) |
-| `showSettingsButton` | `Boolean` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button |
+| `showOptionsButton` | `Boolean` | No | `true` | Render a three-dot options action at the trailing edge of the Home top app bar. Tapping it opens an "Options" bottom sheet with shortcuts to Data Sources, Edit Goals, Leaderboards, and FAQ (rows follow your configuration — e.g. disabling the Leaderboards module hides its row). Defaults to true because most partners need this entry point |
 | `showGoalsSection` | `Boolean` | No | `false` | Show the user's goals at the bottom of the Home screen, with an edit action. See [Goals on Home](#goals-on-home) |
 
 For the identity and auth essentials (`token`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
@@ -158,7 +158,7 @@ val configuration = RollaConfiguration(
 )
 ```
 
-The section renders above the Settings button (when that is shown). It is particularly useful together with `showSettingsButton = false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
+The section is the bottom-most element of the Home scroll. It is particularly useful together with `showOptionsButton = false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
 
 ## Data Source Configuration
 
