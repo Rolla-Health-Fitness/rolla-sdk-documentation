@@ -2,7 +2,7 @@
 
 The complete public API of the Rolla SDK on iOS: the `Rolla` class, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
+**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [Host-Driven Navigation](#host-driven-navigation) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
 ## Rolla Class
 
@@ -22,6 +22,7 @@ rolla.show(from: self)
 | <code>var&nbsp;delegate:&nbsp;RollaDelegate?</code> | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
 | <code>var&nbsp;isPresenting:&nbsp;Bool</code> | `true` from `show(from:)` until the SDK UI closes |
 | <code>show(from:&nbsp;UIViewController,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;.default)</code> | Present the SDK UI modally. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
+| <code>openScreen(_:from:transition:completion:)</code> | Open the SDK UI directly on a specific screen — see [Host-Driven Navigation](#host-driven-navigation) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -45,7 +46,7 @@ rolla.show(from: self)
 
 ## RollaTransition
 
-The optional `transition` parameter on `show(from:)` selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes:
+The optional `transition` parameter on `show(from:)` and [`openScreen`](#openscreen) selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes:
 
 | Value | Animation |
 |-------|-----------|
@@ -55,6 +56,51 @@ The optional `transition` parameter on `show(from:)` selects how the SDK UI anim
 ```swift
 rolla.show(from: self, transition: .fade)
 ```
+
+## Host-Driven Navigation
+
+### openScreen
+
+```swift
+func openScreen(_ screen: RollaScreen, from viewController: UIViewController, transition: RollaTransition = .default, completion: @escaping (RollaOpenScreenStatus) -> Void)
+```
+
+Opens the SDK UI directly on a specific screen — one call replaces a show-then-navigate pair. When the SDK UI is not on screen it is presented first (honoring `transition`); when it is already presented, it navigates in place. The opened screen becomes the **root of the SDK UI**: back returns the user straight to your app, never to an SDK Home screen they did not visit. Calling it again replaces the root with the next screen.
+
+With a running engine (after a prior `show(from:)`, `warmUpEngine()`, or any headless call) the screen settles offscreen first and the SDK is presented only once the navigation resolved as `.opened` — every other status is delivered without the SDK appearing at all. On a cold engine the SDK presents first, its loader covering the start-up; a mandatory startup step (onboarding, consent) can then still take over — `.blockedByGate` means that step is on screen, not that nothing happened.
+
+```swift
+rolla.openScreen(.insights, from: self, transition: .fade) { status in
+    if status != .opened { print("Not opened: \(status)") }
+}
+```
+
+### RollaScreen
+
+The screens your app can open directly — a deliberate whitelist. Mid-flow screens (onboarding, consent, activity tracking) are not openable:
+
+| Value | Opens |
+|-------|-------|
+| `.activityHistory` | The activity history list |
+| `.goals` | The goals editor |
+| `.home` | The SDK Home screen — brings the SDK back to its regular entry point after another screen was made the root, no engine restart needed |
+| `.insights` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `.resume` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `.opened` |
+
+### RollaOpenScreenStatus
+
+Every outcome is a typed status — the call never throws and never fails silently:
+
+| Status | Meaning |
+|--------|---------|
+| `.opened` | The SDK UI is on the requested screen |
+| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` with the insights module disabled) — nothing was opened |
+| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) is in front of the user and stays there |
+| `.uiUnavailable` | The SDK UI could not be shown — the `from` view controller is not attached to a window, or the SDK never became ready to navigate |
+| `.superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
+| `.notInitialized` / `.unknownError` | Internal problems; neither is an expected runtime condition |
+
+Presentation failures additionally fire `rollaDidFailWithError(_:error:)` exactly as a failed `show(from:)` would — the completion status is additive, not a replacement for the delegate.
 
 ## RollaDelegate Protocol
 

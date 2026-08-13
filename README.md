@@ -76,6 +76,7 @@ Feature support comparison between iOS and Android.
 | Insights | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
 | Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
 | `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
+| Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, activity history, goals, Home, or the last-opened state |
 | Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
 | Host Event Callbacks | Yes | Yes | 16 delegate/listener callbacks: activity lifecycle, band pairing & link, sync results, goals, profile |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |

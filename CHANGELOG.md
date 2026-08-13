@@ -24,6 +24,8 @@
 
 - **[breaking] Removed the `RollaNavigationDelegate` and `RollaStorageProvider` integration points, which were never implemented.** Along with the `navigationDelegate` and `storageProvider` fields of `RollaSDKConfig`. The SDK never read them, so no behavior changes; remove any references.
 
+- **[feature] Open a specific SDK screen from your app.** The new `openScreen` method opens the Insights feed, the activity history, the goals editor, the SDK Home screen, or the last-opened state (`resume`) directly — presenting the SDK UI first when it is not on screen, honoring the optional `RollaTransition`. The opened screen is the root of the SDK UI, so back returns the user straight to your app, and `home` restores the regular Home entry point without an engine restart. Every outcome is a typed `RollaOpenScreenStatus`; the SDK's mandatory startup steps (onboarding, consent) always take precedence. See the [Android](android/08-api-reference.md#host-driven-navigation) / [iOS](ios/10-api-reference.md#host-driven-navigation) API references.
+
 - **[fix] Leaderboard messages now follow the selected language.** The notice shown after leaving a leaderboard, which explains that rejoining is not possible for 7 days, along with the leaderboard error messages, always appeared in English regardless of the app language.
 
 ## 0.1.13

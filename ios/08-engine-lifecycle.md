@@ -10,7 +10,7 @@ The SDK uses a Flutter engine internally. This section covers engine creation, d
 
 ## Warming Up the Engine
 
-The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](10-api-reference.md#headless-methods)), so none of them require a prior `show(from:)`. Call `warmUpEngine()` to pay the start-up cost early — typically right after login — so the first `show(from:)` presents instantly:
+The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](10-api-reference.md#headless-methods)) and on `openScreen`, so none of them require a prior `show(from:)`. Call `warmUpEngine()` to pay the start-up cost early — typically right after login — so the first `show(from:)` presents instantly:
 
 ```swift
 rolla.warmUpEngine { result in
