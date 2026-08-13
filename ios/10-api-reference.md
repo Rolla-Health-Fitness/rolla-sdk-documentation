@@ -67,7 +67,9 @@ func openScreen(_ screen: RollaScreen, from viewController: UIViewController, tr
 
 Opens the SDK UI directly on a specific screen — one call replaces a show-then-navigate pair. When the SDK UI is not on screen it is presented first (honoring `transition`); when it is already presented, it navigates in place. The opened screen becomes the **root of the SDK UI**: back returns the user straight to your app, never to an SDK Home screen they did not visit. Calling it again replaces the root with the next screen.
 
-With a running engine (after a prior `show(from:)`, `warmUpEngine()`, or any headless call) the screen settles offscreen first and the SDK is presented only once the navigation resolved as `.opened` — every other status is delivered without the SDK appearing at all. On a cold engine the SDK presents first, its loader covering the start-up; a mandatory startup step (onboarding, consent) can then still take over — `.blockedByGate` means that step is on screen, not that nothing happened.
+With a running engine (after a prior `show(from:)`, `warmUpEngine()`, or any headless call) the screen settles offscreen first and the SDK is presented only once the navigation resolved as `.opened` — every other status is delivered without the SDK appearing at all.
+
+Call `warmUpEngine()` before your first `openScreen` — typically right after login. A warm engine settles everything off screen and shows nothing unless the screen opened, whereas a cold engine must present first and lands on Home while it starts up. On a cold start, then, a status like `.screenDisabled` arrives with the SDK already open on Home; it describes what the user ended up seeing, not a no-op.
 
 ```swift
 rolla.openScreen(.insights, from: self, transition: .fade) { status in
