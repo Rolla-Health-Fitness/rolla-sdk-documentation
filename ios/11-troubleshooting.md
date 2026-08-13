@@ -42,7 +42,8 @@ To avoid this, check `rolla.isPresenting` before calling `show(from:)`, or guard
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| SDK opens then immediately closes or shows an error | Expired access token | Fetch a fresh token from your backend before calling `show(from:)` |
+| SDK opens then immediately closes or shows an error | Expired access token | Initialize with a current token pair — see [Token Management](07-token-management.md) |
+| Works at first, then `Access denied (HTTP 401)` on SDK screens after ~30 minutes; re-entering the SDK temporarily fixes it | The SDK holds an already-consumed refresh token and `rollaDidRequestTokenRefresh` is not answered | See [Token Management — Symptoms](07-token-management.md#symptoms-of-incorrect-token-wiring) |
 | `rollaDidRequestTokenRefresh` fires immediately | Token was already expired at launch | Ensure `tokenExpiresIn` reflects the *remaining* lifetime, not the original TTL |
 | SDK works in `"rnd"` but fails in `"production"` | Token was issued for the wrong environment | Verify your backend issues tokens against the correct Rolla environment |
 | "Unauthorized" or 401-style errors | Wrong partner ID or mismatched credentials | Double-check the `partnerId` passed to `RollaConfiguration` |

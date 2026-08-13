@@ -22,7 +22,7 @@ Safe to call repeatedly: a repeat call for the same user is a no-op that preserv
 
 ## Destroying the Engine
 
-If you need to free memory (e.g., on user logout or when the user won't return to the SDK for a while):
+If you need to free memory (e.g. on user logout or when the user won't return to the SDK for a while):
 
 ```swift
 Rolla.destroyEngine()

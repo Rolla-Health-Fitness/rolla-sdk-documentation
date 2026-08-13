@@ -101,7 +101,8 @@ private val rollaListener = object : RollaListener {
 
     override fun onTokenExpired(rolla: Rolla) {
         // Token expired and SDK's internal refresh failed.
-        // Fetch a new token from your backend, then push it to the SDK:
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, then push them to the SDK:
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
             rolla.updateToken(
                 token = newToken,

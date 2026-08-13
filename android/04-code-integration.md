@@ -90,8 +90,9 @@ rolla.listener = object : RollaListener {
     }
 
     override fun onTokenExpired(rolla: Rolla) {
-        // Called when the token has expired and the SDK cannot refresh it
-        // You must fetch a new token from your backend and call updateToken()
+        // Called when the token has expired and the SDK cannot refresh it.
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, and call updateToken()
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
             rolla.updateToken(newToken, newRefreshToken, expiresIn) { result ->
                 result.onSuccess { Log.d("RollaSDK", "Token updated") }

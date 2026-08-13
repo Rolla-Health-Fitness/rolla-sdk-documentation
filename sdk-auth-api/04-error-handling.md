@@ -23,7 +23,7 @@ All API errors return a JSON response with `success` set to `false` and a `reaso
 | `401` | Unauthorized | Missing, invalid, or expired token. Obtain a new token via `POST /api/login` or `POST /api/refresh_token`. Also returned if the `Partner-ID` header is missing or invalid. |
 | `403` | Forbidden | Access denied to the requested resource. |
 | `404` | Not Found | The endpoint or resource does not exist. Check the URL path. |
-| `405` | Method Not Allowed | Wrong HTTP method used (e.g., GET instead of POST). Check the endpoint documentation. |
+| `405` | Method Not Allowed | Wrong HTTP method used (e.g. GET instead of POST). Check the endpoint documentation. |
 | `429` | Too Many Requests | Rate limit exceeded. Back off and retry after a delay. |
 | `500` | Internal Server Error | Unexpected server-side error. Retry with exponential backoff. |
 
@@ -31,7 +31,7 @@ All API errors return a JSON response with `success` set to `false` and a `reaso
 
 ## Best Practices
 
-1. **Retry with exponential backoff on `429` and `500`** — These are transient errors. Start with a 1-second delay and double it on each retry, up to a reasonable maximum (e.g., 60 seconds).
+1. **Retry with exponential backoff on `429` and `500`** — These are transient errors. Start with a 1-second delay and double it on each retry, up to a reasonable maximum (e.g. 60 seconds).
 
 2. **Re-authenticate on `401`** — When you receive a `401 Unauthorized`, your token has expired. Call `POST /api/refresh_token` with your refresh token, or `POST /api/login` if the refresh token is also expired.
 

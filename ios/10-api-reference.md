@@ -116,7 +116,7 @@ All sixteen methods have default empty implementations — implement only the on
 | SDK&nbsp;closed | `rollaDidClose(_:reason:)` | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
 | Error&nbsp;occurred | `rollaDidFailWithError(_:error:)` | An error occurred — see [RollaError](#rollaerror) |
 | Token&nbsp;refreshed | `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | The SDK refreshed tokens internally — store them for future use |
-| Token&nbsp;refresh&nbsp;needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
+| Token&nbsp;refresh&nbsp;needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — obtain fresh tokens from the Rolla auth API and call `updateToken` (see [Token Management](07-token-management.md)) |
 
 ## Host Events
 
@@ -267,7 +267,7 @@ When each reason is triggered:
 
 | Close Reason | When Triggered |
 |-------------|----------------|
-| `.flutterRequested(reason:)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `.flutterRequested(reason:)` | SDK's internal UI initiated the close (e.g. user tapped close/done). Optional `reason` may provide context. |
 | `.hostNavigationBack` | User pressed back gesture or navigation back. |
 | `.hostModalDismiss` | User dismissed the modal via swipe-down gesture. |
 | `.programmatic` | Host app called `dismiss()` programmatically. |

@@ -38,7 +38,7 @@ The SDK reads the following 14 HealthKit data types:
 
 ## Apple Health Availability
 
-Apple Health support is built in and always available. The SDK gracefully handles devices without HealthKit support (e.g., iPads without the Health app) — on those devices, Apple Health features simply won't appear.
+Apple Health support is built in and always available. The SDK gracefully handles devices without HealthKit support (e.g. iPads without the Health app) — on those devices, Apple Health features simply won't appear.
 
 ## No Background Delivery
 

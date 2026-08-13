@@ -38,7 +38,7 @@ Add the following permissions to your `Info.plist` file:
 
 ### Mapbox Token
 
-The SDK uses Mapbox for map rendering (e.g., activity route maps). Add the Mapbox access token to your `Info.plist`:
+The SDK uses Mapbox for map rendering (e.g. activity route maps). Add the Mapbox access token to your `Info.plist`:
 
 ```xml
 <key>MBXAccessToken</key>

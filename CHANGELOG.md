@@ -28,6 +28,8 @@
 
 - **[fix] Leaderboard messages now follow the selected language.** The notice shown after leaving a leaderboard, which explains that rejoining is not possible for 7 days, along with the leaderboard error messages, always appeared in English regardless of the app language.
 
+- **[documentation] Rewritten Token Management guides.** The [Android](android/06-token-management.md) and [iOS](ios/07-token-management.md) pages now spell out the host app's token obligations — persist rotated tokens, answer the token-expired callback, always initialize with the latest pair — along with token lifetimes, the single-use refresh-token rotation rule, and a symptoms table for diagnosing 401 errors.
+
 ## 0.1.13
 
 ### Both platforms

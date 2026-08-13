@@ -33,7 +33,7 @@ Safe to call repeatedly: a repeat call for the same user is a no-op that preserv
 
 ### Destroying the Engine
 
-If you need to free memory (e.g., on logout), call:
+If you need to free memory (e.g. on logout), call:
 
 ```kotlin
 Rolla.destroyEngine()

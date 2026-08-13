@@ -72,8 +72,9 @@ extension YourViewController: RollaDelegate {
     }
 
     func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
-        // Called when the token has expired and the SDK cannot refresh it
-        // You must fetch a new token from your backend and call:
+        // Called when the token has expired and the SDK cannot refresh it.
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, and call:
         rolla.updateToken(token: newToken, refreshToken: newRefreshToken, expiresIn: newExpiresIn) { result in
             switch result {
             case .success:

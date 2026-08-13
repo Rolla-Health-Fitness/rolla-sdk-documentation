@@ -117,7 +117,7 @@ All sixteen methods have default empty implementations — override only the one
 | SDK&nbsp;closed | <code>onRollaClosed(rolla,&nbsp;reason)</code> | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
 | Error&nbsp;occurred | <code>onRollaError(rolla,&nbsp;error)</code> | An error occurred — see [RollaError](#rollaerror) |
 | Token&nbsp;refreshed | <code>onTokenRefreshed(rolla,&nbsp;token,&nbsp;refreshToken?,&nbsp;expiresIn?)</code> | The SDK refreshed tokens internally — store them for future use |
-| Token&nbsp;refresh&nbsp;needed | `onTokenExpired(rolla)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
+| Token&nbsp;refresh&nbsp;needed | `onTokenExpired(rolla)` | The SDK could not refresh the token — obtain fresh tokens from the Rolla auth API and call `updateToken` (see [Token Management](06-token-management.md)) |
 
 ## Host Events
 
@@ -268,7 +268,7 @@ When each reason is triggered:
 
 | Close Reason | When Triggered |
 |-------------|----------------|
-| `FlutterRequested(reason)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `FlutterRequested(reason)` | SDK's internal UI initiated the close (e.g. user tapped close/done). Optional `reason` may provide context. |
 | `HostNavigationBack` | User pressed the system back button. |
 | `HostModalDismiss` | User dismissed the modal via gesture or system action. |
 | `Programmatic` | Host app called `dismiss()` programmatically. |

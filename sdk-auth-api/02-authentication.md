@@ -55,7 +55,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/register" \
 POST /api/login
 ```
 
-Authenticates a registered user and returns an access token and refresh token. Use these tokens to initialize the SDK.
+Authenticates a registered user and returns an access token and refresh token. Pass all three values — `access_token`, `refresh_token`, and `expires_in` — into `RollaConfiguration` when initializing the SDK.
 
 ### Headers
 
@@ -101,8 +101,8 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/login" \
 |-------|------|-------------|
 | `access_token` | string | JWT access token — pass this to `RollaConfiguration.token` |
 | `token_type` | string | Always `"Bearer"` |
-| `expires_in` | int | Token lifetime in seconds (1800 = 30 minutes) |
-| `refresh_token` | string | Token used to obtain a fresh access token — pass this to `RollaConfiguration.refreshToken` |
+| `expires_in` | int | Access token lifetime in seconds (1800 = 30 minutes) — pass this to `RollaConfiguration.tokenExpiresIn` |
+| `refresh_token` | string | Token used to obtain a fresh token pair — pass this to `RollaConfiguration.refreshToken` |
 | `refresh_expires_in` | int | Refresh token lifetime in seconds (2592000 = 30 days) |
 
 ---
@@ -113,9 +113,11 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/login" \
 POST /api/refresh_token
 ```
 
-Obtains a fresh access token using a valid refresh token. Call this when the SDK notifies your app that the token has expired (via `rollaDidRequestTokenRefresh` on iOS or `onTokenExpired` on Android).
+Exchanges the **latest** refresh token for a fresh token pair — a new access token *and* a new refresh token. Refresh tokens are single-use, so this call only ever succeeds with the newest token in the chain and permanently invalidates the token you sent in the request.
 
-> **Note:** The SDK attempts to refresh the token automatically using the refresh token you provided at initialization. This endpoint is for cases where the SDK's internal refresh fails, or when you need to refresh tokens outside of the SDK (e.g., during a background session refresh).
+> **Who calls this endpoint:** in normal operation, only the SDK. It refreshes automatically with the refresh token it currently holds — initially the one from `RollaConfiguration`, afterwards the ones from its own rotations — and delivers every new pair to your app via `rollaDidRefreshToken` (iOS) / `onTokenRefreshed` (Android). Call this endpoint yourself only if your app owns the token rotation (for example your backend keeps the user's Rolla session alive server-side) — and in that case push every pair you obtain to the SDK with `updateToken()` immediately, because the pair the SDK still holds is invalidated the moment your call succeeds.
+
+> **When the SDK reports an expired session** — `rollaDidRequestTokenRefresh` (iOS) / `onTokenExpired` (Android) — its own refresh has just **failed**: the refresh token it held is consumed or expired. Unless your app holds a newer, unused refresh token, this endpoint fails for you too. Recover by re-authenticating with [`/api/login`](#log-in) and pushing the new pair to the SDK via `updateToken()`.
 
 ### Headers
 
@@ -128,7 +130,7 @@ Obtains a fresh access token using a valid refresh token. Call this when the SDK
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `refresh_token` | string | Yes | The refresh token from a previous login or refresh response |
+| `refresh_token` | string | Yes | The **latest** refresh token — from the most recent login or refresh response. Older tokens in the chain are already invalid |
 
 ### Example Request
 
@@ -154,20 +156,24 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
 }
 ```
 
-> **Important:** Each refresh response returns a **new** refresh token. Always store and use the latest refresh token for subsequent refresh calls.
+> **Important:** Refresh tokens are **single-use**. Each refresh response returns a **new** refresh token, and the one just used is permanently invalidated — reusing it fails with HTTP 401. Always store and use the latest refresh token, and always pass the latest pair to the SDK (see Token Management: [Android](../android/06-token-management.md) / [iOS](../ios/07-token-management.md)).
 
 ---
 
 ## Token Lifecycle Summary
 
 ```
-1. Register user     POST /api/register        (once per user)
-2. Log in            POST /api/login            → access_token + refresh_token
-3. Initialize SDK    RollaConfiguration(token: access_token, refreshToken: refresh_token, ...)
-4. SDK runs          (SDK uses access_token for internal API calls)
-5. Token expires     SDK fires callback → your app calls POST /api/refresh_token
-6. Update SDK        rolla.updateToken(token: new_access_token, refreshToken: new_refresh_token, ...)
-7. Repeat 4-6
+1. Register user      POST /api/register   (once per user)
+2. Log in             POST /api/login   →  access_token + refresh_token + expires_in
+3. Initialize SDK     RollaConfiguration(token, refreshToken, tokenExpiresIn)
+                      — always built from the newest pair your app has stored
+4. SDK runs           The SDK refreshes its own tokens as needed and delivers every
+                      new pair via onTokenRefreshed / rollaDidRefreshToken
+                      → your app persists it and uses it for every later step 3
+5. SDK cannot refresh onTokenExpired / rollaDidRequestTokenRefresh fires
+                      → your app re-authenticates (POST /api/login) and calls
+                        rolla.updateToken(token, refreshToken, expiresIn)
+6. Log out            rolla.clearSession()
 ```
 
 ### Token Lifetimes
@@ -179,11 +185,14 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
 
 ### Best Practices
 
-1. **Always pass both tokens** — provide `refreshToken` and `tokenExpiresIn` in `RollaConfiguration` so the SDK can manage refresh automatically.
-2. **Store tokens securely** — use the platform's secure storage (iOS Keychain, Android Keystore/EncryptedSharedPreferences).
-3. **Handle the refresh callback** — always implement `rollaDidRequestTokenRefresh` (iOS) or `onTokenExpired` (Android) as a fallback.
-4. **Use HTTPS exclusively** — never send credentials or tokens over unencrypted connections.
-5. **Clear on logout** — call `rolla.clearSession()` when the user logs out of your app.
+1. **Pass all three token fields** — `token`, `refreshToken`, and `tokenExpiresIn` in `RollaConfiguration`, always from the newest pair your app has stored. Without `refreshToken` the SDK cannot refresh at all; without `tokenExpiresIn` it can only recover after the first 401.
+2. **Persist every rotated pair** — implement `rollaDidRefreshToken` (iOS) / `onTokenRefreshed` (Android), store the delivered pair, and build every later `RollaConfiguration` from it. The pair it replaces is invalid from that moment.
+3. **Answer the expired callback** — implement `rollaDidRequestTokenRefresh` (iOS) / `onTokenExpired` (Android): re-authenticate and push the new pair with `updateToken()`. This is the only in-place recovery once the SDK's own refresh fails.
+4. **Store tokens securely** — use the platform's secure storage (iOS Keychain, Android Keystore/EncryptedSharedPreferences).
+5. **Use HTTPS exclusively** — never send credentials or tokens over unencrypted connections.
+6. **Clear on logout** — call `rolla.clearSession()` when the user logs out of your app.
+
+The platform Token Management guides ([Android](../android/06-token-management.md) / [iOS](../ios/07-token-management.md)) cover the full integration contract, with code examples for every callback.
 
 ---
 
