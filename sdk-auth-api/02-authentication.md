@@ -117,7 +117,7 @@ Exchanges the **latest** refresh token for a fresh token pair: a new access toke
 
 > **Who calls this endpoint:** in normal operation, only the SDK. It refreshes automatically with the refresh token it currently holds (initially the one from `RollaConfiguration`, afterwards the one from its latest rotation) and delivers every new pair to your app via `rollaDidRefreshToken` (iOS) / `onTokenRefreshed` (Android). Call the endpoint yourself only if your app owns the token rotation — for example, when your backend keeps the user's Rolla session alive server-side. In that case, push every pair you obtain to the SDK with `updateToken()` immediately: the moment your call succeeds, the pair the SDK still holds is invalid.
 
-> **When the SDK reports an expired session** via `rollaDidRequestTokenRefresh` (iOS) / `onTokenExpired` (Android), its own refresh has just **failed** — the refresh token it holds has been consumed or has expired. Unless your app holds a newer, unused refresh token, this endpoint will fail for you too. Recover by re-authenticating with [`/api/login`](#log-in) and pushing the new pair to the SDK via `updateToken()`.
+> **When the SDK reports an expired session** via `rollaDidRequestTokenRefresh` (iOS) / `onTokenExpired` (Android), its own refresh has just **failed** — the refresh token it holds has been consumed or has expired. Unless your app holds a newer, unused refresh token, this endpoint will fail for you too. Recover by re-authenticating with [`/api/login`](#log-in) and pushing the new pair to the SDK via `updateToken()`. The SDK holds the failing request for up to 10 seconds while you do — a prompt push recovers the session with no visible error.
 
 ### Headers
 
