@@ -1,30 +1,32 @@
 # Token Management
 
-The SDK manages the token lifecycle for you — but the tokens are single-use credentials issued by the Rolla auth API, so your app has a small set of obligations to keep the session healthy after the first token expiry. This page lists exactly what the SDK does on its own and what your app **must** implement.
+The SDK manages the token lifecycle by itself. However, the refresh tokens issued by the Rolla auth API are single-use, so your app still carries a small set of obligations — they are what keeps the session healthy beyond the first access-token expiry. This page describes exactly what the SDK handles on its own and what your app **must** implement.
 
 ## How It Works
 
-1. **Initialization:** You provide `token`, `refreshToken`, and `tokenExpiresIn` in `RollaConfiguration` — always the newest pair your app has (see [Your App's Responsibilities](#your-apps-responsibilities)).
-2. **Internal refresh:** The SDK refreshes the access token automatically: proactively shortly before it expires (based on `tokenExpiresIn`), and reactively when a request receives HTTP 401 — in that case it retries the failed request with the new token, invisibly to the user. After every successful internal refresh, the SDK hands the **new token pair** to your app via `onTokenRefreshed`.
-3. **Expired session (SDK cannot refresh):** If the internal refresh fails — typically because the refresh token was already consumed or has expired — the SDK calls `onTokenExpired`. Your app must obtain a fresh token pair from the Rolla auth API — by re-authenticating via [`/api/login`](../sdk-auth-api/02-authentication.md#log-in), directly or through your backend — and push it to the SDK using `updateToken()`. Until it does, SDK screens that load backend data show an error.
-4. **Logout / session clear:** Call `clearSession()` when the user logs out to securely remove all SDK-persisted tokens and session data.
+1. **Initialization:** You provide `token`, `refreshToken`, and `tokenExpiresIn` in `RollaConfiguration` — always the newest pair your app has stored (see [Your App's Responsibilities](#your-apps-responsibilities)).
+2. **Internal refresh:** The SDK refreshes the access token automatically — proactively, shortly before the token expires (based on `tokenExpiresIn`), and reactively, when a request receives HTTP 401. In the reactive case, the failed request is retried with the new token, invisibly to the user. After every successful internal refresh, the SDK hands the **new token pair** to your app via `onTokenRefreshed`.
+3. **Expired session (SDK cannot refresh):** If the internal refresh fails (typically because the refresh token was consumed outside the SDK, or has expired), the SDK calls `onTokenExpired`. Your app must obtain a fresh token pair from the Rolla auth API — by re-authenticating via [`/api/login`](../sdk-auth-api/02-authentication.md#log-in), directly or through your backend — and push it to the SDK with `updateToken()`. Screens that request backend data before the new pair arrives show an error state; they recover on their next load.
+
+   > **Avoiding this state:** pass the refresh token to the SDK, but never spend it yourself — let the SDK do all refreshing. An integration that keeps the refresh token exclusive to the SDK and persists every rotated pair (responsibilities 2 and 5) reaches this state only when the refresh token expires after 30 days without a refresh — a state that requires the user to log in again anyway.
+4. **Logout / session clear:** Call `clearSession()` when the user logs out; it removes all SDK-persisted tokens and session data from secure storage.
 
 ## Token Facts
 
 | Fact | Value |
 |------|-------|
-| Access token lifetime | 30 minutes (`expires_in: 1800` in auth responses — always use the returned value instead of hardcoding) |
+| Access token lifetime | 30 minutes (`expires_in: 1800` in auth responses — always use the returned value rather than hardcoding it) |
 | Refresh token lifetime | 30 days (`refresh_expires_in: 2592000`) |
 | Refresh token reuse | **Single-use.** Every successful [`/api/refresh_token`](../sdk-auth-api/02-authentication.md#refresh-token) call returns a *new* refresh token and permanently invalidates the one that was used — regardless of whether the SDK or your own code made the call. |
 
 ## Your App's Responsibilities
 
-All of the following are required. An integration that skips them usually appears to work — until the access token expires for the first time, about 30 minutes after it was issued (see [Symptoms](#symptoms-of-incorrect-token-wiring)).
+All of the following are required. An integration that skips any of them usually appears to work — until the access token expires for the first time, about 30 minutes after it was issued (see [Symptoms](#symptoms-of-incorrect-token-wiring)).
 
-1. **Pass all three token fields at initialization.** `token` alone is enough to open the SDK, but without `refreshToken` the SDK cannot refresh anything itself and every expiry escalates to `onTokenExpired`; without `tokenExpiresIn` the SDK cannot refresh proactively and only recovers after the first 401.
-2. **Implement `onTokenRefreshed` and persist the delivered pair.** The SDK's internal refresh rotates the tokens, so your app's stored copy is stale from that moment on. Overwrite it with the delivered pair — it is the only valid pair from then on.
+1. **Pass all three token fields at initialization.** `token` alone is enough to open the SDK, but without `refreshToken` the SDK cannot refresh at all on its own and every expiry escalates to `onTokenExpired`; without `tokenExpiresIn` the SDK cannot refresh proactively and only recovers after the first 401.
+2. **Implement `onTokenRefreshed` and persist the delivered pair.** The SDK's internal refresh rotates the tokens, so the pair your app stored earlier is stale from that moment on. Overwrite it with the delivered pair, which is now the only pair that can refresh.
 3. **Implement `onTokenExpired` and answer it with `updateToken()`.** This is the recovery path when the SDK cannot help itself. Obtain a fresh pair from the Rolla auth API ([`/api/login`](../sdk-auth-api/02-authentication.md#log-in)), directly or through your backend, and push it with `updateToken()`. The session then recovers in place, without the user leaving the SDK.
-4. **Always initialize with the newest pair you have.** Every time you create a `RollaConfiguration` for the same user, the tokens you pass **replace** the ones the SDK has stored — passing the original login pair overwrites a newer pair the SDK obtained by rotation, and the SDK's next refresh fails. Initialize with what responsibility 2 persisted, never with a cached login response.
+4. **Always initialize with the newest pair you have.** Every time you create a `RollaConfiguration` for the same user, the tokens you pass **replace** the ones the SDK has stored. If you pass the original login pair after the SDK has rotated, you overwrite the newer pair and the SDK's next refresh fails. Initialize with what responsibility 2 persisted, never with a cached login response.
    - Note: if you pass `refreshToken = null` on a re-initialization, the SDK keeps the refresh token it already holds; the access token you pass always replaces the stored one.
 5. **Keep the SDK's refresh token exclusive to the SDK.** If your backend uses the same refresh token for its own session refresh, whichever side refreshes first invalidates the token for the other. Issue your own session credentials separately, or route all refreshes through a single owner.
 6. **Call `clearSession()` on logout** so the next user cannot inherit tokens or data from the previous one.
