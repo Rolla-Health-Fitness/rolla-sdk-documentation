@@ -5,7 +5,7 @@ The SDK manages the token lifecycle by itself. However, the refresh tokens issue
 ## How It Works
 
 1. **Initialization:** You provide `token`, `refreshToken`, and `tokenExpiresIn` in `RollaConfiguration` — always the newest pair your app has stored (see [Your App's Responsibilities](#your-apps-responsibilities)). On iOS, `tokenExpiresIn` is `TimeInterval?` (seconds as `Double`); on Android, it is `Int?`.
-2. **Internal refresh:** The SDK refreshes the access token automatically — proactively, shortly before the token expires (based on `tokenExpiresIn`), and reactively, when a request receives HTTP 401. In the reactive case, the failed request is retried with the new token, invisibly to the user. After every successful internal refresh, the SDK hands the **new token pair** to your app via `rollaDidRefreshToken`.
+2. **Internal refresh:** The SDK refreshes the access token automatically — proactively, shortly before the token expires (based on `tokenExpiresIn`), and reactively, when a request receives HTTP 401. In the reactive case, the failed request is retried with the new token, invisibly to the user. After every successful internal refresh while the SDK UI is presented, the SDK hands the **new token pair** to your app via `rollaDidRefreshToken`. A rotation that happens with the UI closed (e.g. during a headless sync) is persisted inside the SDK but not delivered — harmless: the staleness guard (responsibility 4) means an older pair your app re-sends can never overwrite it.
 3. **Expired session (SDK cannot refresh):** If the internal refresh fails (typically because the refresh token was consumed outside the SDK, or has expired), the SDK calls `rollaDidRequestTokenRefresh` and holds the failing request for up to 10 seconds while you answer. Obtain a fresh token pair from the Rolla auth API — by re-authenticating via [`/api/login`](../sdk-auth-api/02-authentication.md#log-in), directly or through your backend — and push it with `updateToken()`: a push inside that window retries the request with the new tokens, and the user sees no error. If the window passes unanswered, screens that request backend data show an error state and recover on their next load after the tokens arrive.
 
    > **Avoiding this state:** pass the refresh token to the SDK, but never spend it yourself — let the SDK do all refreshing. An integration that keeps the refresh token exclusive to the SDK and persists every rotated pair (responsibilities 2 and 5) reaches this state only when the refresh token expires after 30 days without a refresh — a state that requires the user to log in again anyway.
@@ -57,7 +57,7 @@ func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
 
 ## Pushing a New Token
 
-If you refresh tokens outside the SDK (e.g. during a background refresh in your app), push the new pair to the SDK at any time — you don't need to wait for a callback:
+If you refresh tokens outside the SDK (e.g. during a background refresh in your app), push the new pair to the SDK at any time — you don't need to wait for a callback. Two caveats: `updateToken()` needs a running engine (any prior `show(from:)`, `openScreen`, `warmUpEngine()`, or headless call — before that, simply initialize with the newest pair instead), and a success result means the push was delivered, not that it was applied — a pair older than the one the SDK already holds is ignored by design (see [responsibility 4](#your-apps-responsibilities)) and still resolves as success:
 
 ```swift
 rolla.updateToken(
@@ -76,7 +76,7 @@ rolla.updateToken(
 
 ## Clearing the Session
 
-When the user logs out of your app, call `clearSession()` to remove all SDK-persisted tokens and session data:
+When the user logs out of your app, call `clearSession()` to remove all SDK-persisted tokens and session data. Like `updateToken()`, it needs a running engine — on a cold engine the call fails and the stored tokens remain, so if the user logs out before the engine has started in this app session, call `warmUpEngine()` first and clear from its completion:
 
 ```swift
 rolla.clearSession { result in
@@ -93,7 +93,7 @@ rolla.clearSession { result in
 
 | Symptom | Cause | Fix |
 |---------|-------|-----|
-| Works at first, but after ~30 minutes of inactivity SDK screens show `Access denied (HTTP 401)`; exiting and re-entering the SDK fixes it — until it recurs | The SDK's refresh token was consumed outside the SDK (or never passed), and `rollaDidRequestTokenRefresh` goes unanswered. Re-entry only masks the problem: your app passes a fresh access token at initialization, which works for another 30 minutes | Responsibilities 2–4 |
+| Works at first, but after ~30 minutes SDK screens show `Access denied (HTTP 401)`; exiting and re-entering the SDK fixes it — until it recurs | The SDK's refresh token was consumed outside the SDK (or never passed), and `rollaDidRequestTokenRefresh` goes unanswered. Re-entry only masks the problem: your app passes a fresh access token at initialization, which works for another 30 minutes | Responsibilities 2–4 |
 | `rollaDidRequestTokenRefresh` fires repeatedly in bursts | Same cause — every request that fails after an unsuccessful internal refresh escalates to your app | Answer it with `updateToken()`; verify the refresh token you pass at initialization is the latest one |
 | 401 errors start right after your own backend refreshes its session | Your backend consumed the refresh token the SDK was holding (single-use rotation) | Responsibility 5 |
 | `rollaDidRequestTokenRefresh` fires immediately at launch | The access token was already expired and the refresh token invalid at initialization | Initialize with the newest persisted pair (a `tokenExpiresIn` that overshoots the token's own expiry is corrected automatically) |

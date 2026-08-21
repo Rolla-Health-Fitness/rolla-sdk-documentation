@@ -81,7 +81,7 @@ Feature support comparison between iOS and Android.
 | Manual Sleep Logging | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |
 | Historical Data Import | Yes | Yes | One-time backfill offered when a data source is connected; restartable from Data Sources |
 | Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
-| Host Event Callbacks | Yes | Yes | 16 delegate/listener callbacks: activity lifecycle, band pairing & link, sync results, goals, profile |
+| Host Event Callbacks | Yes | Yes | 12 observational delegate/listener callbacks: activity lifecycle, band pairing & connection, sync results, goals, profile |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
 | Health Connect | No | Yes | Host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |

@@ -33,7 +33,7 @@ All API errors return a JSON response with `success` set to `false` and a `reaso
 
 1. **Retry with exponential backoff on `429` and `500`** — These are transient errors. Start with a 1-second delay and double it on each retry, up to a reasonable maximum (e.g. 60 seconds).
 
-2. **Re-authenticate on `401`** — When you receive a `401 Unauthorized`, your token has expired. Call `POST /api/refresh_token` with your refresh token, or `POST /api/login` if the refresh token is also expired.
+2. **Re-authenticate on `401`** — A `401` means the access token you sent is missing, invalid, or expired. Recover with `POST /api/login`, or — only if your app owns the token rotation — `POST /api/refresh_token` with the **latest** refresh token, pushing every pair you obtain to the SDK with `updateToken()` immediately (see [Refresh Token](02-authentication.md#refresh-token)).
 
 3. **Validate inputs before sending** — Check that required parameters are present and in the correct format before making API calls. This avoids unnecessary `400` errors.
 
@@ -49,7 +49,7 @@ Before going to production, verify the following:
 
 - [ ] `partner_id` is configured correctly for the production environment
 - [ ] Token storage uses the platform's secure storage (iOS Keychain / Android Keystore)
-- [ ] `401` errors trigger automatic token refresh
+- [ ] `401` errors are recovered by obtaining a fresh token pair and pushing it to the SDK via `updateToken()`
 - [ ] `400` errors are logged with the `reason` field for debugging
 - [ ] `429` and `500` errors are retried with exponential backoff
 - [ ] All API communication uses HTTPS

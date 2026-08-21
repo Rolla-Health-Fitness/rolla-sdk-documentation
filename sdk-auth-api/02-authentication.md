@@ -169,7 +169,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
                       — always built from the newest pair your app has stored
 4. SDK runs           The SDK refreshes its own tokens as needed and delivers every
                       new pair via onTokenRefreshed / rollaDidRefreshToken
-                      → your app persists it and uses it for every later step 3
+                      → your app persists it and uses it for every later initialization (step 3)
 5. SDK cannot refresh onTokenExpired / rollaDidRequestTokenRefresh fires
                       → your app re-authenticates (POST /api/login) and calls
                         rolla.updateToken(token, refreshToken, expiresIn)
@@ -181,7 +181,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/refresh_token" \
 | Token | Lifetime | Notes |
 |-------|----------|-------|
 | Access token | 1800 seconds (30 minutes) | Used for all SDK API calls |
-| Refresh token | 2592000 seconds (30 days) | Used to obtain fresh access tokens |
+| Refresh token | 2592000 seconds (30 days) | Single-use — exchanged for a fresh token pair on every refresh |
 
 ### Best Practices
 

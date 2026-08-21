@@ -2,7 +2,7 @@
 
 The Rolla SDK includes a full Apple Health integration for reading HealthKit data. This section covers required setup, supported data types, availability, and platform notes.
 
-The SDK includes a full Apple Health integration. Partners do **not** need to write any HealthKit code — the SDK handles all reading automatically. However, your app must be configured correctly for HealthKit access.
+Partners do **not** need to write any HealthKit code — the SDK handles all reading automatically. However, your app must be configured correctly for HealthKit access.
 
 ## Required Setup
 

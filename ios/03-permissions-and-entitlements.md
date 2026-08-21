@@ -107,7 +107,7 @@ This section is the partner-facing justification for every permission the SDK re
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
 | `NSLocationWhenInUseUsageDescription` | Required for any GPS-tracked activity | During an outdoor activity the SDK records the user's GPS trace via `CLLocationManager` to draw the route polyline, compute distance, pace, and elevation. *While Using the App* authorization is enough to record a workout that stays in the foreground (e.g. on a phone-mounted handlebar with the screen on). |
-| `NSLocationAlwaysAndWhenInUseUsageDescription` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. *Always* authorization combined with `UIBackgroundModes: location` lets `CLLocationManager` keep delivering fixes when the app is backgrounded or the phone is locked. Without it, **the polyline drops out as soon as the user locks the phone** — runs longer than the screen-on timeout will record incomplete routes. The SDK explicitly sets `allowsBackgroundLocationUpdates = true` (`CoreLocationManager.swift:70`) and `pausesLocationUpdatesAutomatically = false` so iOS does not opportunistically pause the stream during a workout. |
+| `NSLocationAlwaysAndWhenInUseUsageDescription` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. *Always* authorization combined with `UIBackgroundModes: location` lets `CLLocationManager` keep delivering fixes when the app is backgrounded or the phone is locked. Without it, **the polyline drops out as soon as the user locks the phone** — runs longer than the screen-on timeout will record incomplete routes. The SDK explicitly sets `allowsBackgroundLocationUpdates = true` and `pausesLocationUpdatesAutomatically = false` so iOS does not opportunistically pause the stream during a workout. |
 
 > **Note on `NSLocationAlwaysUsageDescription`:** This is a legacy iOS-10-and-below key. iOS 11+ uses `NSLocationAlwaysAndWhenInUseUsageDescription` exclusively. Declaring the legacy key alongside it is harmless and is what Rolla's own app does for safety; new integrations targeting iOS 12+ can omit it.
 
@@ -115,7 +115,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSBluetoothAlwaysUsageDescription` | Required for any band-paired feature | The SDK initializes a `CBCentralManager` (`RollaPermissionsHandler.swift:144-147`) to scan for and connect to Rolla fitness bands. iOS 13+ shows the system Bluetooth prompt the moment `CBCentralManager` is allocated. |
+| `NSBluetoothAlwaysUsageDescription` | Required for any band-paired feature | The SDK initializes a `CBCentralManager` to scan for and connect to Rolla fitness bands. iOS 13+ shows the system Bluetooth prompt the moment `CBCentralManager` is allocated. |
 | `NSBluetoothPeripheralUsageDescription` | Optional | Legacy iOS-12-and-below companion key. The SDK does not act as a peripheral (no `CBPeripheralManager` allocations), but Apple's static analyzer will warn if only one of the two Bluetooth keys is present, so we recommend declaring it for compatibility with older deployment targets and to silence the warning. |
 | Bluetooth Central Entitlement | Required (build-time) | App Store capability required for the SDK's BLE central role (band scanning and connection). Configured in `.entitlements`, not `Info.plist`. |
 
@@ -123,7 +123,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSHealthShareUsageDescription` | Optional, strongly recommended | The SDK reads the user's HealthKit data — heart rate, steps, distance, calories, sleep, workouts — via `HKHealthStore.requestAuthorization(toShare: [], read: readTypes)` (`AppleHealthManager.swift:76`) so the Rolla feed reflects every workout the user does, including ones recorded by Apple Watch, Strava, Nike Run Club, etc. Without it, the user only sees workouts recorded inside Rolla. |
+| `NSHealthShareUsageDescription` | Optional, strongly recommended | The SDK reads the user's HealthKit data — heart rate, steps, distance, calories, sleep, workouts — via `HKHealthStore.requestAuthorization(toShare: [], read: readTypes)` so the Rolla feed reflects every workout the user does, including ones recorded by Apple Watch, Strava, Nike Run Club, etc. Without it, the user only sees workouts recorded inside Rolla. |
 | HealthKit Entitlement | Required if Apple Health is enabled (build-time) | App Store capability that authorizes the HealthKit APIs the SDK uses to read Apple Health data. Configured in `.entitlements`, not `Info.plist`. |
 
 > **Note on `NSHealthUpdateUsageDescription`:** The SDK passes an empty `toShare` array — it does **not** write back to HealthKit. Rolla's own app declares the write key out of caution, but a partner integration whose product does not write to HealthKit can omit it. If you call any HealthKit write API in your own host code, declare it.
@@ -132,7 +132,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSMotionUsageDescription` | Required if smartphone-only workouts are reachable | The SDK uses `CMPedometer` (`PhonePedometerHandler.swift`) to count steps and measure cadence when a workout is tracked from the phone alone (no paired band). iOS shows the system Motion & Fitness prompt the first time `CMPedometer` is started, and **hard-terminates the app (`SIGABRT`) if the key is absent** — so the key must be present in any build where a user can start a phone-only workout, even if the user later denies the prompt. With the permission denied the workout still records via GPS, but step- and cadence-based metrics are unavailable. |
+| `NSMotionUsageDescription` | Required if smartphone-only workouts are reachable | The SDK uses `CMPedometer` to count steps and measure cadence when a workout is tracked from the phone alone (no paired band). iOS shows the system Motion & Fitness prompt the first time `CMPedometer` is started, and **hard-terminates the app (`SIGABRT`) if the key is absent** — so the key must be present in any build where a user can start a phone-only workout, even if the user later denies the prompt. With the permission denied the workout still records via GPS, but step- and cadence-based metrics are unavailable. |
 
 ### Background Modes
 
@@ -146,7 +146,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `NSSupportsLiveActivities` | Optional | During an active workout the SDK posts a Live Activity (`LiveWorkoutBridge.swift:182` — `Activity.request(attributes:content:pushType: nil)`) that displays elapsed time, current pace, and heart rate on the lock screen and in the Dynamic Island. |
+| `NSSupportsLiveActivities` | Optional | During an active workout the SDK posts a Live Activity via `Activity.request(attributes:content:pushType: nil)` that displays elapsed time, current pace, and heart rate on the lock screen and in the Dynamic Island. |
 | `NSSupportsLiveActivitiesFrequentUpdates` | Optional, recommended alongside the above | Lets the SDK push updates more often than the default ~1/15s budget, which is what makes the on-screen pace number flow rather than tick. |
 
 ---

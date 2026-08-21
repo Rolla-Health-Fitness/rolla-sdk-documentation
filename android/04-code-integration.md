@@ -16,12 +16,12 @@ import com.rolla.sdk.wrapper.features.session.RollaError
 
 The SDK needs a user access token (JWT) to identify the user and authorize API calls. You obtain this token from Rolla's auth API after the user has logged in.
 
-- **Typical flow:** User logs in the app → app calls backend → backend returns **access_token** (and optionally **refresh_token**, **expires_in**) → you pass that token into `RollaConfiguration` when opening the SDK.
+- **Typical flow:** User logs in to your app → your app calls your backend → your backend returns the **access_token**, **refresh_token**, and **expires_in** from Rolla's auth API → you pass all three into `RollaConfiguration` when opening the SDK.
 - **When to fetch:** Before calling `rolla.show(activity)`. If the user is already logged in, use your existing session (e.g. stored token or refresh to get a new access token).
-- **What to pass:** At minimum, the **access token** (string). For better behavior, also pass `refreshToken` and `tokenExpiresIn`.
+- **What to pass:** All three token fields — the **access token**, `refreshToken`, and `tokenExpiresIn`. The access token alone opens the SDK, but the other two are what let it keep the session alive on its own — see [Token Management](06-token-management.md#your-apps-responsibilities).
 - **Partner ID:** Use the partner ID Rolla gave you. It is fixed per partner, not per user.
 
-Note: You are responsible for authentication, the SDK only consumes the token you provide.
+> **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
 
 ## Create Configuration
 

@@ -168,7 +168,7 @@ If your **host activity** (the one that calls `show()`) is destroyed and recreat
 |---------|-------------|-----|
 | SDK opens then immediately closes or shows an error | Expired access token | Initialize with a current token pair — see [Token Management](06-token-management.md) |
 | Works at first, then `Access denied (HTTP 401)` on SDK screens after ~30 minutes; re-entering the SDK temporarily fixes it | The SDK holds an already-consumed refresh token and `onTokenExpired` is not answered | See [Token Management — Symptoms](06-token-management.md#symptoms-of-incorrect-token-wiring) |
-| `onTokenExpired` fires immediately | Token was already expired at launch | Ensure `tokenExpiresIn` reflects the *remaining* lifetime, not the original TTL |
+| `onTokenExpired` fires immediately at launch | The access token was already expired and the refresh token invalid at initialization | Initialize with the newest persisted pair — see [Token Management — Symptoms](06-token-management.md#symptoms-of-incorrect-token-wiring) |
 | SDK works in `"rnd"` but fails in `"production"` | Token was issued for the wrong environment | Verify your backend issues tokens against the correct Rolla environment |
 | "Unauthorized" or 401-style errors | Wrong partner ID or mismatched credentials | Double-check the `partnerId` passed to `RollaConfiguration` |
 

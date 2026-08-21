@@ -39,7 +39,7 @@ If you need to free memory (e.g. on logout), call:
 Rolla.destroyEngine()
 ```
 
-The engine will be recreated automatically on the next `show()` call. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
+The engine will be recreated automatically on the next `show()` call. Call `destroyEngine()` **after** `dismiss()`, not while the SDK UI is presenting. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
 
 Destroying the engine is also how a new `RollaConfiguration` is applied — a changed language, branding, or module set takes effect on the next engine start. See [Configuration](05-configuration.md).
 
