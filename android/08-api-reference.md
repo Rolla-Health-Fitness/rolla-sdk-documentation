@@ -95,7 +95,7 @@ The screens your app can open directly — a deliberate whitelist. Lives in `com
 
 ### RollaOpenScreenStatus
 
-Every outcome is a typed status — the call never throws and never fails silently. Lives in `com.rolla.sdk.wrapper.features.navigation`:
+Every outcome is a typed status — the call never fails silently. Lives in `com.rolla.sdk.wrapper.features.navigation`:
 
 | Status | Meaning |
 |--------|---------|

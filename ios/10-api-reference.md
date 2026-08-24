@@ -94,7 +94,7 @@ The screens your app can open directly — a deliberate whitelist:
 
 ### RollaOpenScreenStatus
 
-Every outcome is a typed status — the call never throws and never fails silently:
+Every outcome is a typed status — the call never fails silently:
 
 | Status | Meaning |
 |--------|---------|
