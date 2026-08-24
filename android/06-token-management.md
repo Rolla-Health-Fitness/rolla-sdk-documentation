@@ -56,7 +56,10 @@ override fun onTokenExpired(rolla: Rolla) {
 
 ## Pushing a New Token
 
-If you refresh tokens outside the SDK (e.g. during a background refresh in your app), push the new pair to the SDK at any time — you don't need to wait for a callback. Two caveats: `updateToken()` needs a running engine (any prior `show()`, `openScreen`, `warmUpEngine()`, or headless call — before that, simply initialize with the newest pair instead), and a success result means the push was delivered, not that it was applied — a pair older than the one the SDK already holds is ignored by design (see [responsibility 4](#your-apps-responsibilities)) and still resolves as success:
+If you refresh tokens outside the SDK (e.g. during a background refresh in your app), push the new pair to the SDK at any time — you don't need to wait for a callback. Two caveats:
+
+- `updateToken()` needs a running engine — any prior `show()`, `openScreen`, `warmUpEngine()`, or headless call. If the engine has not started yet, initialize with the newest pair instead.
+- A success result means the push was delivered, not that it was applied. A pair older than the one the SDK already holds is ignored by design (see [responsibility 4](#your-apps-responsibilities)) and still resolves as success.
 
 ```kotlin
 rolla.updateToken(
