@@ -1,8 +1,8 @@
 # Public API Reference
 
-The complete public API of the Rolla SDK on Android: the `Rolla` class, the `RollaListener` interface and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
+The complete public API of the Rolla SDK on Android: the `Rolla` class, the host-driven navigation types, the `RollaListener` interface and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [RollaListener Interface](#rollalistener-interface) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
+**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [Host-Driven Navigation](#host-driven-navigation) · [RollaListener Interface](#rollalistener-interface) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
 ## Rolla Class
 
@@ -20,9 +20,10 @@ rolla.show(activity)
 |-------------------|-------------|
 | <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
 | <code>var&nbsp;listener:&nbsp;RollaListener?</code> | Receives every callback — see [RollaListener](#rollalistener-interface) |
-| <code>val&nbsp;isPresenting:&nbsp;Boolean</code> | `true` from `show()` until the SDK UI closes |
+| <code>val&nbsp;isPresenting:&nbsp;Boolean</code> | `true` from `show()` — or an [`openScreen`](#host-driven-navigation) that presents — until the SDK UI closes |
 | <code>show(activity:&nbsp;Activity,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from an Activity. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
 | <code>show(fragment:&nbsp;Fragment,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
+| <code>openScreen(activity,&nbsp;screen,&nbsp;transition,&nbsp;callback)</code> | Open the SDK UI directly on a specific screen — see [Host-Driven Navigation](#host-driven-navigation) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](07-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -46,7 +47,7 @@ rolla.show(activity)
 
 ## RollaTransition
 
-The optional `transition` parameter on both `show` overloads selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes (both overloads are `@JvmOverloads`, so Java callers are unaffected too):
+The optional `transition` parameter on both `show` overloads and [`openScreen`](#openscreen) selects how the SDK UI animates in — the closing animation always mirrors the opening one. Lives in `com.rolla.sdk.wrapper.config`. Omitting it keeps the existing behavior, so existing integrations need no changes (the `show` overloads are `@JvmOverloads`, so Java callers are unaffected too):
 
 | Value | Animation |
 |-------|-----------|
@@ -56,6 +57,56 @@ The optional `transition` parameter on both `show` overloads selects how the SDK
 ```kotlin
 rolla.show(activity, RollaTransition.FADE)
 ```
+
+## Host-Driven Navigation
+
+### openScreen
+
+```kotlin
+fun openScreen(activity: Activity, screen: RollaScreen, transition: RollaTransition = RollaTransition.DEFAULT, callback: (RollaOpenScreenStatus) -> Unit)
+```
+
+Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already visible, it just switches to the requested screen. The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
+
+When the SDK UI is not showing, what happens next depends on the engine:
+
+- **Warm engine**: the SDK stays hidden while it navigates, and is presented only if the request resolves as `OPENED`. Every other status leaves the SDK hidden and tells you why it was not presented. The engine is warm after a prior `show()`, a `warmUpEngine()`, or any headless call.
+- **Cold engine**: it must present before it can navigate, so the SDK opens behind its loader and resolves the request while starting up. A failure such as `SCREEN_DISABLED` therefore leaves the SDK on the Home screen, and the status tells you why the requested screen could not be presented.
+
+To avoid the cold start entirely, call `warmUpEngine()` before the first `openScreen` — typically right after login.
+
+```kotlin
+rolla.openScreen(activity, RollaScreen.INSIGHTS, RollaTransition.FADE) { status ->
+    if (status != RollaOpenScreenStatus.OPENED) Log.d("Rolla", "Not opened: $status")
+}
+```
+
+### RollaScreen
+
+The screens your app can open directly — a deliberate whitelist. Lives in `com.rolla.sdk.wrapper.features.navigation`:
+
+| Value | Opens |
+|-------|-------|
+| `ACTIVITY_HISTORY` | The activity history list |
+| `GOALS` | The goals editor |
+| `HOME` | The SDK Home screen — restores Home as the root |
+| `INSIGHTS` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `RESUME` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `OPENED` |
+
+### RollaOpenScreenStatus
+
+Every outcome is a typed status — the call never fails silently. Lives in `com.rolla.sdk.wrapper.features.navigation`:
+
+| Status | Meaning |
+|--------|---------|
+| `OPENED` | The SDK UI is on the requested screen |
+| `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` with the insights module disabled) — nothing was opened |
+| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
+| `UI_UNAVAILABLE` | The SDK UI could not be shown — the `activity` is finishing, or the SDK never became ready to navigate |
+| `SUPERSEDED` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
+| `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |
+
+Presentation failures additionally fire `onRollaError(rolla, error)` exactly as a failed `show()` would — the callback status is additive, not a replacement for the listener.
 
 ## RollaListener Interface
 
@@ -71,13 +122,13 @@ All sixteen methods have default empty implementations — override only the one
 | SDK&nbsp;closed | <code>onRollaClosed(rolla,&nbsp;reason)</code> | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
 | Error&nbsp;occurred | <code>onRollaError(rolla,&nbsp;error)</code> | An error occurred — see [RollaError](#rollaerror) |
 | Token&nbsp;refreshed | <code>onTokenRefreshed(rolla,&nbsp;token,&nbsp;refreshToken?,&nbsp;expiresIn?)</code> | The SDK refreshed tokens internally — store them for future use |
-| Token&nbsp;refresh&nbsp;needed | `onTokenExpired(rolla)` | The SDK could not refresh the token — fetch new tokens from your backend and call `updateToken` |
+| Token&nbsp;refresh&nbsp;needed | `onTokenExpired(rolla)` | The SDK could not refresh the token — obtain fresh tokens from the Rolla auth API and call `updateToken` (see [Token Management](06-token-management.md)) |
 
 ## Host Events
 
 Twelve listener methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
 
 ### Sync Events
@@ -222,7 +273,7 @@ When each reason is triggered:
 
 | Close Reason | When Triggered |
 |-------------|----------------|
-| `FlutterRequested(reason)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `FlutterRequested(reason)` | SDK's internal UI initiated the close (e.g. user tapped close/done). Optional `reason` may provide context. |
 | `HostNavigationBack` | User pressed the system back button. |
 | `HostModalDismiss` | User dismissed the modal via gesture or system action. |
 | `Programmatic` | Host app called `dismiss()` programmatically. |

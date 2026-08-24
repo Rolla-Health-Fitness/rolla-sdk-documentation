@@ -8,11 +8,13 @@ This section covers importing the SDK, creating a configuration, initializing an
 import RollaSDK
 ```
 
+## Authentication & Token Flow
+
 The SDK needs a **user access token** (JWT) to identify the user and authorize API calls. You obtain this token from Rolla's auth API **after** the user has logged in.
 
-- **Typical flow:** User logs in the app → app calls backend → backend returns `access_token` (and optionally `refresh_token`, `expires_in`) → you pass that token into `RollaConfiguration` when opening the SDK.
+- **Typical flow:** User logs in to your app → your app calls your backend → your backend returns `access_token`, `refresh_token`, and `expires_in` from Rolla's auth API → you pass all three into `RollaConfiguration` when opening the SDK.
 - **When to fetch:** Before calling `rolla.show(from:)`. If the user is already logged in, use your existing session (e.g. stored token or refresh to get a new access token).
-- **What to pass:** At minimum, the **access token** (string). For better behavior, also pass `refreshToken` and `tokenExpiresIn`.
+- **What to pass:** All three token fields — the **access token**, `refreshToken`, and `tokenExpiresIn`. The access token alone opens the SDK, but the other two are what let it keep the session alive on its own — see [Token Management](07-token-management.md#your-apps-responsibilities).
 - **Partner ID:** Use the partner ID Rolla gave you. It is fixed per partner, not per user.
 
 > **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
@@ -29,7 +31,7 @@ let configuration = RollaConfiguration(
 )
 ```
 
-These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showSettingsButton` — see [Configuration](05-configuration.md) for the full reference.
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showOptionsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -49,6 +51,8 @@ let rolla = Rolla(configuration: configuration)
 rolla.delegate = self
 rolla.show(from: self)
 ```
+
+Instead of `show(from:)`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](10-api-reference.md#host-driven-navigation).
 
 ## Implement RollaDelegate
 
@@ -70,8 +74,9 @@ extension YourViewController: RollaDelegate {
     }
 
     func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
-        // Called when the token has expired and the SDK cannot refresh it
-        // You must fetch a new token from your backend and call:
+        // Called when the token has expired and the SDK cannot refresh it.
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, and call:
         rolla.updateToken(token: newToken, refreshToken: newRefreshToken, expiresIn: newExpiresIn) { result in
             switch result {
             case .success:

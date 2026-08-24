@@ -21,7 +21,7 @@ The SDK manages a Flutter engine internally. By default, the engine stays alive 
 
 ### Warming Up the Engine
 
-The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](08-api-reference.md#headless-methods)), so none of them require a prior `show()`. Call `warmUpEngine()` to pay the start-up cost early — typically right after login — so the first `show()` presents instantly:
+The engine also starts automatically on the first headless call (`getBandBatteryLevel`, `getPairedBandInfo`, `syncHealthData` — see [API Reference](08-api-reference.md#headless-methods)) and on `openScreen`, so none of them require a prior `show()`. Call `warmUpEngine()` to pay the start-up cost early — typically right after login — so the first `show()` presents instantly:
 
 ```kotlin
 rolla.warmUpEngine(context) { result ->
@@ -33,13 +33,13 @@ Safe to call repeatedly: a repeat call for the same user is a no-op that preserv
 
 ### Destroying the Engine
 
-If you need to free memory (e.g., on logout), call:
+If you need to free memory (e.g. on logout), call:
 
 ```kotlin
 Rolla.destroyEngine()
 ```
 
-The engine will be recreated automatically on the next `show()` call. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
+The engine will be recreated automatically on the next `show()` call. Call `destroyEngine()` **after** `dismiss()`, not while the SDK UI is presenting. Host-event delivery (see [API Reference](08-api-reference.md#host-events)) also stops here — events flow for the engine's lifetime.
 
 Destroying the engine is also how a new `RollaConfiguration` is applied — a changed language, branding, or module set takes effect on the next engine start. See [Configuration](05-configuration.md).
 

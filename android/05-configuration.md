@@ -18,7 +18,7 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Module Configuration](#module-configuration) |
 | `disabledDataSources` | `Set<RollaDataSource>` | No | `emptySet()` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Data Source Configuration](#data-source-configuration) |
 | `branding` | `RollaBranding?` | No | `null` | Visual identity overrides — every field optional, per-field merge. See [Custom Branding](#custom-branding-optional) |
-| `showSettingsButton` | `Boolean` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button |
+| `showOptionsButton` | `Boolean` | No | `true` | Render a three-dot options action at the trailing edge of the Home top app bar. Tapping it opens an "Options" bottom sheet with shortcuts into some of the SDK's features that you haven't disabled in your `RollaConfiguration`. Defaults to true because most partners need this entry point |
 | `showGoalsSection` | `Boolean` | No | `false` | Show the user's goals at the bottom of the Home screen, with an edit action. See [Goals on Home](#goals-on-home) |
 
 For the identity and auth essentials (`token`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
@@ -85,7 +85,7 @@ val configuration = RollaConfiguration(
 By default the SDK renders in the language of the user's backend profile (see the [Profile guide](../sdk-auth-api/03-profile.md)). To force a specific UI language instead, set `language`:
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaLanguage
+import com.rolla.sdk.wrapper.config.RollaLanguage
 
 val configuration = RollaConfiguration(
     token = token,
@@ -117,7 +117,7 @@ val configuration = RollaConfiguration(
 By default every module is enabled. To hide a module's entire UI everywhere it appears in the SDK, pass its `RollaDisabledModule` value in the `disabledModules` set (or omit the parameter / pass `emptySet()` to keep everything enabled):
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaDisabledModule
+import com.rolla.sdk.wrapper.config.RollaDisabledModule
 
 val configuration = RollaConfiguration(
     token = token,
@@ -158,14 +158,14 @@ val configuration = RollaConfiguration(
 )
 ```
 
-The section renders above the Settings button (when that is shown). It is particularly useful together with `showSettingsButton = false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
+The section is the bottom-most element of the Home scroll. It is particularly useful together with `showOptionsButton = false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
 
 ## Data Source Configuration
 
 By default the SDK offers every data source the user can connect (Rolla Band, Garmin, Oura, Apple Health, Health Connect). To hide specific sources, pass their `RollaDataSource` values in the `disabledDataSources` set (or omit the parameter / pass `emptySet()` to offer everything):
 
 ```kotlin
-import com.rolla.sdk.wrapper.RollaDataSource
+import com.rolla.sdk.wrapper.config.RollaDataSource
 
 val configuration = RollaConfiguration(
     token = token,
@@ -185,7 +185,7 @@ A hidden source's connect option is suppressed everywhere the user picks a sourc
 - **Deny-list semantics.** An empty set (the default) offers every source. Each value present hides that source. This matches `disabledModules`.
 - **Already-connected sources stay visible.** If a user has already connected a source that you later disable, it still appears on the Data Sources screen so they can view or disconnect it — only offering a *new* connection is suppressed.
 - **The band is a safety floor.** At least one source is always connectable. If you disable *every* source, the SDK keeps the Rolla Band available so onboarding never dead-ends.
-- **Band-only skips the picker.** If the Rolla Band is the only source left enabled, there is no data-source selection screen — onboarding takes the user straight to the band pairing screen (the gate becomes band pairing instead of source choosing), and the Data Sources entry is hidden from Settings. Band status and unpairing remain available from the band button on the Home screen.
+- **Band-only skips the picker.** If the Rolla Band is the only source left enabled, there is no data-source selection screen — onboarding takes the user straight to the band pairing screen (the gate becomes band pairing instead of source choosing), and the Data Sources entry is hidden from the Options sheet. Band status and unpairing remain available from the band button on the Home screen.
 
 ### RollaDataSource
 

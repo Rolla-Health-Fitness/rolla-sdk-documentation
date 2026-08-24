@@ -10,6 +10,40 @@
 
 ---
 
+## 0.1.14
+
+### Both platforms
+
+- **[breaking] `showSettingsButton` is renamed to `showOptionsButton`, and the entry moved into the top-right app bar actions.** The Settings button that was positioned at the very bottom of the Home screen is now a three-dot options action at the trailing edge of the Home app bar, visible without scrolling. It opens the same bottom sheet of shortcuts as before, now titled "Options". The flag's meaning and default (`true`) are unchanged — just rename the parameter on your `RollaConfiguration`. See the [Android](android/05-configuration.md#rollaconfiguration) and [iOS](ios/05-configuration.md#rollaconfiguration) configuration guides.
+
+- **[feature] Open a specific SDK screen from your app.** The new `openScreen` method opens the Insights feed, the activity history, the goals editor, the SDK Home screen, or the last-opened state (`resume`) directly — presenting the SDK UI when it is hidden, honoring the optional `RollaTransition`. The opened screen is the root of the SDK UI, so back returns the user straight to your app, and `home` restores Home as the root. Every outcome is a typed `RollaOpenScreenStatus`; the SDK's mandatory startup steps (onboarding, consent, permissions, data-source connection) always take precedence. See the [Android](android/08-api-reference.md#host-driven-navigation) / [iOS](ios/10-api-reference.md#host-driven-navigation) API references.
+
+- **[feature] Bluetooth heart rate monitor support.** A standard Bluetooth heart rate monitor (Polar, Garmin, Wahoo and similar chest straps and arm bands) can now be connected from the activity setup screen and used as a workout's heart rate source instead of the Rolla Band. Previously connected monitors are remembered and reconnected automatically when in range, and one that drops mid-workout reconnects on its own. A workout tracked with a monitor does not use a paired Band at all.
+
+- **[feature] Manual sleep logging and editing.** A user can log a night their wearable missed, or correct one it got wrong, from the sleep detail screen — adjusting the sleep window on the chart or through time fields, and assigning a stage to stretches the device did not record. A night with no stage detail can be logged as a single in-bed block and is shown as a sleep-duration clock. A manual entry replaces whatever was stored for that night and survives later device syncs, and sleep metrics, scores and the home screen refresh as soon as one is saved. Available for the last 7 days.
+
+- **[feature] One-time historical data import when a source is connected.** After connecting Apple Health, Health Connect, Garmin or Oura, the user is offered a backfill of the date range the backend reports as available, and can accept it, skip it (it stays re-offerable), or start it later from the "Import history" action in Data Sources. Apple Health and Health Connect are read on-device with per-stage progress while the screen stays open; Garmin and Oura are backfilled by the backend and the screen just confirms the job started. An on-device import that was interrupted is picked up again from the same action.
+
+- **[fix] Home totals update immediately after deleting an activity.** The Active Points and Active Calories tiles and the Activity score card now refetch as soon as an activity is deleted, instead of correcting only after a manual reload.
+
+- **[fix] Steps, Move Hours and Active Points show the full statistics grid over 7d/30d/1y.** These metric detail pages showed a single "Total" card; they now show Avg, Min, Max and Score, computed over the days that have data.
+
+- **[improvement] Hardened token handling.** You can no longer break a session by passing outdated tokens — the SDK ignores anything older than what it already holds. And answering `onTokenExpired` (Android) / `rollaDidRequestTokenRefresh` (iOS) with `updateToken()` within 10 seconds now recovers the failing request invisibly, with no error state. See the [Android](android/06-token-management.md) / [iOS](ios/07-token-management.md) Token Management guides.
+
+- **[improvement] Notification texts are now translated for every supported language.** The engagement and battery notification strings moved into the SDK's localization system, and date-of-birth fields now render month names in the selected language, including Latin-script Serbian.
+
+- **[improvement] General bugfixes and stability improvements.**
+
+- **[documentation] Rewritten Token Management guides.** The [Android](android/06-token-management.md) and [iOS](ios/07-token-management.md) pages now spell out the host app's token obligations — persist rotated tokens, answer the token-expired callback, always initialize with the latest pair — along with token lifetimes and the single-use refresh-token rotation rule; the [Android](android/09-troubleshooting.md#token-related-issues) and [iOS](ios/11-troubleshooting.md#token-related-issues) troubleshooting guides gained an expanded symptoms table for diagnosing 401 errors.
+
+### Android
+
+- **[breaking] The public API types moved into sub-packages — update your imports.** No type was renamed and no behavior changed, so the fix is import lines only; most IDEs re-import automatically. `Rolla` and `RollaListener` are unchanged in `com.rolla.sdk.wrapper`. Everything else moved: `RollaConfiguration`, `RollaBranding`, `RollaLanguage`, `RollaThemeMode`, `RollaTransition`, `RollaDataSource` and `RollaDisabledModule` to `com.rolla.sdk.wrapper.config`; `RollaError` and `RollaCloseReason` to `…features.session`; the activity payloads to `…features.activity`; the band payloads to `…features.band`; `RollaSyncResult` and `RollaPrimarySourceChanged` to `…features.sync`; `RollaGoalsChanged` to `…features.goals`; `RollaProfileUpdated` to `…features.profile`. Enums travel with the file that declares them — `RollaSyncOutcome` is in `…features.sync`, `RollaBatteryStatus` in `…features.band`. If you declare the SDK activity in your own manifest, it is now `com.rolla.sdk.wrapper.engine.RollaFlutterActivity`.
+
+- **[fix] Pairing a band again right after unpairing it now works reliably.** Until now that attempt could quietly fail — the screen returned to the start of pairing with no message — and only succeeded after waiting around a minute.
+
+- **[fix] Pulse data no longer silently goes missing on Android.** An interrupted band transfer could leave heart rate unsynced for days — the sync appeared to succeed while steps and sleep kept updating. The transfer now recovers on its own within seconds, and any missed stretch is fetched by the next sync.
+
 ## 0.1.13
 
 ### Both platforms

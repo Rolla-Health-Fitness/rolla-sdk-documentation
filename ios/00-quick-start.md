@@ -30,7 +30,7 @@ source 'https://cdn.cocoapods.org/'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'RollaSDK', '0.1.13'
+  pod 'RollaSDK', '0.1.14'
 end
 ```
 
@@ -90,7 +90,8 @@ extension YourViewController: RollaDelegate {
 
     func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
         // Token expired and SDK cannot refresh it.
-        // Fetch a new token from your backend, then push it to the SDK:
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, then push them to the SDK:
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn in
             rolla.updateToken(
                 token: newToken,
