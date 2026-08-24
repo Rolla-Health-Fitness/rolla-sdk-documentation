@@ -18,7 +18,7 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 | `disabledModules` | `Set<RollaDisabledModule>` | No | `emptySet()` (nothing disabled) | Modules whose entire UI is hidden across the SDK. See [Module Configuration](#module-configuration) |
 | `disabledDataSources` | `Set<RollaDataSource>` | No | `emptySet()` (all offered) | Data sources whose connect option is hidden wherever the user picks a source to connect. See [Data Source Configuration](#data-source-configuration) |
 | `branding` | `RollaBranding?` | No | `null` | Visual identity overrides — every field optional, per-field merge. See [Custom Branding](#custom-branding-optional) |
-| `showOptionsButton` | `Boolean` | No | `true` | Render a three-dot options action at the trailing edge of the Home top app bar. Tapping it opens an "Options" bottom sheet with shortcuts to your enabled configuration options. Defaults to true because most partners need this entry point |
+| `showOptionsButton` | `Boolean` | No | `true` | Render a three-dot options action at the trailing edge of the Home top app bar. Tapping it opens an "Options" bottom sheet with shortcuts into some of the SDK's features that you haven't disabled in your `RollaConfiguration`. Defaults to true because most partners need this entry point |
 | `showGoalsSection` | `Boolean` | No | `false` | Show the user's goals at the bottom of the Home screen, with an edit action. See [Goals on Home](#goals-on-home) |
 
 For the identity and auth essentials (`token`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
