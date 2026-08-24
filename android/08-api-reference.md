@@ -66,7 +66,7 @@ rolla.show(activity, RollaTransition.FADE)
 fun openScreen(activity: Activity, screen: RollaScreen, transition: RollaTransition = RollaTransition.DEFAULT, callback: (RollaOpenScreenStatus) -> Unit)
 ```
 
-Opens the SDK UI directly on a specific screen. If the SDK UI is already showing, the call navigates in place; if not, the SDK is presented (honoring `transition`). The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
+Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already visible, it just switches to the requested screen. The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
 
 When the SDK UI is not showing, what happens next depends on the engine:
 
