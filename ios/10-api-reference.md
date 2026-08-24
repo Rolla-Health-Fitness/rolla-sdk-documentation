@@ -69,7 +69,7 @@ Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the cal
 
 When the SDK UI is not showing, what happens next depends on the engine:
 
-- **Warm engine**: the SDK stays hidden while it navigates, and is presented only if the request resolves as `.opened`. No other status presents the SDK UI. The engine is warm after a prior `show(from:)`, a `warmUpEngine()`, or any headless call.
+- **Warm engine**: the SDK stays hidden while it navigates, and is presented only if the request resolves as `.opened`. No other status presents the SDK UI — each instead reports why the SDK stayed hidden. The engine is warm after a prior `show(from:)`, a `warmUpEngine()`, or any headless call.
 - **Cold engine**: it cannot navigate before presenting, so the SDK comes up on Home while the engine starts. A non-`.opened` status such as `.screenDisabled` can therefore arrive with the SDK already open on Home — the status reports the fate of the requested screen, not a promise that no UI appeared.
 
 To always get the offscreen behavior, call `warmUpEngine()` before your first `openScreen` — typically right after login.
