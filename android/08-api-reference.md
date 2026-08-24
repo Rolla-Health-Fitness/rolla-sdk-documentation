@@ -89,7 +89,7 @@ The screens your app can open directly — a deliberate whitelist. Lives in `com
 |-------|-------|
 | `ACTIVITY_HISTORY` | The activity history list |
 | `GOALS` | The goals editor |
-| `HOME` | The SDK Home screen — brings the SDK back to its regular entry point after another screen was made the root, no engine restart needed |
+| `HOME` | The SDK Home screen — restores Home as the root if another screen replaced it |
 | `INSIGHTS` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
 | `RESUME` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `OPENED` |
 
