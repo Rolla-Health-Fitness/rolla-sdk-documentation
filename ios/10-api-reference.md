@@ -65,7 +65,7 @@ rolla.show(from: self, transition: .fade)
 func openScreen(_ screen: RollaScreen, from viewController: UIViewController, transition: RollaTransition = .default, completion: @escaping (RollaOpenScreenStatus) -> Void)
 ```
 
-Opens the SDK UI directly on a specific screen — one call replaces a show-then-navigate pair. If the SDK UI is already showing, the call navigates in place; if not, it presents the SDK (honoring `transition`). Either way the opened screen becomes the **root of the SDK UI**: back returns the user straight to your app, never to an SDK Home screen they did not visit. A repeat call replaces the root with the new screen.
+Opens the SDK UI directly on a specific screen. If the SDK UI is already showing it navigates in place; if not, it is presented (honoring `transition`). The opened screen becomes the **root of the SDK UI**, so back returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
 
 When the SDK UI is not showing, what happens next depends on the engine:
 
