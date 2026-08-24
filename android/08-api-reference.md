@@ -73,7 +73,7 @@ When the SDK UI is not showing, what happens next depends on the engine:
 - **Warm engine**: the SDK stays hidden while it navigates, and is presented only if the request resolves as `OPENED`. Every other status leaves the SDK hidden and tells you why it was not presented. The engine is warm after a prior `show()`, a `warmUpEngine()`, or any headless call.
 - **Cold engine**: it must present before it can navigate, so the SDK opens behind its loader and resolves the request while starting up. A failure such as `SCREEN_DISABLED` therefore leaves the SDK on the Home screen, and the status tells you why the requested screen could not be presented.
 
-To always get the offscreen behavior, call `warmUpEngine()` before your first `openScreen` — typically right after login.
+To avoid the cold start entirely, call `warmUpEngine()` before the first `openScreen` — typically right after login.
 
 ```kotlin
 rolla.openScreen(activity, RollaScreen.INSIGHTS, RollaTransition.FADE) { status ->
