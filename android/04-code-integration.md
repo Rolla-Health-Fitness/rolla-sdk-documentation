@@ -65,7 +65,7 @@ rolla.listener = object : RollaListener {
 rolla.show(activity)
 ```
 
-Instead of `show()`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, …) — for example from your own menu entries — see [Host-Driven Navigation](08-api-reference.md#host-driven-navigation).
+Instead of `show()`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals etc.) — for example from your own menu entries — see [Host-Driven Navigation](08-api-reference.md#host-driven-navigation).
 
 ## Implement RollaListener
 

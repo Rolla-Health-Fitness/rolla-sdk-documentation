@@ -40,7 +40,7 @@
 
 - **[improvement] General bugfixes and stability improvements.**
 
-- **[documentation] Rewritten Token Management guides.** The [Android](android/06-token-management.md) and [iOS](ios/07-token-management.md) pages now spell out the host app's token obligations — persist rotated tokens, answer the token-expired callback, always initialize with the latest pair — along with token lifetimes, the single-use refresh-token rotation rule, and a symptoms table for diagnosing 401 errors.
+- **[documentation] Rewritten Token Management guides.** The [Android](android/06-token-management.md) and [iOS](ios/07-token-management.md) pages now spell out the host app's token obligations — persist rotated tokens, answer the token-expired callback, always initialize with the latest pair — along with token lifetimes and the single-use refresh-token rotation rule; the [Android](android/09-troubleshooting.md#token-related-issues) and [iOS](ios/11-troubleshooting.md#token-related-issues) troubleshooting guides gained an expanded symptoms table for diagnosing 401 errors.
 
 ### Android
 
