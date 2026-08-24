@@ -130,7 +130,7 @@ Exchanges the **latest** refresh token for a fresh token pair — a new access t
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `refresh_token` | string | Yes | The **latest** refresh token — from the most recent login or refresh response. Older tokens in the chain are already invalid |
+| `refresh_token` | string | Yes | The refresh token from the most recent login or refresh response — any older token is already invalid |
 
 ### Example Request
 
