@@ -66,11 +66,14 @@ rolla.show(activity, RollaTransition.FADE)
 fun openScreen(activity: Activity, screen: RollaScreen, transition: RollaTransition = RollaTransition.DEFAULT, callback: (RollaOpenScreenStatus) -> Unit)
 ```
 
-Opens the SDK UI directly on a specific screen — one call replaces a show-then-navigate pair. When the SDK UI is not on screen it is presented first (honoring `transition`); when it is already presented, it navigates in place. The opened screen becomes the **root of the SDK UI**: the back button returns the user straight to your app, never to an SDK Home screen they did not visit. Calling it again replaces the root with the next screen.
+Opens the SDK UI directly on a specific screen — one call replaces a show-then-navigate pair. If the SDK UI is already showing, the call navigates in place; if not, it presents the SDK (honoring `transition`). Either way the opened screen becomes the **root of the SDK UI**: the back button returns the user straight to your app, never to an SDK Home screen they did not visit. A repeat call replaces the root with the new screen.
 
-With a running engine and the SDK UI not on screen (a prior `show()` since dismissed, a `warmUpEngine()`, or any headless call), the target screen settles offscreen first: the SDK is presented only once the navigation resolves as `OPENED`, and every other status is delivered without the SDK appearing at all.
+When the SDK UI is not showing, what happens next depends on the engine:
 
-A cold engine cannot navigate before presenting — it presents first and lands on Home while it starts up, so a non-`OPENED` status such as `SCREEN_DISABLED` can arrive with the SDK already open on Home: the status reports the fate of the requested screen, not a guarantee that no UI was shown. To always get the offscreen behavior, call `warmUpEngine()` before your first `openScreen` — typically right after login.
+- **Warm engine** (a prior `show()` since dismissed, a `warmUpEngine()`, or any headless call): the navigation settles offscreen first. The SDK is presented only once the request resolves as `OPENED` — every other status arrives without the SDK appearing at all.
+- **Cold engine**: it cannot navigate before presenting, so the SDK comes up on Home while the engine starts. A non-`OPENED` status such as `SCREEN_DISABLED` can therefore arrive with the SDK already open on Home — the status reports the fate of the requested screen, not a promise that no UI appeared.
+
+To always get the offscreen behavior, call `warmUpEngine()` before your first `openScreen` — typically right after login.
 
 ```kotlin
 rolla.openScreen(activity, RollaScreen.INSIGHTS, RollaTransition.FADE) { status ->
@@ -98,7 +101,7 @@ Every outcome is a typed status — the call never throws and never fails silent
 |--------|---------|
 | `OPENED` | The SDK UI is on the requested screen |
 | `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` with the insights module disabled) — nothing was opened |
-| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) takes precedence — a presented SDK UI stays on that step; on a warm engine that is not presented, no UI is shown at all |
+| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) takes precedence — if the SDK UI is showing it stays on that step; on a warm, unpresented engine no UI is shown at all |
 | `UI_UNAVAILABLE` | The SDK UI could not be shown — the `activity` is finishing, or the SDK never became ready to navigate |
 | `SUPERSEDED` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |
