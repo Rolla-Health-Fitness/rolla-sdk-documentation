@@ -82,7 +82,7 @@ rolla.openScreen(.insights, from: self, transition: .fade) { status in
 
 ### RollaScreen
 
-The screens your app can open directly — a deliberate whitelist. Mid-flow screens (onboarding, consent, activity tracking) are not openable:
+The screens your app can open directly — a deliberate whitelist:
 
 | Value | Opens |
 |-------|-------|
