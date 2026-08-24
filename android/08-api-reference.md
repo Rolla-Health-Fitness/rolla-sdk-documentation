@@ -101,7 +101,7 @@ Every outcome is a typed status — the call never fails silently. Lives in `com
 |--------|---------|
 | `OPENED` | The SDK UI is on the requested screen |
 | `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` with the insights module disabled) — nothing was opened |
-| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) takes precedence — if the SDK UI is showing it stays on that step; on a warm, unpresented engine no UI is shown at all |
+| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
 | `UI_UNAVAILABLE` | The SDK UI could not be shown — the `activity` is finishing, or the SDK never became ready to navigate |
 | `SUPERSEDED` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |

@@ -100,7 +100,7 @@ Every outcome is a typed status — the call never fails silently:
 |--------|---------|
 | `.opened` | The SDK UI is on the requested screen |
 | `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` with the insights module disabled) — nothing was opened |
-| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) takes precedence — if the SDK UI is showing it stays on that step; on a warm, unpresented engine no UI is shown at all |
+| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
 | `.uiUnavailable` | The SDK UI could not be shown — the `from` view controller is not attached to a window, or the SDK never became ready to navigate |
 | `.superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `.notInitialized` / `.unknownError` | Internal problems; neither is an expected runtime condition |
