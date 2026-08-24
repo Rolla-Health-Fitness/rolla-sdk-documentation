@@ -113,7 +113,7 @@ curl -X POST "https://ross-rnd.rolla.cloud/api/login" \
 POST /api/refresh_token
 ```
 
-Exchanges the **latest** refresh token for a fresh token pair: a new access token *and* a new refresh token. Refresh tokens are single-use — only the newest token in the chain is accepted, and a successful call permanently invalidates the token you sent.
+Exchanges the **latest** refresh token for a fresh token pair — a new access token and a new refresh token. Refresh tokens are single-use: a successful call permanently invalidates the token you sent, and only the newest token in the rotation is accepted.
 
 > **Who calls this endpoint:** in normal operation, only the SDK. It refreshes automatically with the refresh token it currently holds (initially the one from `RollaConfiguration`, afterwards the one from its latest rotation) and delivers every new pair to your app via `rollaDidRefreshToken` (iOS) / `onTokenRefreshed` (Android). Call the endpoint yourself only if your app owns the token rotation — for example, when your backend keeps the user's Rolla session alive server-side. In that case, push every pair you obtain to the SDK with `updateToken()` immediately: the moment your call succeeds, the pair the SDK still holds is invalid.
 
