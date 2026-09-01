@@ -18,6 +18,7 @@
 
 ### Android
 
+- **[fix] `openScreen` now brings an already-open SDK UI back to the front when your activities cover it.** Previously the navigation succeeded — the status reported `OPENED` — but happened invisibly behind the covering activity. The common trigger is a notification tap, which always launches your launcher activity on top of the presenting SDK. See [openScreen](android/08-api-reference.md#openscreen).
 - **[fix] Scheduled reminders (the inactivity reminder and the evening battery warning) never displayed.** The broadcast receivers `flutter_local_notifications` fires scheduled notifications through were missing from every consuming app's merged manifest; the SDK now declares them itself — along with `RECEIVE_BOOT_COMPLETED`, so pending reminders survive a reboot — and falls back to an inexact alarm when exact scheduling is not permitted. No host change needed; details in the [permissions guide](android/03-permissions.md#notification-channels).
 
 ## 0.1.14

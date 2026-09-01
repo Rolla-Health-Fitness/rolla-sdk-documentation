@@ -66,7 +66,7 @@ rolla.show(activity, RollaTransition.FADE)
 fun openScreen(activity: Activity, screen: RollaScreen, transition: RollaTransition = RollaTransition.DEFAULT, callback: (RollaOpenScreenStatus) -> Unit)
 ```
 
-Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already visible, it just switches to the requested screen. The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
+Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already open, it just switches to the requested screen — and a successful open brings it back to the front when your own activities cover it (as after a notification tap). The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
 
 When the SDK UI is not showing, what happens next depends on the engine:
 
@@ -140,7 +140,9 @@ private fun handleNotificationTap(intent: Intent) {
 }
 ```
 
-A tap while your app is already running reaches `onNewIntent` only when the launcher activity's `launchMode` is `singleTop` or `singleTask`; with the default launch mode a warm tap just brings your task forward and no new intent is delivered. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+Both delivery paths are real: a tap while your app is already running reaches `onNewIntent` when the launcher activity is `singleTop` and on top of the task, and `onCreate` of a new instance otherwise — including on top of a presenting SDK UI. (Avoid `singleTask` for this: its delivery destroys every activity above yours, taking an open SDK UI down with it.) A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+
+Resolve the tap before building your UI when you can: `openScreen` presents the SDK, navigates it in place, or brings it back in front of your activities as needed, so routing straight from `onCreate` lands the user on the target screen with minimal host UI flashing in between.
 
 ### RollaNotificationTarget
 
