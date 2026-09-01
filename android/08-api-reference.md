@@ -116,7 +116,7 @@ fun Rolla.Companion.notificationTarget(intent: Intent): RollaNotificationTarget?
 
 Every notification the SDK posts opens your launcher activity when tapped, carrying a payload that names its destination. `notificationTarget` reads that payload off the delivering intent: `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own), otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
 
-Resolve the intent in both delivery paths, and only on a fresh launch in `onCreate` — a configuration change recreates the activity with the same intent and must not replay the tap:
+Handle the tap in both places it can arrive — `onCreate` and `onNewIntent` — and in `onCreate` only on a fresh launch: a configuration change recreates the activity with the same intent and must not replay the tap.
 
 ```kotlin
 override fun onCreate(savedInstanceState: Bundle?) {
@@ -140,9 +140,9 @@ private fun handleNotificationTap(intent: Intent) {
 }
 ```
 
-Both delivery paths are real: a tap while your app is already running reaches `onNewIntent` when the launcher activity is `singleTop` and on top of the task, and `onCreate` of a new instance otherwise — including on top of a presenting SDK UI. (Avoid `singleTask` for this: its delivery destroys every activity above yours, taking an open SDK UI down with it.) A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+Which path fires depends on your launcher activity: the tap arrives in `onNewIntent` when it is `singleTop` and already on top of the task; in every other case — including when the SDK UI is on top — Android starts a new instance and the tap arrives in its `onCreate`. Avoid `singleTask` here: delivering to a `singleTask` activity tears down every activity above it, an open SDK UI included. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
 
-Resolve the tap before building your UI when you can: `openScreen` presents the SDK, navigates it in place, or brings it back in front of your activities as needed, so routing straight from `onCreate` lands the user on the target screen with minimal host UI flashing in between.
+If you can, resolve the tap in `onCreate` before building your own UI. `openScreen` does the rest — presenting the SDK, navigating it in place, or bringing it back in front of your activities — so the user lands on the target screen with barely a flash of your UI on the way.
 
 ### RollaNotificationTarget
 
