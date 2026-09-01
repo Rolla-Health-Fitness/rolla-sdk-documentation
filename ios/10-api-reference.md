@@ -107,6 +107,55 @@ Every outcome is a typed status — the call never fails silently:
 
 Presentation failures additionally fire `rollaDidFailWithError(_:error:)` exactly as a failed `show(from:)` would — the completion status is additive, not a replacement for the delegate.
 
+### notificationTarget
+
+```swift
+static func notificationTarget(userInfo: [AnyHashable: Any]) -> RollaNotificationTarget?
+static func notificationTarget(response: UNNotificationResponse) -> RollaNotificationTarget?
+```
+
+Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's, otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
+
+```swift
+extension AppDelegate: UNUserNotificationCenterDelegate {
+
+    // Foreground arrivals: without a delegate decision iOS shows nothing while
+    // your app is frontmost — present Rolla's notifications as banners.
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        let isRolla = Rolla.notificationTarget(userInfo: notification.request.content.userInfo) != nil
+        completionHandler(isRolla ? [.banner, .sound] : [])
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        defer { completionHandler() }
+        guard let target = Rolla.notificationTarget(response: response) else { return }
+        switch target {
+        case .appSettings:
+            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+        case .screen(let screen):
+            rolla.openScreen(screen, from: rootViewController) { /* RollaOpenScreenStatus */ }
+        @unknown default:
+            break // A destination newer than this app — a plain launch is the right fallback.
+        }
+    }
+}
+```
+
+Set the delegate early (`UNUserNotificationCenter.current().delegate = self` in `didFinishLaunchingWithOptions`) — iOS calls `didReceive` for a tap that cold-launched the app, but only on a delegate that is already in place. `RollaNotificationTarget` ships with library evolution enabled, so the switch needs `@unknown default`.
+
+### RollaNotificationTarget
+
+Where a recognized tap should lead:
+
+| Case | Meaning |
+|------|---------|
+| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`) — the notification asks them to fix a permission (e.g. background location during a workout), so an SDK screen would not help |
+| `.screen(RollaScreen)` | Open the carried [`RollaScreen`](#rollascreen) via `openScreen`. The SDK's reminders target `.insights` (or `.home` when the insights module is disabled) and `.home` |
+
 ## RollaDelegate Protocol
 
 All sixteen methods have default empty implementations — implement only the ones you need, and existing integrations compile unchanged when new methods are added. The protocol has two halves:

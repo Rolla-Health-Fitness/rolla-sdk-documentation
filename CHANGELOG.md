@@ -10,6 +10,16 @@
 
 ---
 
+## 0.1.15
+
+### Both platforms
+
+- **[feature] Recognize Rolla notification taps and route them to the matching SDK screen.** Every notification the SDK posts now carries a payload naming its tap destination, and the new `Rolla.notificationTarget` resolver turns the tap your app receives into a typed `RollaNotificationTarget`: `null`/`nil` for a notification that is not Rolla's, an app-settings request for the permission warning, or a `RollaScreen` to pass straight to `openScreen` — the inactivity reminder targets Insights (Home when the insights module is disabled), the band battery warning targets Home, and Android's ongoing workout notifications target `resume`, the live workout. See [notificationTarget](android/08-api-reference.md#notificationtarget) (Android) / [notificationTarget](ios/10-api-reference.md#notificationtarget) (iOS) and the pointers in both code-integration guides.
+
+### Android
+
+- **[fix] Scheduled reminders (the inactivity reminder and the evening battery warning) never displayed.** The broadcast receivers `flutter_local_notifications` fires scheduled notifications through were missing from every consuming app's merged manifest; the SDK now declares them itself — along with `RECEIVE_BOOT_COMPLETED`, so pending reminders survive a reboot — and falls back to an inexact alarm when exact scheduling is not permitted. No host change needed; details in the [permissions guide](android/03-permissions.md#notification-channels).
+
 ## 0.1.14
 
 ### Both platforms

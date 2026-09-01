@@ -108,6 +108,49 @@ Every outcome is a typed status — the call never fails silently. Lives in `com
 
 Presentation failures additionally fire `onRollaError(rolla, error)` exactly as a failed `show()` would — the callback status is additive, not a replacement for the listener.
 
+### notificationTarget
+
+```kotlin
+fun Rolla.Companion.notificationTarget(intent: Intent): RollaNotificationTarget?
+```
+
+Every notification the SDK posts opens your launcher activity when tapped, carrying a payload that names its destination. `notificationTarget` reads that payload off the delivering intent: `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own), otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
+
+Resolve the intent in both delivery paths, and only on a fresh launch in `onCreate` — a configuration change recreates the activity with the same intent and must not replay the tap:
+
+```kotlin
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    if (savedInstanceState == null) handleNotificationTap(intent)
+}
+
+override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    handleNotificationTap(intent)
+}
+
+private fun handleNotificationTap(intent: Intent) {
+    when (val target = Rolla.notificationTarget(intent)) {
+        null -> return
+        is RollaNotificationTarget.AppSettings ->
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+        is RollaNotificationTarget.Screen ->
+            rolla.openScreen(this, target.screen) { /* RollaOpenScreenStatus */ }
+    }
+}
+```
+
+A tap while your app is already running reaches `onNewIntent` only when the launcher activity's `launchMode` is `singleTop` or `singleTask`; with the default launch mode a warm tap just brings your task forward and no new intent is delivered. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+
+### RollaNotificationTarget
+
+Where a recognized tap should lead. Lives in `com.rolla.sdk.wrapper.features.notifications`:
+
+| Value | Meaning |
+|-------|---------|
+| `AppSettings` | Take the user to the OS app-settings page — the notification asks them to fix a permission (e.g. background location during a workout), so an SDK screen would not help |
+| `Screen(screen)` | Open the carried [`RollaScreen`](#rollascreen) via `openScreen`. The SDK's reminders target `INSIGHTS` (or `HOME` when the insights module is disabled) and `HOME`; the ongoing workout notifications target `RESUME` — the live workout |
+
 ## RollaListener Interface
 
 All sixteen methods have default empty implementations — override only the ones you need, and existing integrations compile unchanged when new methods are added. The interface has two halves:

@@ -141,6 +141,10 @@ On Android 8.0+ every notification is posted through a notification channel, and
 
 The first two are created when the SDK's notification subsystem initializes inside the engine; the two service channels appear once the respective foreground service first runs during a workout.
 
+Every notification the SDK posts carries a payload naming its tap destination, so your launcher activity can recognize a Rolla notification and route the tap — see [notificationTarget](08-api-reference.md#notificationtarget) in the API reference.
+
+The SDK's manifest also declares the broadcast receivers its scheduled reminders are delivered through (`com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver` and `ScheduledNotificationBootReceiver`), so they reach your app through manifest merging — no host change needed. If your app already declares these receivers (it uses `flutter_local_notifications` itself) with the standard attributes (`android:exported="false"`), the merge is clean; differing attributes need a `tools:replace`.
+
 > **Channel names are not configurable today.** The names ship brand-neutral precisely so they read naturally under any host app. If you insist on naming these channels yourself, please contact Rolla about the possibility of adding configurable notification-channel names to the SDK configuration.
 
 ## Permissions Rationale
@@ -200,7 +204,8 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules engagement reminders (e.g. "you haven't worn your band in 3 days") via `AndroidScheduleMode.exactAllowWhileIdle`. Exact alarms fire reliably under Doze; inexact alarms can drift by hours, which makes "your morning workout reminder" unusable. |
+| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules engagement reminders (e.g. "you haven't worn your band in 3 days") via `AndroidScheduleMode.exactAllowWhileIdle`. Exact alarms fire reliably under Doze; when the app may not schedule them (permission not declared, or denied — the Android 14+ default), the SDK falls back to an inexact alarm rather than dropping the reminder, at the cost of possible drift. |
+| `RECEIVE_BOOT_COMPLETED` | Required for scheduled reminders (merged from the SDK manifest) | Scheduled reminders are alarm-based; without this permission every pending reminder is lost when the device reboots. The SDK declares it itself, so it appears in your merged manifest automatically. |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Optional, strongly recommended | The SDK opens the system battery-optimization exemption screen so the user can whitelist the app. Without the exemption, OEM battery managers (Xiaomi, Huawei, Samsung "deep sleep") can suspend the foreground service mid-workout, dropping the polyline and disconnecting the band. |
 
 ### Network
