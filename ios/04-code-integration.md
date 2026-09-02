@@ -52,7 +52,7 @@ rolla.delegate = self
 rolla.show(from: self)
 ```
 
-Instead of `show(from:)`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](10-api-reference.md#host-driven-navigation). The SDK's own notifications name a destination the same way: resolve a tap with `notificationTarget` in your notification-center delegate and pass the result to `openScreen` — see [notificationTarget](10-api-reference.md#notificationtarget).
+Instead of `show(from:)`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](10-api-reference.md#host-driven-navigation). The SDK's own notifications fit the same model: each names the screen it should open, `notificationTarget` reads that off the tap in your notification-center delegate, and a screen result goes to `openScreen` — see [notificationTarget](10-api-reference.md#notificationtarget).
 
 ## Implement RollaDelegate
 

@@ -1,6 +1,6 @@
 # Public API Reference
 
-The complete public API of the Rolla SDK on iOS: the `Rolla` class, the host-driven navigation types, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
+The complete public API of the Rolla SDK on iOS: the `Rolla` class, the host-driven navigation and notification-tap types, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
 **On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [Host-Driven Navigation](#host-driven-navigation) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
@@ -23,6 +23,7 @@ rolla.show(from: self)
 | <code>var&nbsp;isPresenting:&nbsp;Bool</code> | `true` from `show(from:)` — or an [`openScreen`](#host-driven-navigation) that presents — until the SDK UI closes |
 | <code>show(from:&nbsp;UIViewController,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;.default)</code> | Present the SDK UI modally. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
 | <code>openScreen(_:from:transition:completion:)</code> | Open the SDK UI directly on a specific screen — see [Host-Driven Navigation](#host-driven-navigation) |
+| <code>static&nbsp;notificationTarget(userInfo:)</code> / <code>static&nbsp;notificationTarget(response:)</code> | Resolve a tapped Rolla notification to its destination, ready for `openScreen` — see [notificationTarget](#notificationtarget) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -114,18 +115,50 @@ static func notificationTarget(userInfo: [AnyHashable: Any]) -> RollaNotificatio
 static func notificationTarget(response: UNNotificationResponse) -> RollaNotificationTarget?
 ```
 
-Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's, otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
+Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. Without a delegate of yours nothing routes: a tap only brings your app forward, and a notification arriving while your app is frontmost is not shown at all. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
+
+These are the notifications the SDK posts on iOS and where a tap leads (English copy shown; the SDK localizes the text):
+
+| Notification | When the SDK posts it | Tap resolves to |
+|--------------|-----------------------|-----------------|
+| **Background tracking disabled** | The app leaves the foreground mid-workout and *Always* location is missing | `.appSettings` — the fix is a permission, so the OS app-settings page is the destination |
+| **Stay on track** (inactivity reminder) | Two calendar days after the app was last opened, at 10:00 | `.screen(.insights)`, or `.screen(.home)` when the insights module was disabled at the time the reminder was scheduled |
+| **Battery low** (band battery warning) | Once a day, when the band is at 20% or predicted to get there before midnight — right away if it is already there, otherwise at 18:00 | `.screen(.home)` |
+
+There is no ongoing-workout notification on iOS — the live workout surfaces as a [Live Activity](09-live-activities.md) instead — so `.resume` does not arrive from a Rolla notification on iOS today. Route whatever screen you receive rather than matching these values.
+
+Two rules shape the handler. Assign the delegate inside `application(_:didFinishLaunchingWithOptions:)` and not later: when a tap cold-launches your app, iOS delivers `didReceive` right after launch, and only to a delegate that is already in place. And do not present the SDK from the delegate itself: the inactivity reminder fires days after the last open, so its tap usually cold-launches the app — before your `Rolla` session and your UI exist. Keep the screen aside and let the view controller that owns your `Rolla` instance open it once it is on screen.
 
 ```swift
+// AppDelegate.swift — scene-based app (SwiftUI lifecycle: expose it via @UIApplicationDelegateAdaptor)
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    /// A tapped Rolla screen waiting for the view controller that owns your Rolla instance.
+    static var pendingRollaScreen: RollaScreen?
+    /// That view controller while it is alive — it registers itself in viewDidLoad (below).
+    static weak var rollaHost: YourViewController?
+
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+}
+
 extension AppDelegate: UNUserNotificationCenterDelegate {
 
-    // Foreground arrivals: without a delegate decision iOS shows nothing while
-    // your app is frontmost — present Rolla's notifications as banners.
+    // Foreground arrivals: while your app is frontmost iOS shows nothing unless you say so here.
+    // Rolla's permission warning can arrive while iOS still counts your app as foreground, so show
+    // Rolla's as banners — and keep deciding for your own notifications exactly as you do today.
     func userNotificationCenter(_ center: UNUserNotificationCenter,
                                 willPresent notification: UNNotification,
                                 withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        let isRolla = Rolla.notificationTarget(userInfo: notification.request.content.userInfo) != nil
-        completionHandler(isRolla ? [.banner, .sound] : [])
+        if Rolla.notificationTarget(userInfo: notification.request.content.userInfo) != nil {
+            completionHandler([.banner, .list, .sound])
+        } else {
+            completionHandler([]) // Your own notifications: your existing decision goes here.
+        }
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter,
@@ -137,15 +170,38 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
         case .appSettings:
             if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
         case .screen(let screen):
-            rolla.openScreen(screen, from: rootViewController) { /* RollaOpenScreenStatus */ }
+            // Never present from here. Stash the screen; the owning view controller routes it now
+            // if it is already up, otherwise from its viewDidAppear.
+            Self.pendingRollaScreen = screen
+            Self.rollaHost?.routePendingRollaScreen()
         @unknown default:
             break // A destination newer than this app — a plain launch is the right fallback.
         }
     }
 }
+
+// In the view controller that owns your Rolla instance:
+override func viewDidLoad() {
+    super.viewDidLoad()
+    AppDelegate.rollaHost = self
+}
+
+override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    routePendingRollaScreen()
+}
+
+func routePendingRollaScreen() {
+    // Needs a session (rolla is nil until the user is signed in) and this screen in a window.
+    guard let screen = AppDelegate.pendingRollaScreen, let rolla, viewIfLoaded?.window != nil else { return }
+    AppDelegate.pendingRollaScreen = nil
+    rolla.openScreen(screen, from: self) { status in
+        if status != .opened { print("Not opened: \(status)") }
+    }
+}
 ```
 
-Set the delegate early (`UNUserNotificationCenter.current().delegate = self` in `didFinishLaunchingWithOptions`) — iOS calls `didReceive` for a tap that cold-launched the app, but only on a delegate that is already in place. `RollaNotificationTarget` ships with library evolution enabled, so the switch needs `@unknown default`.
+Present from the view controller that is actually on screen — the one you would pass to `show(from:)`, never a root that is busy presenting something else. `RollaNotificationTarget` is built with library evolution enabled, so an exhaustive `switch` over it warns unless it ends in `@unknown default`.
 
 ### RollaNotificationTarget
 
@@ -153,8 +209,8 @@ Where a recognized tap should lead:
 
 | Case | Meaning |
 |------|---------|
-| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`) — the notification asks them to fix a permission (e.g. background location during a workout), so an SDK screen would not help |
-| `.screen(RollaScreen)` | Open the carried [`RollaScreen`](#rollascreen) via `openScreen`. The SDK's reminders target `.insights` (or `.home` when the insights module is disabled) and `.home` |
+| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`). Carried by the background-location warning shown during a workout — the notification asks them to fix a permission, so an SDK screen would not help |
+| `.screen(RollaScreen)` | Open the [`RollaScreen`](#rollascreen) it carries via `openScreen` — the table above lists which notification leads where |
 
 ## RollaDelegate Protocol
 
