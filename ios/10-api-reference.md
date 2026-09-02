@@ -115,22 +115,22 @@ static func notificationTarget(userInfo: [AnyHashable: Any]) -> RollaNotificatio
 static func notificationTarget(response: UNNotificationResponse) -> RollaNotificationTarget?
 ```
 
-Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. Without a delegate of yours nothing routes: a tap only brings your app forward, and a notification arriving while your app is frontmost is not shown at all. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen). The payload itself is `userInfo["payload"]` on the notification content, if you ever need it.
+Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap through it, including the SDK's, and the same delegate is what lets a Rolla notification that arrives while your app is frontmost show as a banner (see `willPresent` below). `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen). The payload itself is `userInfo["payload"]` on the notification content, if you ever need it.
 
 These are the notifications the SDK posts on iOS and where a tap leads (English copy shown; the SDK localizes the text):
 
 | Notification | When the SDK posts it | Tap resolves to |
 |--------------|-----------------------|-----------------|
-| **Background tracking disabled** | The app leaves the foreground mid-workout and *Always* location is missing | `.appSettings` — the fix is a permission, so the OS app-settings page is the destination |
-| **Stay on track** (inactivity reminder) | Two calendar days after the app was last opened, at 10:00 | `.screen(.insights)`, or `.screen(.home)` when the insights module was disabled at the time the reminder was scheduled |
-| **Battery low** (band battery warning) | Once a day, when the band is at 20% or predicted to get there before midnight — right away if it is already there, otherwise at 18:00 | `.screen(.home)` |
+| **Background tracking disabled** | The SDK UI leaves the foreground mid-workout — the app goes to the background, or your own screen covers it — and *Always* location is missing | `.appSettings` — the fix is a permission, so the OS app-settings page is the destination |
+| **Stay on track** (inactivity reminder) | Two calendar days after the SDK was last opened, at 10:00 — every open of the SDK re-arms it | `.screen(.insights)`, or `.screen(.home)` when the insights module was disabled at the time the reminder was scheduled |
+| **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight — right away if it is already there, otherwise at 18:00 | `.screen(.home)` |
 
 All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
 
 Two rules shape the handler. Assign the delegate inside `application(_:didFinishLaunchingWithOptions:)` and not later: when a tap cold-launches your app, iOS delivers `didReceive` right after launch, and only to a delegate that is already in place. And do not present the SDK from the delegate itself: the inactivity reminder fires days after the last open, so its tap usually cold-launches the app — before your `Rolla` session and your UI exist. Keep the screen aside and let the view controller that owns your `Rolla` instance open it once it is on screen.
 
 ```swift
-// AppDelegate.swift — scene-based app (SwiftUI lifecycle: expose it via @UIApplicationDelegateAdaptor)
+// AppDelegate.swift — UIKit lifecycle. SwiftUI lifecycle: drop @main here and expose the class via @UIApplicationDelegateAdaptor.
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -192,8 +192,10 @@ override func viewDidAppear(_ animated: Bool) {
 }
 
 func routePendingRollaScreen() {
-    // Needs a session (rolla is nil until the user is signed in) and this screen in a window.
-    guard let screen = AppDelegate.pendingRollaScreen, let rolla, viewIfLoaded?.window != nil else { return }
+    // Needs a session (rolla is nil until the user is signed in) and a place to present from: the SDK UI
+    // already up (its full-screen presentation takes this view out of the window), or this view in a window.
+    guard let screen = AppDelegate.pendingRollaScreen, let rolla,
+          rolla.isPresenting || viewIfLoaded?.window != nil else { return }
     AppDelegate.pendingRollaScreen = nil
     rolla.openScreen(screen, from: self) { status in
         if status != .opened { print("Not opened: \(status)") }
@@ -207,9 +209,9 @@ Present from the view controller that is actually on screen — the one you woul
 
 Where a recognized tap should lead:
 
-| Case | Meaning |
-|------|---------|
-| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`). Carried by the background-location warning shown during a workout — the notification asks them to fix a permission, so an SDK screen would not help |
+| Target | Meaning |
+|--------|---------|
+| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`) — carried by the background-location warning, see the table above |
 | `.screen(RollaScreen)` | Open the [`RollaScreen`](#rollascreen) it carries via `openScreen` — the table above lists which notification leads where |
 
 ## RollaDelegate Protocol
