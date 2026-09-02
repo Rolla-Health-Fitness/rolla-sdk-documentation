@@ -132,15 +132,21 @@ override fun onNewIntent(intent: Intent) {
 private fun handleNotificationTap(intent: Intent) {
     when (val target = Rolla.notificationTarget(intent)) {
         null -> return
-        is RollaNotificationTarget.AppSettings ->
+        is RollaNotificationTarget.AppSettings -> {
             startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+            if (!isTaskRoot) finish()
+        }
         is RollaNotificationTarget.Screen ->
-            rolla.openScreen(this, target.screen) { /* RollaOpenScreenStatus */ }
+            rolla.openScreen(this, target.screen) { status ->
+                if (status == RollaOpenScreenStatus.OPENED && !isTaskRoot) finish()
+            }
     }
 }
 ```
 
 Which path fires depends on your launcher activity: the tap arrives in `onNewIntent` when it is `singleTop` and already on top of the task; in every other case — including when the SDK UI is on top — Android starts a new instance and the tap arrives in its `onCreate`. Avoid `singleTask` here: delivering to a `singleTask` activity tears down every activity above it, an open SDK UI included. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+
+The `finish()` calls matter on that warm path: the new instance is a duplicate of your launcher stacked over the SDK UI, and left alive it is what the user comes back to from Settings or the SDK — a stale copy of your launch screen. Finishing it once its job is done (settings intent fired, screen opened) puts them back exactly where they left off. The `isTaskRoot` guard exempts a tap that cold-started the app, where the new instance is all there is.
 
 If you can, resolve the tap in `onCreate` before building your own UI. `openScreen` does the rest — presenting the SDK, navigating it in place, or bringing it back in front of your activities — so the user lands on the target screen with barely a flash of your UI on the way.
 
