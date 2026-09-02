@@ -115,7 +115,7 @@ static func notificationTarget(userInfo: [AnyHashable: Any]) -> RollaNotificatio
 static func notificationTarget(response: UNNotificationResponse) -> RollaNotificationTarget?
 ```
 
-Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. Without a delegate of yours nothing routes: a tap only brings your app forward, and a notification arriving while your app is frontmost is not shown at all. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen).
+Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap, including the SDK's. Without a delegate of yours nothing routes: a tap only brings your app forward, and a notification arriving while your app is frontmost is not shown at all. `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen). The payload itself is `userInfo["payload"]` on the notification content, if you ever need it.
 
 These are the notifications the SDK posts on iOS and where a tap leads (English copy shown; the SDK localizes the text):
 
@@ -125,7 +125,7 @@ These are the notifications the SDK posts on iOS and where a tap leads (English 
 | **Stay on track** (inactivity reminder) | Two calendar days after the app was last opened, at 10:00 | `.screen(.insights)`, or `.screen(.home)` when the insights module was disabled at the time the reminder was scheduled |
 | **Battery low** (band battery warning) | Once a day, when the band is at 20% or predicted to get there before midnight — right away if it is already there, otherwise at 18:00 | `.screen(.home)` |
 
-There is no ongoing-workout notification on iOS — the live workout surfaces as a [Live Activity](09-live-activities.md) instead — so `.resume` does not arrive from a Rolla notification on iOS today. Route whatever screen you receive rather than matching these values.
+All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
 
 Two rules shape the handler. Assign the delegate inside `application(_:didFinishLaunchingWithOptions:)` and not later: when a tap cold-launches your app, iOS delivers `didReceive` right after launch, and only to a delegate that is already in place. And do not present the SDK from the delegate itself: the inactivity reminder fires days after the last open, so its tap usually cold-launches the app — before your `Rolla` session and your UI exist. Keep the screen aside and let the view controller that owns your `Rolla` instance open it once it is on screen.
 
