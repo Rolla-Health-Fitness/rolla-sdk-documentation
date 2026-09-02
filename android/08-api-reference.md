@@ -140,7 +140,7 @@ private fun handleNotificationTap(intent: Intent) {
 }
 ```
 
-Which path fires depends on your launcher activity: the tap arrives in `onNewIntent` when it is `singleTop` and already on top of the task; in every other case — including when the SDK UI is on top — Android starts a new instance and the tap arrives in its `onCreate`. Avoid `singleTask` here: delivering to a `singleTask` activity tears down every activity above it, an open SDK UI included. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
+A warm tap usually starts a new launcher instance, so it arrives in `onCreate` — even while the SDK UI is on top. The one exception: a `singleTop` launcher that is already the top activity gets the tap through `onNewIntent` instead. Steer clear of `singleTask`, which handles delivery by destroying every activity above the launcher — and the SDK UI with it, if open. A tap intent re-delivered from Recents is recognized and ignored (`null`) automatically.
 
 If you can, resolve the tap in `onCreate` before building your own UI. `openScreen` does the rest — presenting the SDK, navigating it in place, or bringing it back in front of your activities — so the user lands on the target screen with barely a flash of your UI on the way.
 
