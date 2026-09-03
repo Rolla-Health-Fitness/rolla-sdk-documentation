@@ -16,19 +16,23 @@
 
 - **[feature] Recognize Rolla notification taps and route them to the matching SDK screen.** Every notification the SDK posts now carries a payload naming its tap destination, and the new `Rolla.notificationTarget` resolver turns the tap your app receives into a typed `RollaNotificationTarget`. It returns `null`/`nil` for a notification that is not Rolla's, an app-settings request for the background-location warning, or a `RollaScreen` to pass straight to `openScreen`. The inactivity reminder targets Insights (Home when the insights module is disabled), the band battery warning targets Home, and Android's ongoing workout notifications — "Workout in progress" and "Location Tracking", the latter previously inert when tapped — target `resume`, the live workout. Routing the tap is your app's job: the SDK never takes over your launcher activity or your notification-center delegate. See the [Android](android/08-api-reference.md#notificationtarget) / [iOS](ios/10-api-reference.md#notificationtarget) `notificationTarget` references.
 
+- **[fix] The loading indicator shown while the SDK starts now follows your `primaryColor` and `themeMode`.** Previously an off-brand spinner (mauve in light mode, teal in dark mode) appeared between your app and the SDK UI even when `RollaBranding.primaryColor` was set. It is now seeded from the configured primary color, matching the SDK's in-app indicators, and follows the configured theme mode instead of always following the device. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) branding configuration.
+
+- **[fix] Manually added activities now count toward the daily Active Points and Active Calories totals.** Previously a manual activity kept its own points, but the daily totals on Home never included them.
+
 - **[improvement] Swimming activities now show pace per 100 m (per 100 yd for imperial units) instead of per km.** Swim summaries also display distance and average pace when the activity carries that data, such as swims imported from Garmin.
 
-- **[fix] The loading indicator shown while the SDK starts now follows your `primaryColor` and `themeMode`.** Previously an off-brand spinner (mauve in light mode, teal in dark mode) appeared between your app and the SDK UI even when `RollaBranding.primaryColor` was set. It is now seeded from the configured primary color, matching the SDK's in-app indicators, and follows the configured theme mode instead of always following the device. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) branding configuration.
+- **[improvement] General bugfixes and stability improvements.**
 
 ### Android
 
 - **[fix] Swiping your app away from Recents mid-workout no longer resumes a stale SDK session on the next launch.** While a GPS or Bluetooth workout (or a band firmware update) is running, the SDK's foreground service keeps the app process alive through a Recents swipe, so the cached engine survived and the next `show()` re-presented the in-progress activity screen instead of a fresh Home. The swipe now stops workout tracking and tears the engine down, so the next launch behaves like a cold start and the interrupted activity is offered for Continue / Save / Discard, as on iOS. Closing the SDK with the back button and re-opening it in the same session still resumes seamlessly.
 
-- **[fix] Manually added activities now count toward the daily Active Points and Active Calories totals.** Previously a manual activity kept its own points, but the daily totals on Home never included them.
-
 - **[fix] `openScreen` now brings an already-open SDK UI back to the front when your activities cover it.** Previously the navigation succeeded — the status reported `OPENED` — but happened invisibly behind the covering activity. The common trigger is a notification tap, which always launches your launcher activity on top of the presenting SDK. See [openScreen](android/08-api-reference.md#openscreen).
 
 - **[fix] Scheduled reminders (the inactivity reminder and the evening battery warning) never displayed.** `flutter_local_notifications` delivers scheduled notifications through two broadcast receivers, and no consuming app had them in its merged manifest, so the alarms were silently dropped. The SDK now declares the receivers itself, together with `RECEIVE_BOOT_COMPLETED` so pending reminders survive a reboot, and falls back to an inexact alarm when exact scheduling is not permitted. No host change needed; details in the [permissions guide](android/03-permissions.md#notification-taps-and-scheduled-reminders).
+
+- **[fix] Steps, sleep and HRV data no longer silently go missing.** An interrupted band transfer could stall the sync on that metric, and a corrupt band record could push the sync window into the future, hiding the metric for days. Transfers now recover on their own, a corrupt record can no longer move the sync window, and an interrupted transfer resumes on the next sync.
 
 ## 0.1.14
 
