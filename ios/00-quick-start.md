@@ -30,7 +30,7 @@ source 'https://cdn.cocoapods.org/'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'RollaSDK', '0.1.14'
+  pod 'RollaSDK', '0.1.15'
 end
 ```
 

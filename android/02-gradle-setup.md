@@ -41,7 +41,7 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // Rolla SDK
-    implementation("com.rolla.sdk:android_release:0.1.14")
+    implementation("com.rolla.sdk:android_release:0.1.15")
 }
 ```
 
@@ -74,7 +74,7 @@ The floor is a transitive requirement of the bundled `health` Flutter plugin —
 
 ## Build JDK
 
-The SDK `0.1.14` AAR ships Java 17 bytecode (class file major version 61). Your build JDK must be **17 or newer**.
+The SDK `0.1.15` AAR ships Java 17 bytecode (class file major version 61). Your build JDK must be **17 or newer**.
 
 ## Sync Project
 

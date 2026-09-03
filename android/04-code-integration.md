@@ -65,7 +65,7 @@ rolla.listener = object : RollaListener {
 rolla.show(activity)
 ```
 
-Instead of `show()`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](08-api-reference.md#host-driven-navigation).
+Instead of `show()`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](08-api-reference.md#host-driven-navigation). The SDK's own notifications fit the same model: each names the screen it should open, `notificationTarget` reads that off the tap, and a screen result goes to `openScreen` — see [notificationTarget](08-api-reference.md#notificationtarget).
 
 ## Implement RollaListener
 

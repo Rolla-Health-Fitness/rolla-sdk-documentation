@@ -1,6 +1,6 @@
 # Public API Reference
 
-The complete public API of the Rolla SDK on Android: the `Rolla` class, the host-driven navigation types, the `RollaListener` interface and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
+The complete public API of the Rolla SDK on Android: the `Rolla` class, the host-driven navigation and notification-tap types, the `RollaListener` interface and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
 **On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [Host-Driven Navigation](#host-driven-navigation) · [RollaListener Interface](#rollalistener-interface) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
@@ -24,6 +24,7 @@ rolla.show(activity)
 | <code>show(activity:&nbsp;Activity,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from an Activity. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
 | <code>show(fragment:&nbsp;Fragment,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;DEFAULT)</code> | Present the SDK UI from a Fragment (`androidx.fragment.app.Fragment`) |
 | <code>openScreen(activity,&nbsp;screen,&nbsp;transition,&nbsp;callback)</code> | Open the SDK UI directly on a specific screen — see [Host-Driven Navigation](#host-driven-navigation) |
+| <code>companion&nbsp;fun&nbsp;notificationTarget(intent)</code> | Resolve a tapped Rolla notification to its destination, ready for `openScreen` — see [notificationTarget](#notificationtarget) |
 | `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](07-engine-lifecycle.md) |
 
 ### Session & Tokens
@@ -66,7 +67,7 @@ rolla.show(activity, RollaTransition.FADE)
 fun openScreen(activity: Activity, screen: RollaScreen, transition: RollaTransition = RollaTransition.DEFAULT, callback: (RollaOpenScreenStatus) -> Unit)
 ```
 
-Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already visible, it just switches to the requested screen. The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
+Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already open, it just switches to the requested screen — and a successful open brings it back to the front when your own activities cover it (as after a notification tap). The opened screen becomes the **root of the SDK UI**, so the back button returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
 
 When the SDK UI is not showing, what happens next depends on the engine:
 
@@ -107,6 +108,95 @@ Every outcome is a typed status — the call never fails silently. Lives in `com
 | `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |
 
 Presentation failures additionally fire `onRollaError(rolla, error)` exactly as a failed `show()` would — the callback status is additive, not a replacement for the listener.
+
+### notificationTarget
+
+```kotlin
+// Companion member — call as Rolla.notificationTarget(intent)
+fun notificationTarget(intent: Intent): RollaNotificationTarget?
+```
+
+Every notification the SDK posts opens your **launcher activity** when tapped — the activity carrying your `MAIN`/`LAUNCHER` intent filter, whether or not it is the one you present the SDK from — and carries a payload that names its destination. `notificationTarget` reads that payload off the delivering intent. `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own); otherwise you get a typed destination to act on, typically by calling [`openScreen`](#openscreen). The payload itself is the `payload` string extra on that intent, if you ever need it.
+
+These are the notifications the SDK posts and where a tap leads (English copy shown; the reminders and the warning follow the SDK language):
+
+| Notification | When the SDK posts it | Tap resolves to |
+|--------------|-----------------------|-----------------|
+| **Background tracking disabled** | The SDK UI leaves the foreground mid-workout — the app goes to the background, or one of your screens covers it — and *Always* location is missing; on Android 12+ only during a GPS workout | `AppSettings` — the fix is a permission, so the OS app-settings page is the destination |
+| **Stay on track** (inactivity reminder) | Two calendar days after the SDK was last opened, at 10:00 — every open of the SDK re-arms it | `Screen(INSIGHTS)`, or `Screen(HOME)` when the insights module was disabled at the time the reminder was scheduled |
+| **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight — right away if it is already there, otherwise at 18:00 | `Screen(HOME)` |
+| **Workout in progress** / **Location Tracking** (the ongoing workout notifications) | For the whole of a Bluetooth or GPS workout | `Screen(RESUME)` — the live workout, exactly as the user left it |
+
+All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
+
+A tap can reach your launcher activity in two places, so handle both: `onCreate` (a new instance) and `onNewIntent` (the instance already on screen). In `onCreate`, route only on a fresh launch — a configuration change recreates the activity with the same intent, and routing again would replay the tap.
+
+```kotlin
+/** The instance you present the SDK with — null until the user is signed in (see "Where `rolla` lives"). */
+private var rolla: Rolla? = null
+/** A screen tap that arrived before sign-in, for your first signed-in screen to open. */
+private var pendingNotificationScreen: RollaScreen? = null
+
+override fun onCreate(savedInstanceState: Bundle?) {
+    super.onCreate(savedInstanceState)
+    // Fresh launch only — a configuration change recreates the activity with the same intent.
+    // A fresh instance that is not the root of its task was stacked by the tap on top of your
+    // already-running app: it finishes itself once the tap is routed (see below).
+    if (savedInstanceState == null) handleNotificationTap(intent, tapCreatedThisInstance = !isTaskRoot)
+    setContentView(R.layout.activity_main) // build your UI as usual
+}
+
+override fun onNewIntent(intent: Intent) {
+    super.onNewIntent(intent)
+    // Delivered to the instance the user is already looking at — never finish that one.
+    handleNotificationTap(intent, tapCreatedThisInstance = false)
+}
+
+private fun handleNotificationTap(intent: Intent, tapCreatedThisInstance: Boolean) {
+    when (val target = Rolla.notificationTarget(intent)) {
+        null -> return // A plain launch, or a notification of your own.
+        is RollaNotificationTarget.AppSettings -> {
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.fromParts("package", packageName, null)))
+            if (tapCreatedThisInstance) finish()
+        }
+        is RollaNotificationTarget.Screen -> {
+            // Needs a Rolla instance — null until the user is signed in.
+            val rolla = this.rolla ?: run {
+                pendingNotificationScreen = target.screen // open it from your first signed-in screen
+                return
+            }
+            rolla.openScreen(this, target.screen) { status ->
+                if (status != RollaOpenScreenStatus.OPENED) Log.d("Rolla", "Not opened: $status")
+                // Only from inside this callback, and only once the SDK UI is actually on screen.
+                if (tapCreatedThisInstance && rolla.isPresenting) finish()
+            }
+        }
+    }
+}
+```
+
+**Which callback runs** depends on your launcher activity's `launchMode`. No manifest change is needed; the mode only decides where the tap lands:
+
+- `singleTop`, with your launcher already the top activity: the tap comes through `onNewIntent` on the live instance.
+- Otherwise — a `standard` launcher, or a `singleTop` one with the SDK UI or another of your activities on top: Android stacks a new instance on the task and the tap comes through its `onCreate`.
+- Avoid `singleTask` and `singleInstance`: a `singleTask` launcher takes the tap by destroying every activity above it, an open SDK UI included, and a `singleInstance` launcher lives alone in its task, so the tap brings that task forward and leaves the SDK UI behind.
+
+`notificationTarget` also returns `null` for the copy of a tap intent that Android re-delivers when the user relaunches the app from Recents, so an old tap never replays.
+
+**Why the `finish()`.** A tap on a running app usually stacks a *new* launcher instance over whatever the user had open. That instance only exists to route the tap; left alive, it is a stale copy of your launch screen the user comes back to after Settings or the SDK. So it finishes itself once its job is done, with `isPresenting` as the test: it is `true` whenever the SDK UI ended up on screen — the requested screen opened, the SDK was already open underneath the tap, or a cold engine presented Home while resolving a request that then failed. If the SDK stayed hidden (a warm engine's non-`OPENED` status, or a launch failure), the instance stays as the screen the user sees. Decide `tapCreatedThisInstance` in `onCreate` only: a fresh instance that is not the task root was stacked over a running app, while a cold start *is* the root and stays. Never finish from `onNewIntent`, where the tap reached the user's real screen. And call `finish()` only from inside the callback — `openScreen` is asynchronous, and a finishing activity cannot present (`UI_UNAVAILABLE`).
+
+**Where `rolla` lives.** The SDK delivers `onRollaClosed`, the error and token callbacks and the host events to the `Rolla` object whose call presented the UI, and keeps that object alive itself — in the example, the call comes from a launcher instance that finishes moments later. So the listener must not depend on this activity: give it the application context and let it talk to your session state rather than to the activity's views, view model or `lifecycleScope`. Leave `rolla` `null` until the user is signed in: a tap that arrives earlier keeps `target.screen` aside for your first signed-in screen to open, and that activity stays up — by the time it routes, it is the screen the user is using.
+
+Resolve the tap first thing in `onCreate` and build your UI as usual. `openScreen` does the rest — presenting the SDK, navigating it in place, or bringing it back in front of your activities — so your launcher is visible only for a moment: until the SDK UI appears on a warm engine, or until the SDK's loader appears on a cold one.
+
+### RollaNotificationTarget
+
+Where a recognized tap should lead. Lives in `com.rolla.sdk.wrapper.features.notifications`:
+
+| Target | Meaning |
+|--------|---------|
+| `AppSettings` | Take the user to the OS app-settings page (`Settings.ACTION_APPLICATION_DETAILS_SETTINGS` for your package) — carried by the background-location warning, see the table above |
+| `Screen(screen)` | Open the [`RollaScreen`](#rollascreen) it carries via `openScreen` — the table above lists which notification leads where |
 
 ## RollaListener Interface
 

@@ -2,7 +2,7 @@
 
 Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.14
+**Latest SDK Version:** 0.1.15
 
 ---
 
@@ -77,6 +77,7 @@ Feature support comparison between iOS and Android.
 | Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
 | `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
 | Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, activity history, goals, Home, or the last-opened state |
+| Notification Tap Routing | Yes | Yes | `notificationTarget`: recognize a tapped Rolla notification and resolve its destination — an SDK screen for `openScreen`, or the OS app-settings page |
 | External Heart Rate Monitors | Yes | Yes | Standard Bluetooth HR chest straps and arm bands as a workout's heart rate source |
 | Manual Sleep Logging | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |
 | Historical Data Import | Yes | Yes | One-time backfill offered when a data source is connected; restartable from Data Sources |
