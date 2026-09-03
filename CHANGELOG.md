@@ -10,6 +10,12 @@
 
 ---
 
+## 0.1.16
+
+### iOS
+
+- **[documentation] Corrected the Live Activities guide on the `LiveWorkoutAttributes.swift` data contract.** The file belongs to the widget extension target only — the SDK compiles its own copy for the app side — and your copy must stay byte-identical to `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`: a copy that differs makes the Live Activity silently never appear rather than crash, and a default value does not cover a missing field. The [Live Activities](ios/09-live-activities.md#step-7-verify-target-membership-and-the-data-contract) guide now says so, gives the `cmp` check to run after every SDK upgrade, and no longer asks for the file in both targets.
+
 ## 0.1.15
 
 ### Both platforms

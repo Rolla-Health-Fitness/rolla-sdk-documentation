@@ -16,7 +16,7 @@ The SDK supports iOS Live Activities for real-time workout tracking on the Lock 
 - [Step 4: Widget Extension Info.plist](#step-4-widget-extension-infoplist)
 - [Step 5: Widget Extension Entitlements](#step-5-widget-extension-entitlements)
 - [Step 6: Assets.xcassets (Required)](#step-6-assetsxcassets-required)
-- [Step 7: Configure Target Membership](#step-7-configure-target-membership)
+- [Step 7: Verify Target Membership and the Data Contract](#step-7-verify-target-membership-and-the-data-contract)
 - [Step 8: Verify Embedding](#step-8-verify-embedding)
 - [Customization](#customization)
 - [Troubleshooting Live Activities](#troubleshooting-live-activities)
@@ -49,7 +49,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 | Component | Required | Notes |
 |-----------|:--------:|-------|
 | Widget Extension target (`liveworkout`) | Yes | Must be named `liveworkout` with iOS 16.1 minimum deployment |
-| `LiveWorkoutAttributes.swift` | Yes | Shared data contract — must compile in **both** app and widget targets |
+| `LiveWorkoutAttributes.swift` | Yes | Data contract the widget decodes — a byte-identical copy of the SDK's file, compiled into the widget target only |
 | `liveworkoutBundle.swift` | Yes | Widget entry point |
 | `liveworkout.swift` | Yes | Placeholder static widget required by Xcode |
 | `liveworkoutLiveActivity.swift` | Yes | SwiftUI UI for Lock Screen and Dynamic Island |
@@ -66,7 +66,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 | 1 | Create Widget Extension target named `liveworkout` (min deployment iOS 16.1) |
 | 2 | Add `NSSupportsLiveActivities` and `NSSupportsLiveActivitiesFrequentUpdates` to main app Info.plist |
 | 3 | Add the Swift files to the widget extension (see [Full Implementation Reference](#full-implementation-reference)) |
-| 4 | Set `LiveWorkoutAttributes.swift` target membership to **both** Runner + liveworkout |
+| 4 | Verify the widget files belong to `liveworkout` only and `LiveWorkoutAttributes.swift` is byte-identical to the SDK's copy |
 | 5 | Add Push Notifications capability to both targets |
 | 6 | Add Assets.xcassets to widget extension |
 | 7 | Verify widget extension is embedded in your app |
@@ -106,18 +106,18 @@ Create the following files in your `liveworkout` widget extension. The full sour
 
 | File | Target membership | Purpose |
 |------|-------------------|---------|
-| `LiveWorkoutAttributes.swift` | Runner **+** liveworkout | Shared data contract between app and widget |
+| `LiveWorkoutAttributes.swift` | liveworkout only | Data contract the widget decodes — byte-identical copy of the SDK's file |
 | `liveworkoutBundle.swift` | liveworkout only | Widget bundle entry point (`@main`) |
 | `liveworkout.swift` | liveworkout only | Placeholder static widget required by Xcode |
 | `liveworkoutLiveActivity.swift` | liveworkout only | Lock Screen and Dynamic Island UI |
 
 **`LiveWorkoutAttributes.swift`** defines the data model the SDK uses to communicate workout state to the widget. It includes:
-- `ContentState` — live-updating fields: metrics, heart rate, pause state, band connection status, and `isPhoneOnly` (whether the workout is being tracked from the phone alone)
+- `ContentState` — live-updating fields: metrics, heart rate, pause state, band connection status, `isPhoneOnly` (whether the workout is being tracked from the phone alone) and the localized messages the widget shows
 - Static attributes — activity ID, workout name, SF Symbol, start date
 
-> **`ContentState` includes an `isPhoneOnly: Bool = false` field.** It is set to `true` when a smartphone-only workout is being tracked (no paired band), so your widget can hide band-specific UI such as the heart-rate row and the band-disconnected banner. **Keep the `= false` default** when you copy the data contract below — it lets Live Activities that were started before a user updates to `0.1.11` continue to decode cleanly across the upgrade. If you previously copied an older `LiveWorkoutAttributes.swift` into your widget, add this field to match the current SDK contract.
+> **Copy this file from the SDK, and keep it byte-identical.** The SDK compiles its own copy of `LiveWorkoutAttributes` inside `RollaSDK` and encodes every Live Activity with it; your widget extension decodes with the copy you compile. The two must have the same type name and the same `Codable` shape — a field your copy declares but the SDK did not encode fails decoding, and the Live Activity is silently never shown (a default value such as `= false` does not cover a missing key). Take the file from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`, never edit it, and re-copy it after every SDK upgrade. `isPhoneOnly` is `true` when a smartphone-only workout is tracked (no paired band), so your widget can hide band-specific UI such as the heart-rate row and the band-disconnected banner.
 
-> **Important:** This file must compile in **both** targets. All other files belong to the widget extension only.
+> **Important:** All four files belong to the widget extension target only. Your app target compiles none of them — the app side of the Live Activity is the SDK's own copy.
 
 ## Step 4: Widget Extension Info.plist
 
@@ -198,18 +198,26 @@ For `AccentColor.colorset/Contents.json` and `WidgetBackground.colorset/Contents
 }
 ```
 
-## Step 7: Configure Target Membership
+## Step 7: Verify Target Membership and the Data Contract
 
-**Critical:** `LiveWorkoutAttributes.swift` must be compiled into **both** targets:
+Every widget file belongs to the `liveworkout` target only. Your app target compiles none of them: the SDK's own copy of `LiveWorkoutAttributes` inside `RollaSDK` is the app side. Adding the file to your app target as well is harmless but unnecessary.
 
 | File | Your App Target | liveworkout |
 |------|:---------------:|:-----------:|
-| `LiveWorkoutAttributes.swift` | Yes | Yes |
+| `LiveWorkoutAttributes.swift` | No | Yes |
 | `liveworkoutLiveActivity.swift` | No | Yes |
 | `liveworkout.swift` | No | Yes |
 | `liveworkoutBundle.swift` | No | Yes |
 
 To verify: select the file in Xcode > File Inspector (right sidebar) > check Target Membership.
+
+**Critical:** your `LiveWorkoutAttributes.swift` must be byte-identical to the SDK's, or the widget cannot decode what the SDK encodes and the Live Activity is silently never shown. Prove it from your project root:
+
+```bash
+cmp Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift liveworkout/LiveWorkoutAttributes.swift
+```
+
+Silence means the files match. Repeat this after every `pod update` of `RollaSDK` — the SDK may add fields, and your copy has to follow.
 
 ## Step 8: Verify Embedding
 
@@ -229,12 +237,12 @@ The Live Activity UI is defined entirely in `liveworkoutLiveActivity.swift`, whi
 - **Metrics displayed:** The SDK provides heart rate, a secondary metric (distance or active points), elapsed time, and pause/connection state. You choose how and where to display them.
 - **Dynamic Island regions:** Customize what appears in the compact leading/trailing, expanded, and minimal views.
 
-The data contract (`LiveWorkoutAttributes` and `ContentState`) must remain unchanged — the SDK writes to these fields. Everything else in the widget's SwiftUI code is yours to customize.
+The data contract (`LiveWorkoutAttributes` and `ContentState`) must remain byte-identical to the SDK's copy — the SDK encodes these fields, and a field only your copy declares breaks decoding. Everything else in the widget's SwiftUI code is yours to customize.
 
 ## Troubleshooting Live Activities
 
 - **Live Activity not appearing:** Check iOS version is 16.1+. Verify `NSSupportsLiveActivities` is in both the widget and main app Info.plist. Check Focus mode isn't hiding Live Activities.
-- **Widget shows blank/crashes:** Verify `LiveWorkoutAttributes.swift` is in both targets. Clean build and reinstall.
+- **Live Activity never shown, or stops updating (no crash, nothing logged):** Your widget's `LiveWorkoutAttributes.swift` differs from the SDK's, so the widget cannot decode what the SDK encodes. Run the `cmp` from [Step 7](#step-7-verify-target-membership-and-the-data-contract); if it reports a difference, replace your copy with `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`, clean build and reinstall.
 - **"No provisioning profile" error:** Enable Push Notifications for both App IDs in Apple Developer Portal, then refresh signing profiles in Xcode.
 - **"Cycle inside Runner" build error:** Move "Embed Foundation Extensions" build phase before CocoaPods script phases.
 
@@ -246,7 +254,7 @@ The complete source code for all widget extension files. Copy these into your `l
 
 ### LiveWorkoutAttributes.swift
 
-**Target membership: Runner + liveworkout**
+**Target membership: liveworkout only** — shown here for reference; copy the file itself from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift` so it is byte-identical to the SDK's, and re-copy it after every SDK upgrade.
 
 ```swift
 import Foundation
