@@ -51,22 +51,22 @@ Documentation for embedding the Rolla SDK into partner iOS, Android, and React N
 
 [**Go to React Native Guide →**](react-native/README.md)
 
-The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/package/@rolla-health/react-native-sdk) ships the same native iOS pod and Android Maven artifact behind a TypeScript TurboModule. Cross-links out to the iOS / Android guides for platform configuration; documents the JS-only surface inline.
+The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/package/@rolla-health/react-native-sdk) ships the same native iOS pod and Android Maven artifact behind a TypeScript TurboModule. It documents the JavaScript surface and links to the iOS / Android guides for everything inside the native projects.
 
 | # | Section | Description |
 |---|---------|-------------|
-| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal RN integration in 20–30 minutes |
-| 1 | [Prerequisites](react-native/01-prerequisites.md) | RN floor (0.80.3+), React 19.1.0 exact, new arch, partner credentials |
-| 2 | [Installation](react-native/02-installation.md) | `npm install`, Podfile snippet, settings.gradle, build.gradle deltas |
-| 3 | [Permissions](react-native/03-permissions.md) | iOS Info.plist keys; Android handled by AAR manifest merge |
-| 4 | [Code Integration](react-native/04-code-integration.md) | `Rolla.show()`, listeners, token-refresh handler, useEffect cleanup |
-| 5 | [Branding & Modules](react-native/05-branding-and-modules.md) | `branding` config shape; module configuration |
-| 6 | [Token Management](react-native/06-token-management.md) | `onTokenExpired` event + `updateToken()` push flow |
-| 7 | [Engine Lifecycle](react-native/07-engine-lifecycle.md) | `destroyEngine()` semantics, warm-vs-cold trade-off |
-| 8 | [API Reference](react-native/08-api-reference.md) | TypeScript types, method signatures, event payloads |
-| 9 | [Troubleshooting](react-native/09-troubleshooting.md) | RN-specific symptoms (silent SIGABRT, TurboModule registry, peer deps) |
+| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal integration in under 30 minutes |
+| 1 | [Prerequisites](react-native/01-prerequisites.md) | React Native 0.80.3 + New Architecture, React 19.1.0 exact, platform floors, versioning |
+| 2 | [Installation](react-native/02-installation.md) | `npm install`, Podfile, `settings.gradle` and `build.gradle` changes, verification |
+| 3 | [Permissions & Entitlements](react-native/03-permissions.md) | Info.plist, entitlements, Live Activities; Mapbox token, Health Connect manifest entries |
+| 4 | [Code Integration](react-native/04-code-integration.md) | Import, configure, present, events, error handling |
+| 5 | [Configuration](react-native/05-configuration.md) | Branding, language, modules, data sources, transitions |
+| 6 | [Token Management](react-native/06-token-management.md) | Auth lifecycle, token events, refresh, session clear |
+| 7 | [Engine Lifecycle](react-native/07-engine-lifecycle.md) | Warm-up, dismiss, destroy, applying a changed configuration |
+| 8 | [API Reference](react-native/08-api-reference.md) | `Rolla` methods, host-driven navigation, notification taps, 17 events, headless methods, errors |
+| 9 | [Troubleshooting](react-native/09-troubleshooting.md) | React Native-specific issues & support |
 
-> **RN version floor:** iOS works on RN 0.77+ with new arch. Android requires RN 0.80.3+ because RollaSDK transitively needs AGP 8.9.1 (RN 0.77–0.79 bundle AGP 8.7.x). See [RN Prerequisites](react-native/01-prerequisites.md#react-native-version-floor).
+> **Versions:** `@rolla-health/react-native-sdk@0.1.16` links native SDK `0.1.15`; from `0.2.0` on the package version equals the native version. See [React Native Prerequisites → Versioning](react-native/01-prerequisites.md#versioning).
 
 ---
 
@@ -87,7 +87,7 @@ The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/pa
 
 ## Platform Capabilities
 
-Feature support comparison across iOS, Android, and React Native (via `@rolla-health/react-native-sdk`).
+Feature support comparison between iOS and Android. The React Native wrapper exposes the same native SDK, so every row applies to a React Native host on the respective platform.
 
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
@@ -119,16 +119,15 @@ Feature support comparison across iOS, Android, and React Native (via `@rolla-he
 
 | Requirement | iOS | Android | React Native |
 |-------------|-----|---------|--------------|
-| **Min OS** | iOS 14.0 (15.1 via RN) | API 26 (Android 8.0) | iOS 15.1 / API 26 |
-| **RN floor** | — | — | 0.80.3 (Android); 0.77+ likely works on iOS |
+| **Min OS** | iOS 14.0 | API 26 (Android 8.0) | iOS 15.1 / API 26 |
+| **React Native** | — | — | 0.80.3 with the New Architecture (`newArchEnabled=true`) |
 | **React** | — | — | 19.1.0 exact |
-| **New Arch** | — | — | Required (`newArchEnabled=true`) |
 | **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ | both |
 | **Dependency Manager** | CocoaPods | Gradle 8.0+ | npm/Yarn + both |
 | **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) | TypeScript |
 | **Compile / Target SDK** | — | API 36 | API 36 |
 | **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` | same as Android |
-| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` | `@rolla-health/react-native-sdk@^0.1.2` |
+| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` | `@rolla-health/react-native-sdk@<version>` (exact pin) |
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|

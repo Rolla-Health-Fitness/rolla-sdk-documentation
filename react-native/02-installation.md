@@ -1,53 +1,44 @@
 # Installation
 
-Install the Rolla wrapper from npm, then apply the iOS Podfile and Android Gradle changes required by the underlying native SDK.
+Install the wrapper from npm, then apply the iOS Podfile and Android Gradle changes the underlying native SDK requires. Everything below is a one-time change to your `ios/` and `android/` projects.
 
-## 1. npm install
-
-```sh
-npm install @rolla-health/react-native-sdk --legacy-peer-deps
-```
-
-After installing, pin React to exact `19.1.0` (see [Prerequisites → React version pin](01-prerequisites.md#react-version-pin)):
+## 1. Install the Package
 
 ```sh
-npm pkg set 'dependencies.react=19.1.0'
+npm install @rolla-health/react-native-sdk@0.1.16 --save-exact
+# or
+yarn add @rolla-health/react-native-sdk@0.1.16
 ```
 
-### Why `--legacy-peer-deps`?
+No authentication is required — the package is published to the public npm registry. Your `package.json` should end up with an exact pin for the wrapper and for React (see [Prerequisites → React version pin](01-prerequisites.md#react-version-pin)):
 
-The RN 0.80 template ships `react-test-renderer@18.x` in `devDependencies`, which declares a `peerDependencies.react@^18.2.0`. Your project also depends on `react@19.1.0` (required by `react-native@0.80.3`). npm 7+ treats this conflict as fatal:
-
+```jsonc
+{
+  "dependencies": {
+    "react": "19.1.0",
+    "react-native": "0.80.3",
+    "@rolla-health/react-native-sdk": "0.1.16"
+  }
+}
 ```
-npm error Could not resolve dependency:
-npm error peer react@"^18.2.0" from react-test-renderer@18.2.0
-```
 
-`--legacy-peer-deps` restores npm 6 behaviour: warn but install. This is safe because `react-test-renderer` only runs under Jest — at runtime your app only ever loads `react@19.1.0`.
-
-If you don't run snapshot tests, you can also drop `react-test-renderer` from `devDependencies` and skip the flag entirely.
+> **`--legacy-peer-deps` on a fresh template.** The React Native 0.80 template ships `react-test-renderer@18.x` in `devDependencies`, whose peer dependency `react@^18.2.0` conflicts with the `react@19.1.0` your app requires. npm 7+ treats that as fatal (`ERESOLVE … peer react@"^18.2.0" from react-test-renderer@18.2.0`). Install with `npm install … --legacy-peer-deps`, or drop `react-test-renderer` from `devDependencies` if you do not run snapshot tests. At runtime your app only ever loads `react@19.1.0`.
 
 ## 2. iOS — Podfile
 
-`RollaSDK` is distributed via a public CocoaPods specs repository on GitHub. Edit `ios/Podfile`:
+`RollaSDK` is distributed through a public CocoaPods specs repository on GitHub. You must add it as a Podfile `source`, **and** enable framework linkage because the pod vendors pre-built `.xcframework` bundles (Flutter engine, Mapbox, and others).
+
+Edit `ios/Podfile`:
 
 ```ruby
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
-
 platform :ios, '15.1'
 
-# IMPORTANT: order matters — Rolla source must come BEFORE the CocoaPods CDN.
+# IMPORTANT: order matters — the Rolla source must come BEFORE the CocoaPods CDN.
 source 'https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios.git'
 source 'https://cdn.cocoapods.org/'
 
-prepare_react_native_project!
-
 # Required: RollaSDK vendors xcframeworks (Flutter, Mapbox, etc.).
-# Static linkage keeps your other RN pods working.
+# Static linkage keeps your other React Native pods working.
 use_frameworks! :linkage => :static
 
 # Required: Flipper does not support framework linkage.
@@ -57,9 +48,9 @@ target 'YourApp' do
   config = use_native_modules!
 
   # Required: NordicDFU.xcframework (vendored by RollaSDK) was pre-built
-  # expecting ZIPFoundation as a *dynamic* framework. Under our global
-  # static linkage, ZIPFoundation would otherwise be statically linked
-  # into the app binary and not embedded in Frameworks/, causing
+  # expecting ZIPFoundation as a *dynamic* framework. Under global static
+  # linkage, ZIPFoundation would otherwise be statically linked into the app
+  # binary and not embedded in Frameworks/, causing
   # `dyld: Library not loaded: @rpath/ZIPFoundation.framework/ZIPFoundation`
   # at app launch.
   pre_install do |installer|
@@ -87,11 +78,11 @@ target 'YourApp' do
         c.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
 
         # NordicDFU.xcframework was pre-built targeting iOS 14.0. Its
-        # .swiftinterface imports ZIPFoundation; if ZIPFoundation is
-        # rebuilt at 15.1 the swiftinterface fails to compile with
-        # "compiling for iOS 14.0, but module 'ZIPFoundation' has a
-        # minimum deployment target of iOS 15.1". Pin ZIPFoundation
-        # to iOS 14.0; the host app deployment target stays at 15.1.
+        # .swiftinterface imports ZIPFoundation; if ZIPFoundation is rebuilt
+        # at 15.1 the swiftinterface fails to compile with "compiling for
+        # iOS 14.0, but module 'ZIPFoundation' has a minimum deployment
+        # target of iOS 15.1". Pin ZIPFoundation to iOS 14.0; the host app
+        # deployment target stays at 15.1.
         if target.name == 'ZIPFoundation'
           c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
         end
@@ -101,43 +92,29 @@ target 'YourApp' do
 end
 ```
 
-Then:
+Keep the `require` / `prepare_react_native_project!` lines your template already has above `platform`. Then:
 
 ```sh
 cd ios && pod install
 ```
 
-> Use the system `pod` (CocoaPods `1.16.x`). The RN template's vendored Bundler 1.17.x has Ruby 2.6 compatibility issues with current CocoaPods — calling `bundle exec pod install` will likely fail with an ActiveSupport error.
+Open the `.xcworkspace`, not the `.xcodeproj`. For the underlying iOS build settings see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) — the `ENABLE_USER_SCRIPT_SANDBOXING` requirement documented there is what the `post_install` hook above applies for you.
 
-Open the `.xcworkspace`, not the `.xcodeproj`.
+### Transitive pod dependencies
 
-**Bundle ID note:** do **not** pass `PRODUCT_BUNDLE_IDENTIFIER=...` as a global `xcodebuild` override — CocoaPods will then assign your app's bundle ID to its sub-frameworks (e.g. ZIPFoundation) and `devicectl install` rejects the app with `parent bundle has the same identifier as sub-bundle`. Set the bundle ID directly in the app target's `project.pbxproj`.
+`RollaSDK` vendors or depends on `ZIPFoundation` (`~> 0.9`), `TOCropViewController`, `MapboxMaps` / `MapboxCommon` / `MapboxCoreMaps` / `Turf`, and `NordicDFU`. If your app declares any of these directly, align the versions.
 
-For the underlying iOS configuration (signing, build settings, etc.) see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md).
+## 3. iOS — Project Notes
 
-## 3. iOS — Info.plist
+- **Bundle identifier:** do **not** pass `PRODUCT_BUNDLE_IDENTIFIER=…` as a global `xcodebuild` override. CocoaPods then assigns your app's bundle ID to its sub-frameworks (`ZIPFoundation`, for example) and `devicectl install` rejects the app with `parent bundle has the same identifier as sub-bundle`. Set the bundle ID in the app target's `project.pbxproj` instead.
+- **`ios/.xcode.env.local`:** Xcode's script-phase shell does not source your interactive `PATH`. If the Hermes `replace-config` step fails with `: command not found`, put an absolute node path in the gitignored `ios/.xcode.env.local` (`export NODE_BINARY=/opt/homebrew/bin/node`, or your equivalent from `which node`). Do not edit the versioned `ios/.xcode.env`.
+- **Permissions:** the fresh template ships only an empty `NSLocationWhenInUseUsageDescription`. Every other key the SDK needs is added by hand — see [Permissions & Entitlements → iOS](03-permissions.md#ios).
 
-The fresh RN template ships only an empty `NSLocationWhenInUseUsageDescription`. The Rolla SDK uses Bluetooth, Location, Motion, Health, and Photos — you must add usage strings for each or the app will abort silently with **SIGABRT** at `Rolla.show()`. See [Permissions → iOS](03-permissions.md#ios) for the exact keys.
+## 4. Android — `settings.gradle`
 
-## 4. iOS — `.xcode.env.local` (only if Hermes script phase fails)
-
-The RN template ships `ios/.xcode.env` with `export NODE_BINARY=$(command -v node)`, which works on most setups. If Xcode's script phase fails with `: command not found` during the Hermes `replace-config` step, your interactive PATH is not being sourced by Xcode. Override the resolution with an absolute path in the gitignored `ios/.xcode.env.local`:
-
-```sh
-export NODE_BINARY=/opt/homebrew/bin/node
-```
-
-Find your node path with `which node`. Do **not** edit `ios/.xcode.env` directly — it is versioned and a hard-coded path will break for the next contributor.
-
-## 5. Android — `settings.gradle`
-
-The native `com.rolla.sdk:android_release` artifact and its Flutter / Mapbox transitive dependencies live in three separate public Maven repositories. Register them in `android/settings.gradle`:
+The native `com.rolla.sdk:android_release` artifact and its Flutter and Mapbox transitive dependencies live in three separate public Maven repositories. Register them in `android/settings.gradle` — libraries cannot declare repositories on your behalf under the strict resolution mode React Native templates use:
 
 ```groovy
-pluginManagement { includeBuild("../node_modules/@react-native/gradle-plugin") }
-plugins { id("com.facebook.react.settings") }
-extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
-
 dependencyResolutionManagement {
   // PREFER_SETTINGS — not FAIL_ON_PROJECT_REPOS. The React Native root
   // plugin (`com.facebook.react.rootproject`) registers its own repo at
@@ -158,90 +135,77 @@ dependencyResolutionManagement {
     maven { url 'https://api.mapbox.com/downloads/v2/releases/maven' }
   }
 }
-
-rootProject.name = 'YourApp'
-include ':app'
-includeBuild('../node_modules/@react-native/gradle-plugin')
 ```
 
-For the rationale behind each Maven repo see [Android Gradle Setup](../android/02-gradle-setup.md).
+Keep the `pluginManagement`, `plugins`, `rootProject.name`, `include ':app'` and `includeBuild` lines your template already has. For the rationale behind each repository see [Android Gradle Setup → Add Maven Repositories](../android/02-gradle-setup.md#add-maven-repositories).
 
-## 6. Android — `build.gradle`
+## 5. Android — `build.gradle`
 
-In `android/build.gradle`, pin AGP `8.9.1`, Kotlin `2.2.0`, `compileSdk 36`, `minSdk 26`:
+In `android/build.gradle`, set the Kotlin version the SDK is compiled with and the SDK levels it requires. Leave the Android Gradle Plugin version to React Native — its template already picks a compatible one:
 
 ```groovy
 buildscript {
-    ext {
-        buildToolsVersion = "35.0.0"
-        minSdkVersion = 26
-        compileSdkVersion = 36
-        targetSdkVersion = 36
-        ndkVersion = "27.1.12297006"
-        kotlinVersion = "2.2.0"
-    }
-    repositories { google(); mavenCentral() }
-    dependencies {
-        classpath("com.android.tools.build:gradle:8.9.1")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
-    }
+  ext {
+    minSdkVersion = 26
+    compileSdkVersion = 36
+    targetSdkVersion = 36
+    kotlinVersion = "2.2.0"
+  }
 }
-
-apply plugin: "com.facebook.react.rootproject"
 ```
 
-In `android/app/build.gradle`, enable core-library desugaring (the native SDK uses `java.time`):
+See [Android Gradle Setup → Kotlin Version](../android/02-gradle-setup.md#kotlin-version) and [Build JDK](../android/02-gradle-setup.md#build-jdk) for why these floors exist.
+
+## 6. Android — `app/build.gradle`
+
+Enable core-library desugaring — the native SDK uses `java.time`:
 
 ```groovy
 android {
-    // ...
-    compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_17
-        targetCompatibility JavaVersion.VERSION_17
-    }
+  compileOptions {
+    coreLibraryDesugaringEnabled true
+    sourceCompatibility JavaVersion.VERSION_17
+    targetCompatibility JavaVersion.VERSION_17
+  }
 }
 
 dependencies {
-    implementation("com.facebook.react:react-android")
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
-    // ...
+  coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'
 }
 ```
 
-Ensure `ANDROID_HOME` is set or write `sdk.dir=$HOME/Library/Android/sdk` (adjust for your OS) into `android/local.properties`.
+Make sure `ANDROID_HOME` is set, or `android/local.properties` defines `sdk.dir`.
 
-## 7. Entry points — `AppDelegate.swift` and `MainApplication.kt`
+**ProGuard / R8:** the AAR bundles consumer rules, so minified release builds need no manual configuration. Verify your release build with `minifyEnabled true` through the full flow once — see [Android Gradle Setup → ProGuard / R8](../android/02-gradle-setup.md#proguard--r8).
 
-The Rolla wrapper assumes the RN 0.80 default scaffold:
+## 7. Verify the Integration
 
-- **iOS** — Swift `AppDelegate.swift` using `RCTReactNativeFactory` and `RCTAppDependencyProvider` (not the older `AppDelegate.mm`).
-- **Android** — Kotlin `MainApplication.kt` extending `DefaultReactNativeHost`, with `PackageList(this).packages` for autolinked modules.
+Autolinking registers the `RollaWrapper` TurboModule — nothing to add to `getPackages()` or the iOS factory. The wrapper assumes the React Native 0.80 scaffold: a Swift `AppDelegate.swift` built on `RCTReactNativeFactory` and a Kotlin `MainApplication.kt` extending `DefaultReactNativeHost`, with the New Architecture on in both `ios/YourApp/Info.plist` (`RCTNewArchEnabled`) and `android/gradle.properties` (`newArchEnabled=true`) — the template defaults.
 
-Autolinking registers `RollaWrapper` with the TurboModule registry automatically — you do **not** add anything to `getPackages()` or to the iOS factory. If you are upgrading from an older RN version, regenerate the entry points with `npx @react-native-community/cli init` against `0.80.3` and copy your app code over, rather than patching `AppDelegate.mm` by hand.
+Build on a physical device and call `Rolla.getNativeSdkVersion()` once on app load:
 
-The Rolla wrapper requires the React Native New Architecture. Confirm both flags are on:
+```ts
+const version = await Rolla.getNativeSdkVersion(); // '0.1.15' for package 0.1.16
+```
 
-- `ios/YourApp/Info.plist` → `RCTNewArchEnabled = true`
-- `android/gradle.properties` → `newArchEnabled=true`
+Resolving proves the TurboModule is wired up. If you instead get `Invariant Violation: TurboModuleRegistry.getEnforcing('RollaWrapper') could not be found`, autolinking did not pick up the wrapper — see [Troubleshooting](09-troubleshooting.md#invariant-violation-turbomoduleregistrygetenforcingrollawrapper-could-not-be-found).
 
-Both are on by default in a fresh RN 0.80.3 scaffold.
+> **Whenever you bump `@rolla-health/react-native-sdk` — every bump points at a different native artifact — run:**
+>
+> ```sh
+> cd android && ./gradlew --refresh-dependencies
+> ```
+>
+> Gradle caches transitive metadata (notably for Mapbox) per coordinate, and stale metadata produces confusing resolution errors. This cannot be fixed on Rolla's side; the refresh must happen on your machine. See [Android Troubleshooting → Stale transitive dependencies](../android/09-troubleshooting.md#stale-transitive-dependencies-after-bumping-the-sdk-version).
 
-## 8. JavaScript engine
+## Order of Operations
 
-The Rolla wrapper is verified against **Hermes** (the RN 0.80 default — `hermesEnabled=true` in `android/gradle.properties`, Hermes pod auto-installed on iOS). JSC is untested with the Rolla wrapper; if you need JSC, raise it with Rolla support before integration.
-
-## 9. Order of operations
-
-Always:
-
-1. `npm install --legacy-peer-deps` (or `yarn install`)
+1. `npm install` (or `yarn install`)
 2. `cd ios && pod install`
 3. Build
 
-If you delete `node_modules` and reinstall, you may need to wipe `ios/Pods` and `android/.gradle` / `android/build` to clear stale codegen artifacts.
+If you delete `node_modules` and reinstall, also wipe `ios/Pods`, `ios/build`, `android/.gradle` and `android/build` to clear stale codegen artifacts.
 
 ---
 
-**Next:** [Permissions](03-permissions.md) | **Home:** [README](README.md)
+**Previous:** [Prerequisites](01-prerequisites.md) | **Next:** [Permissions & Entitlements](03-permissions.md) | **Home:** [README](README.md)
