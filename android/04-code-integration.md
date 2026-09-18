@@ -6,22 +6,22 @@ Integrate the Rolla SDK into your Android application with proper configuration,
 
 ```kotlin
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaConfiguration
 import com.rolla.sdk.wrapper.RollaListener
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaError
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 ```
 
 ## Authentication & Token Flow
 
 The SDK needs a user access token (JWT) to identify the user and authorize API calls. You obtain this token from Rolla's auth API after the user has logged in.
 
-- **Typical flow:** User logs in the app → app calls backend → backend returns **access_token** (and optionally **refresh_token**, **expires_in**) → you pass that token into `RollaConfiguration` when opening the SDK.
+- **Typical flow:** User logs in to your app → your app calls your backend → your backend returns the **access_token**, **refresh_token**, and **expires_in** from Rolla's auth API → you pass all three into `RollaConfiguration` when opening the SDK.
 - **When to fetch:** Before calling `rolla.show(activity)`. If the user is already logged in, use your existing session (e.g. stored token or refresh to get a new access token).
-- **What to pass:** At minimum, the **access token** (string). For better behavior, also pass `refreshToken` and `tokenExpiresIn`.
+- **What to pass:** All three token fields — the **access token**, `refreshToken`, and `tokenExpiresIn`. The access token alone opens the SDK, but the other two are what let it keep the session alive on its own — see [Token Management](06-token-management.md#your-apps-responsibilities).
 - **Partner ID:** Use the partner ID Rolla gave you. It is fixed per partner, not per user.
 
-Note: You are responsible for authentication, the SDK only consumes the token you provide.
+> **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
 
 ## Create Configuration
 
@@ -31,12 +31,11 @@ val configuration = RollaConfiguration(
     partnerId = "your-partner-id",
     refreshToken = "your-refresh-token",       // Optional
     tokenExpiresIn = 1800,                     // Optional: token expiry in seconds
-    userId = "user-id",                        // Optional: extracted from JWT if not provided
-    environment = "production",                // or "rnd" for development
-    modules = null,                            // Optional: null enables all modules
-    branding = null                            // Optional: custom branding configuration
+    environment = "production"                 // or "rnd" for development
 )
 ```
+
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showOptionsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -66,6 +65,8 @@ rolla.listener = object : RollaListener {
 rolla.show(activity)
 ```
 
+Instead of `show()`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](08-api-reference.md#host-driven-navigation). The SDK's own notifications fit the same model: each names the screen it should open, `notificationTarget` reads that off the tap, and a screen result goes to `openScreen` — see [notificationTarget](08-api-reference.md#notificationtarget).
+
 ## Implement RollaListener
 
 ```kotlin
@@ -89,8 +90,9 @@ rolla.listener = object : RollaListener {
     }
 
     override fun onTokenExpired(rolla: Rolla) {
-        // Called when the token has expired and the SDK cannot refresh it
-        // You must fetch a new token from your backend and call updateToken()
+        // Called when the token has expired and the SDK cannot refresh it.
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, and call updateToken()
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
             rolla.updateToken(newToken, newRefreshToken, expiresIn) { result ->
                 result.onSuccess { Log.d("RollaSDK", "Token updated") }
@@ -103,6 +105,8 @@ rolla.listener = object : RollaListener {
 
 All listener methods have default empty implementations, so you only need to override the ones relevant to your use case.
 
+The four above are the presentation and token callbacks — the minimum for a production integration. `RollaListener` has twelve more optional methods that push SDK events to your app (activity lifecycle, sync results, band pairing and live link state, primary source, goals, profile) — see the [RollaListener reference](08-api-reference.md#rollalistener-interface) and its [Host Events](08-api-reference.md#host-events) delivery semantics.
+
 ## Fragment Support
 
 The SDK can also be launched from a Fragment. The parameter expects `androidx.fragment.app.Fragment` (not the legacy `android.app.Fragment`):
@@ -113,29 +117,20 @@ rolla.show(fragment)  // fragment: androidx.fragment.app.Fragment
 
 ## Threading
 
-All public SDK methods dispatch to the main thread internally using `Handler(Looper.getMainLooper())` — you can safely call them from any thread, including background threads or coroutine dispatchers:
+The SDK is thread-safe at its public surface, so you never have to think about threads when calling it:
 
-| Method | Thread-safe | Notes |
-|--------|:-----------:|-------|
-| `show(activity)` | Yes | Posts to main handler before presenting |
-| `dismiss()` | Yes | Posts to main handler before dismissing |
-| `updateToken(...)` | Yes | Posts to main handler; callback fires on main thread |
-| `clearSession(...)` | Yes | Posts to main handler; callback fires on main thread |
+- **Every method on a `Rolla` instance** — presentation, token, and headless methods alike — dispatches to the main thread internally via `Handler(Looper.getMainLooper())`. Call them from any thread, including background threads or coroutine dispatchers.
+- **Every callback** — all `RollaListener` methods and every result callback — arrives on the main thread. You can update your UI directly inside them.
+- **The one exception is the companion `Rolla.destroyEngine()`**: it runs synchronously on the calling thread, with no internal dispatch — call it from the main thread.
 
-**Listener callbacks** also arrive on the main thread. The SDK explicitly wraps every listener invocation (`onRollaClosed`, `onRollaError`, `onTokenRefreshed`, `onTokenExpired`) in a `mainHandler.post { }` call. You can safely update your UI directly inside listener methods.
+**Kotlin coroutines:** The SDK's public API is callback-based (not coroutines), but you can call SDK methods from any coroutine dispatcher without `withContext(Dispatchers.Main)` — the SDK handles the thread switch internally.
 
-**Kotlin coroutines:** The SDK's public API uses callback-based patterns (not coroutines), but you can call SDK methods from any coroutine dispatcher without needing `withContext(Dispatchers.Main)` — the SDK handles the thread switch internally.
-
-> **Summary:** You do not need to wrap any SDK call or listener handler in `runOnUiThread { }` — the SDK handles this for you.
+> **Summary:** You never need `runOnUiThread { }` around an SDK call or listener handler.
 
 ## Cross-Platform Note: `tokenExpiresIn` Type
 
-On Android, `tokenExpiresIn` is an `Int` (seconds). On iOS, it is a `TimeInterval` (`Double`, seconds).
-
-If you maintain a shared backend or cross-platform token logic, be aware of this difference — passing a floating-point value where an integer is expected (or vice versa) can cause subtle bugs. Both platforms interpret the value as **seconds until expiry**.
-
-The same applies to the `expiresIn` parameter in the `onTokenRefreshed` listener callback (`Int?` on Android, `TimeInterval?` on iOS).
+Both platforms mean the same thing — **seconds until expiry** — but the declared type follows each platform's idiom: `Int?` on Android, `TimeInterval?` (a `Double` number of seconds) on iOS. The same applies to the `expiresIn` parameter in the `onTokenRefreshed` callback. There is no unit difference: if your backend returns `expires_in` in seconds, pass it straight through on both platforms.
 
 ---
 
-**Previous:** [Permissions](03-permissions.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions](03-permissions.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)

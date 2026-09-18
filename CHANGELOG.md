@@ -10,11 +10,178 @@
 
 ---
 
+## 0.1.15
+
+### Both platforms
+
+- **[feature] Recognize Rolla notification taps and route them to the matching SDK screen.** Every notification the SDK posts now carries a payload naming its tap destination, and the new `Rolla.notificationTarget` resolver turns the tap your app receives into a typed `RollaNotificationTarget`. It returns `null`/`nil` for a notification that is not Rolla's, an app-settings request for the background-location warning, or a `RollaScreen` to pass straight to `openScreen`. The inactivity reminder targets Insights (Home when the insights module is disabled), the band battery warning targets Home, and Android's ongoing workout notifications — "Workout in progress" and "Location Tracking", the latter previously inert when tapped — target `resume`, the live workout. Routing the tap is your app's job: the SDK never takes over your launcher activity or your notification-center delegate. See the [Android](android/08-api-reference.md#notificationtarget) / [iOS](ios/10-api-reference.md#notificationtarget) `notificationTarget` references.
+
+- **[fix] The loading indicator shown while the SDK starts now follows your `primaryColor` and `themeMode`.** Previously an off-brand spinner (mauve in light mode, teal in dark mode) appeared between your app and the SDK UI even when `RollaBranding.primaryColor` was set. It is now seeded from the configured primary color, matching the SDK's in-app indicators, and follows the configured theme mode instead of always following the device. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) branding configuration.
+
+- **[fix] Manually added activities now count toward the daily Active Points and Active Calories totals.** Previously a manual activity kept its own points, but the daily totals on Home never included them.
+
+- **[improvement] Swimming activities now show pace per 100 m (per 100 yd for imperial units) instead of per km.** Swim summaries also display distance and average pace when the activity carries that data, such as swims imported from Garmin.
+
+- **[improvement] General bugfixes and stability improvements.**
+
+### Android
+
+- **[fix] Swiping your app away from Recents mid-workout no longer resumes a stale SDK session on the next launch.** While a GPS or Bluetooth workout (or a band firmware update) is running, the SDK's foreground service keeps the app process alive through a Recents swipe, so the cached engine survived and the next `show()` re-presented the in-progress activity screen instead of a fresh Home. The swipe now stops workout tracking and tears the engine down, so the next launch behaves like a cold start and the interrupted activity is offered for Continue / Save / Discard, as on iOS. Closing the SDK with the back button and re-opening it in the same session still resumes seamlessly.
+
+- **[fix] `openScreen` now brings an already-open SDK UI back to the front when your activities cover it.** Previously the navigation succeeded — the status reported `OPENED` — but happened invisibly behind the covering activity. The common trigger is a notification tap, which always launches your launcher activity on top of the presenting SDK. See [openScreen](android/08-api-reference.md#openscreen).
+
+- **[fix] Scheduled reminders (the inactivity reminder and the evening battery warning) never displayed.** `flutter_local_notifications` delivers scheduled notifications through two broadcast receivers, and no consuming app had them in its merged manifest, so the alarms were silently dropped. The SDK now declares the receivers itself, together with `RECEIVE_BOOT_COMPLETED` so pending reminders survive a reboot, and falls back to an inexact alarm when exact scheduling is not permitted. No host change needed; details in the [permissions guide](android/03-permissions.md#notification-taps-and-scheduled-reminders).
+
+- **[fix] Steps, sleep and HRV data no longer silently go missing.** An interrupted band transfer could stall the sync on that metric, and a corrupt band record could push the sync window into the future, hiding the metric for days. Transfers now recover on their own, a corrupt record can no longer move the sync window, and an interrupted transfer resumes on the next sync.
+
+## 0.1.14
+
+### Both platforms
+
+- **[breaking] `showSettingsButton` is renamed to `showOptionsButton`, and the entry moved into the top-right app bar actions.** The Settings button that was positioned at the very bottom of the Home screen is now a three-dot options action at the trailing edge of the Home app bar, visible without scrolling. It opens the same bottom sheet of shortcuts as before, now titled "Options". The flag's meaning and default (`true`) are unchanged — just rename the parameter on your `RollaConfiguration`. See the [Android](android/05-configuration.md#rollaconfiguration) and [iOS](ios/05-configuration.md#rollaconfiguration) configuration guides.
+
+- **[feature] Open a specific SDK screen from your app.** The new `openScreen` method opens the Insights feed, the activity history, the goals editor, the SDK Home screen, or the last-opened state (`resume`) directly — presenting the SDK UI when it is hidden, honoring the optional `RollaTransition`. The opened screen is the root of the SDK UI, so back returns the user straight to your app, and `home` restores Home as the root. Every outcome is a typed `RollaOpenScreenStatus`; the SDK's mandatory startup steps (onboarding, consent, permissions, data-source connection) always take precedence. See the [Android](android/08-api-reference.md#host-driven-navigation) / [iOS](ios/10-api-reference.md#host-driven-navigation) API references.
+
+- **[feature] Bluetooth heart rate monitor support.** A standard Bluetooth heart rate monitor (Polar, Garmin, Wahoo and similar chest straps and arm bands) can now be connected from the activity setup screen and used as a workout's heart rate source instead of the Rolla Band. Previously connected monitors are remembered and reconnected automatically when in range, and one that drops mid-workout reconnects on its own. A workout tracked with a monitor does not use a paired Band at all.
+
+- **[feature] Manual sleep logging and editing.** A user can log a night their wearable missed, or correct one it got wrong, from the sleep detail screen — adjusting the sleep window on the chart or through time fields, and assigning a stage to stretches the device did not record. A night with no stage detail can be logged as a single in-bed block and is shown as a sleep-duration clock. A manual entry replaces whatever was stored for that night and survives later device syncs, and sleep metrics, scores and the home screen refresh as soon as one is saved. Available for the last 7 days.
+
+- **[feature] One-time historical data import when a source is connected.** After connecting Apple Health, Health Connect, Garmin or Oura, the user is offered a backfill of the date range the backend reports as available, and can accept it, skip it (it stays re-offerable), or start it later from the "Import history" action in Data Sources. Apple Health and Health Connect are read on-device with per-stage progress while the screen stays open; Garmin and Oura are backfilled by the backend and the screen just confirms the job started. An on-device import that was interrupted is picked up again from the same action.
+
+- **[fix] Home totals update immediately after deleting an activity.** The Active Points and Active Calories tiles and the Activity score card now refetch as soon as an activity is deleted, instead of correcting only after a manual reload.
+
+- **[fix] Steps, Move Hours and Active Points show the full statistics grid over 7d/30d/1y.** These metric detail pages showed a single "Total" card; they now show Avg, Min, Max and Score, computed over the days that have data.
+
+- **[improvement] Hardened token handling.** You can no longer break a session by passing outdated tokens — the SDK ignores anything older than what it already holds. And answering `onTokenExpired` (Android) / `rollaDidRequestTokenRefresh` (iOS) with `updateToken()` within 10 seconds now recovers the failing request invisibly, with no error state. See the [Android](android/06-token-management.md) / [iOS](ios/07-token-management.md) Token Management guides.
+
+- **[improvement] Notification texts are now translated for every supported language.** The engagement and battery notification strings moved into the SDK's localization system, and date-of-birth fields now render month names in the selected language, including Latin-script Serbian.
+
+- **[improvement] General bugfixes and stability improvements.**
+
+- **[documentation] Rewritten Token Management guides.** The [Android](android/06-token-management.md) and [iOS](ios/07-token-management.md) pages now spell out the host app's token obligations — persist rotated tokens, answer the token-expired callback, always initialize with the latest pair — along with token lifetimes and the single-use refresh-token rotation rule; the [Android](android/09-troubleshooting.md#token-related-issues) and [iOS](ios/11-troubleshooting.md#token-related-issues) troubleshooting guides gained an expanded symptoms table for diagnosing 401 errors.
+
+### Android
+
+- **[breaking] The public API types moved into sub-packages — update your imports.** No type was renamed and no behavior changed, so the fix is import lines only; most IDEs re-import automatically. `Rolla` and `RollaListener` are unchanged in `com.rolla.sdk.wrapper`. Everything else moved: `RollaConfiguration`, `RollaBranding`, `RollaLanguage`, `RollaThemeMode`, `RollaTransition`, `RollaDataSource` and `RollaDisabledModule` to `com.rolla.sdk.wrapper.config`; `RollaError` and `RollaCloseReason` to `…features.session`; the activity payloads to `…features.activity`; the band payloads to `…features.band`; `RollaSyncResult` and `RollaPrimarySourceChanged` to `…features.sync`; `RollaGoalsChanged` to `…features.goals`; `RollaProfileUpdated` to `…features.profile`. Enums travel with the file that declares them — `RollaSyncOutcome` is in `…features.sync`, `RollaBatteryStatus` in `…features.band`. If you declare the SDK activity in your own manifest, it is now `com.rolla.sdk.wrapper.engine.RollaFlutterActivity`.
+
+- **[fix] Pairing a band again right after unpairing it now works reliably.** Until now that attempt could quietly fail — the screen returned to the start of pairing with no message — and only succeeded after waiting around a minute.
+
+- **[fix] Pulse data no longer silently goes missing on Android.** An interrupted band transfer could leave heart rate unsynced for days — the sync appeared to succeed while steps and sleep kept updating. The transfer now recovers on its own within seconds, and any missed stretch is fetched by the next sync.
+
+## 0.1.13
+
+### Both platforms
+
+- **[feature] Insights entry on the Home screen.** A new Insights entry card in the Home Overview section shows the unread insights count and opens the insights feed page. This option can be disabled alongside all other insights UI by adding `RollaDisabledModule.insights` value to the `disabledModules`. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
+
+- **[feature] Optional Goals section on Home via the new `showGoalsSection` configuration flag.** `RollaConfiguration` gains an optional `showGoalsSection` (default `false`). When `true`, the bottom of the Home screen shows the user's enabled goals with an edit action — or a select-goals call-to-action when zero goals are selected. See the [Android](android/05-configuration.md#goals-on-home) / [iOS](ios/05-configuration.md#goals-on-home) configuration guides.
+
+- **[feature] New `RollaTransition` animation on the `show()` method.** A new optional `transition` parameter controls how the SDK UI opens and closes: `.default` is the existing animation, `.fade` is a cross-fade. The closing transition always mirrors the opening one. See the [Android](android/08-api-reference.md#rollatransition) / [iOS](ios/10-api-reference.md#rollatransition) API references.
+
+- **[fix] Confirmation before changing the primary data source.** Switching your primary data source now asks for confirmation first, so it can no longer happen from an accidental tap.
+
+- **[improvement] Refined Serbian translations.** Both Serbian scripts — Latin and Cyrillic — received a native-speaker terminology pass across the entire SDK UI.
+
+- **[improvement] General bugfixes and stability improvements.**
+
+## 0.1.12
+
+### Both platforms
+
+- **[feature] New headless public SDK methods.** Four methods run **headlessly** — no SDK UI needs to be opened:
+  - **`warmUpEngine()`** — start the engine ahead of time so the first `show()` presents instantly.
+  - **`syncHealthData()`** — full sync of the user's primary data source, returning a typed result: outcome, skip reason, per-stream `syncedData` breakdown, and `startedAt`/`lastSyncAt` timing.
+  - **`getBandBatteryLevel()`** — live battery read from the paired Rolla band, or a typed "unavailable" reason.
+  - **`getPairedBandInfo()`** — paired-band query with zero Bluetooth: `bandPaired`/`noBandPaired`/`unknown`.
+
+  See the [Android](android/08-api-reference.md#headless-methods) / [iOS](ios/10-api-reference.md#headless-methods) API references and the [Android](android/07-engine-lifecycle.md#warming-up-the-engine) / [iOS](ios/08-engine-lifecycle.md#warming-up-the-engine) engine-lifecycle guides.
+
+- **[feature] Host event callbacks: twelve new delegate/listener methods.** `RollaDelegate` (iOS) / `RollaListener` (Android) gains methods your app can override to observe the SDK without polling — all with default no-op bodies, delivered for the engine's lifetime (they keep flowing after the SDK UI closes):
+
+  | Event | iOS | Android |
+  |-------|-----|---------|
+  | Activity&nbsp;started | `rollaDidStartActivity` | `onActivityStarted` |
+  | Activity&nbsp;completed | `rollaDidCompleteActivity` | `onActivityCompleted` |
+  | Activity&nbsp;removed | `rollaDidRemoveActivity` | `onActivityRemoved` |
+  | UI&nbsp;sync&nbsp;completed | `rollaDidCompleteUISync` | `onUiSyncCompleted` |
+  | Headless&nbsp;sync&nbsp;completed | `rollaDidCompleteHealthDataSync` | `onSyncHealthDataCompleted` |
+  | Band&nbsp;paired | `rollaDidPairBand` | `onBandPaired` |
+  | Band&nbsp;unpaired | `rollaDidUnpairBand` | `onBandUnpaired` |
+  | Band&nbsp;connected | `rollaDidConnectBand` | `onBandConnected` |
+  | Band&nbsp;disconnected | `rollaDidDisconnectBand` | `onBandDisconnected` |
+  | Primary&nbsp;source&nbsp;changed | `rollaDidChangePrimarySource` | `onPrimarySourceChanged` |
+  | Goals&nbsp;changed | `rollaDidChangeGoals` | `onGoalsChanged` |
+  | Profile&nbsp;updated | `rollaDidUpdateProfile` | `onProfileUpdated` |
+
+  See the [Android](android/08-api-reference.md#host-events) / [iOS](ios/10-api-reference.md#host-events) Host Events sections for the payloads and delivery semantics.
+
+- **[feature] Host-controlled SDK language (`language` on `RollaConfiguration`).** Typed by the new `RollaLanguage` enum; when set it is authoritative for the engine's lifetime — persisted in-SDK picks and the backend profile can't override it — and is written to the user's backend profile at startup so backend-generated content (goal labels, insights) matches the UI language. Unset keeps the profile-driven behavior. The SDK now ships eight languages: English, German, **Spanish (new)**, Croatian, Bosnian, **Serbian — Latin and Cyrillic (new)**, and Arabic. See the [Android](android/05-configuration.md#language) / [iOS](ios/05-configuration.md#language) configuration guides.
+
+- **[feature] New Leaderboards module — and a `leaderboards` value in `RollaDisabledModule` to hide it.** Opt-in weekly/monthly rankings comparing users in your tenant on Health Score or Active Points, with join/leave controls. Enabled by default; pass `RollaDisabledModule.leaderboards` in `disabledModules` to hide it everywhere in the SDK UI. See the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) configuration guides.
+
+- **[feature] Hide selected data sources from the SDK UI (`disabledDataSources`).** A new `RollaConfiguration` parameter that hides specific connect options (band, Garmin, Oura, Apple Health, Health Connect) wherever the user picks a source. Deny-list semantics: omit it or pass an empty set to offer everything; already-connected sources stay visible for viewing/disconnecting; disabling every source keeps the Rolla Band as a floor, and when the band is the only source left the picker is skipped — onboarding goes straight to pairing. See the [Android](android/05-configuration.md#data-source-configuration) / [iOS](ios/05-configuration.md#data-source-configuration) configuration guides.
+
+- **[breaking] `RollaBranding` reworked to hold exactly the options that affect the SDK.** Six fields, all optional: `hostAppName`, `primaryColor`, `themeMode` (renamed from `defaultThemeMode`, typed by the new `RollaThemeMode` enum), `headerLogoAsset`, `privacyUrl`, and `removeRollaBandReferences` (moved from `RollaConfiguration`, same semantics). A set field overrides the SDK default individually; an unset field keeps it — previously, passing any branding replaced all defaults at once. The removed options — `appName`, `secondaryColor`, `accentColor`, `brightness`, `defaultLocale`, `termsUrl` — had no effect on the SDK UI. See the [Android](android/05-configuration.md#custom-branding-optional) / [iOS](ios/05-configuration.md#custom-branding-optional) configuration guides.
+
+- **[improvement] Skip the SDK's onboarding by setting the profile in advance.** Call `POST /api/setprofile` before first presenting the SDK: a profile carrying username, birthdate, gender, height, and weight skips the account-details onboarding entirely; a partial profile pre-fills the form. Weight is always required — the SDK uses it to calculate calories, even with the weight module disabled. See the new [Profile](sdk-auth-api/03-profile.md) guide.
+
+- **[improvement] Split the combined permission screen into separate Bluetooth and Location pages.** Each permission now has its own page with contextual copy explaining why it is needed.
+
+- **[fix] Bugs and stability fixes.** Various internal fixes and stability improvements.
+
+- **[documentation] Updated and restructured the documentation for this release's many new features and breaking changes.** The *Branding & Modules* pages became the per-platform [Configuration](ios/05-configuration.md) guides ([Android](android/05-configuration.md)) covering every `RollaConfiguration` option, and the `RollaConfiguration` reference moved there from the API references.
+
+### Android
+
+- **[improvement] Brand-neutral notification channel names.** The two SDK-created notification channels end users see in system settings were renamed from "Rolla Warnings" and "Engagement" to "Important Alerts" and "Engagement Tips", so they read naturally under the host app's branding. A new [Notification Channels](android/03-permissions.md#notification-channels) section documents every channel the SDK creates.
+
+### iOS
+
+- **[breaking] `RollaDelegate` error method renamed: `rolla(_:didFailWithError:)` → `rollaDidFailWithError(_:error:)`.** A signature-only change aligning the one anonymous-form method with the rest of the `rollaDid…` delegate family — same parameters, same behavior: `func rollaDidFailWithError(_ rolla: Rolla, error: RollaError)`. See the [iOS API reference](ios/10-api-reference.md#rolladelegate-protocol).
+
+## 0.1.11
+
+### Both platforms
+
+- **[breaking] Module configuration switched from an enable-list to an opt-out list (`disabledModules`).** The previous enable-list parameter — documented as `modules`, named `enabledModules` in the SDK — has been removed and replaced by `disabledModules`. Pass a set of `RollaDisabledModule` values to hide a module's entire UI, or omit it to keep everything enabled. `weight` and `bloodPressure` are the first two modules supported for disabling. Any integration that passed an enable-list must switch to `disabledModules`. See the [Android](android/05-configuration.md#module-configuration) and [iOS](ios/05-configuration.md#module-configuration) configuration guides and the [Android](android/05-configuration.md#rolladisabledmodule) / [iOS](ios/05-configuration.md#rolladisabledmodule) `RollaDisabledModule` values.
+
+- **[feature] Added the `removeRollaBandReferences` flag to `RollaConfiguration`, default `true`.** When `true` the SDK UI uses generic "fitness device" wording; set it to `false` to show Rolla Band-specific references. See the [Android](android/05-configuration.md#rolla-band-references) and [iOS](ios/05-configuration.md#rolla-band-references) configuration guides.
+
+- **[feature] Smartphone-only workout tracking.** Workouts can now be started and tracked without a paired wearable, using the phone's pedometer and motion sensors. This adds a new permission requirement on each platform — see the Android and iOS notes below.
+
+- **[feature] Added an Activity History screen.** Users can open it from **View All Activities** at the bottom of the activities section on the SDK Home screen, and browse all past workouts in a monthly calendar view with summary stats and shareable card previews.
+
+- **[feature] Added in-app usage events analytics.** The SDK records basic usage events within its UI (screen views and feature interactions) and reports them to the Rolla backend, queued locally and delivered across offline periods.
+
+- **[feature] Manual activity logging.** Users can manually log a past workout — pick an activity type, set duration and intensity — and the SDK estimates calories from heart-rate samples where available, falling back to a metabolic-equivalents (MET) model otherwise.
+
+- **[feature] New activity types: Spa and Calisthenics.** Calisthenics joins the Strength category and can be live-tracked or logged manually; a new Spa category (Sauna, Steam Room, Cold Plunge, Jacuzzi) is available from the manual activity logger only and does not appear in the live-tracking start list.
+
+- **[improvement] Redesigned the Insights experience into a dedicated Insights tab.** Insights moved off the Home screen into its own tab in the SDK bottom navigation, with a daily scrollable feed, filters, full article views, and ratings. This is visible only to partners using the SDK's bottom navigation bar — partners with their own navigation will no longer see the Insights section.
+
+- **[improvement] Redesigned the SDK bottom navigation bar.** The bottom navigation is now a floating pill with a blurred backdrop, an animated active-tab indicator, and a separated circular button for starting workouts; three primary tabs (Home, Insights, Profile). Partners not using the SDK's bottom navigation will only see the Plus button move from bottom-centre to bottom-right.
+
+- **[improvement] Reduced the SDK payload size by 73 MB, removing unused bundled media assets and lowering your app's download size significantly.**
+
+- **[fix] Apple Health and Health Connect now sync as a secondary source.** Workouts, weight, and blood pressure from a secondary Apple Health / Health Connect connection are now uploaded on each Home resume; previously they stopped syncing when another source was primary. Heart rate, HRV, steps, and sleep remain owned by the primary source.
+
+### Android
+
+- **[breaking] Smartphone-only workouts require `ACTIVITY_RECOGNITION` (API 29+).** The SDK's bundled manifest already declares `android.permission.ACTIVITY_RECOGNITION` to read the phone's step counter, so the manifest merger adds it for you — or you can declare it yourself. Make sure your Play Console listing covers the activity-recognition rationale. See [Smartphone-Only Workouts](android/03-permissions.md#smartphone-only-workouts-activity_recognition) and the updated [Permissions Rationale](android/03-permissions.md#permissions-rationale).
+
+### iOS
+
+- **[breaking] `NSMotionUsageDescription` now required in the host app's `Info.plist`.** Smartphone-only workouts use `CMPedometer`, and iOS hard-terminates any app that starts it without an `NSMotionUsageDescription` string declared. Add the key with a user-facing rationale or smartphone-only workouts will crash the app on first start. See [Motion & Fitness](ios/03-permissions-and-entitlements.md#motion--fitness-required-for-smartphone-only-workouts).
+
+- **[improvement] Live Workout widget honors phone-only mode.** `LiveWorkoutAttributes.ContentState` gained an `isPhoneOnly` flag (defaulted to `false`) so the Dynamic Island and Lock Screen views can hide band-specific elements when a workout is tracked from the phone alone. If you copied an older data contract into your widget, add the field to match the current SDK. See [Live Activities](ios/09-live-activities.md#step-3-widget-extension-files).
+
+---
+
 ## 0.1.10
 
 ### Both platforms
 
-- **[feature] Added the `showSettingsButton` boolean config on `RollaConfiguration`.** Renders a Settings button on the Home screen that opens a sheet with Data Sources and Goals shortcuts. Defaults to `true` since most partners need it automatically. See [Android](android/08-api-reference.md) and [iOS](ios/10-api-reference.md) API references.
+- **[feature] Added the `showSettingsButton` boolean config on `RollaConfiguration`.** Renders a Settings button on the Home screen that opens a sheet with Data Sources and Goals shortcuts. Defaults to `true` since most partners need it automatically. See the [Android](android/05-configuration.md#rollaconfiguration) and [iOS](ios/05-configuration.md#rollaconfiguration) configuration guides.
 
 - **[improvement] Improved the GPS tracking to be more accurate on iOS and Android.** The location pipeline has been refactored on both platforms to hold steady when you're standing still, filter out GPS zig-zags, and recover cleanly when you start moving again. Additionally, the in-app map views got some general UX improvements and polishing.
 
@@ -32,7 +199,7 @@
 
 ### iOS
 
-- **[improvement] Simulator support added (Debug configuration).** `0.1.10` runs on iPhone simulators under the Debug configuration, in addition to the existing Release-on-device support. Hardware-backed features (Bluetooth, etc.) still only work on physical devices. See [iOS Prerequisites](ios/01-prerequisites.md).
+- **[improvement] Simulator support added (Debug configuration).** `0.1.10` runs on iPhone simulators under the Debug configuration, in addition to the existing Release-on-device support. Hardware-backed features (Bluetooth, etc.) still only work on physical devices. See the [iOS Quick Start](ios/00-quick-start.md).
 
 ---
 
