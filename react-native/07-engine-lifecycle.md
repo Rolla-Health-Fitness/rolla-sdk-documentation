@@ -8,7 +8,7 @@ The SDK uses a Flutter engine internally, owned by the native side and shared by
 - **Dismissal** — Closing the SDK UI, by the user or via `dismiss()`, **keeps the engine alive** in the background. The next `show()` presents the SDK instantly in its last state (no reload).
 - This is the recommended behavior for most apps.
 
-The trade-off: a warm engine holds roughly 30 MB of memory; a destroyed engine costs 1–2 s of cold start on the next `show()`. Reclaim memory only when you know the user is done with the SDK for a while.
+The trade-off: a warm engine keeps its memory; a destroyed engine costs a brief cold start on the next `show()`. Reclaim memory only when you know the user is done with the SDK for a while.
 
 ## Warming Up the Engine
 

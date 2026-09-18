@@ -79,7 +79,7 @@ await Rolla.updateToken(
 );
 ```
 
-Rejects with `{ code, message }` when the SDK could not accept the push — `NO_ACTIVE_SESSION` on a cold engine, `UPDATE_TOKEN_FAILED` when the native SDK reports a failure.
+Rejects with `{ code, message }` when the SDK could not accept the push — `NO_ACTIVE_SESSION` on a cold engine; otherwise `UPDATE_TOKEN_FAILED`, or on iOS the SDK's own `RollaError` code when it reports one.
 
 ## Clearing the Session
 
@@ -93,7 +93,7 @@ async function logout() {
 }
 ```
 
-Without a configuration, `clearSession()` clears a running engine and rejects with `NO_ACTIVE_SESSION` on a cold one — rather than reporting a clear that never happened. A native failure rejects with `CLEAR_SESSION_FAILED`.
+Without a configuration, `clearSession()` clears a running engine and rejects with `NO_ACTIVE_SESSION` on a cold one — rather than reporting a clear that never happened. A native failure rejects with `CLEAR_SESSION_FAILED`, or on iOS with the SDK's own `RollaError` code when it reports one.
 
 > **Order matters on logout.** `clearSession` completes asynchronously — call `Rolla.destroyEngine()` after it resolves, never before. Destroying the engine first cancels the pending clear, and the session data silently survives. See [Engine Lifecycle → `clearSession` vs `destroyEngine`](07-engine-lifecycle.md#clearsession-vs-destroyengine).
 

@@ -120,7 +120,7 @@ try {
 }
 ```
 
-The same failure also fires `onError` with `presentationFailed: true`; errors raised while the SDK UI is running arrive through `onError` alone, with `presentationFailed: false`. A value the SDK does not know — a misspelled module name, an unparsable color, an unknown transition — rejects with `INVALID_CONFIG` instead of being silently ignored. The full list of codes and the recommended recovery for each is in [API Reference → Errors](08-api-reference.md#errors).
+The wrapper's own checks — `INVALID_CONFIG`, `ALREADY_PRESENTING`, `NO_PRESENTER` / `NO_ACTIVITY` — reject the promise and nothing else. A failure after the SDK has been asked to start (engine start-up, SDK initialization — the native `RollaError` codes) rejects the promise **and** fires `onError` with `presentationFailed: true`; errors raised while the SDK UI is running arrive through `onError` alone, with `presentationFailed: false`. A value the SDK does not know — a misspelled module name, an unparsable color, an unknown transition — rejects with `INVALID_CONFIG` instead of being silently ignored. The full list of codes and the recommended recovery for each is in [API Reference → Errors](08-api-reference.md#errors).
 
 ## Threading
 

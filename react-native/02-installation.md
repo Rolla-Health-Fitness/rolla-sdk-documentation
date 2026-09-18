@@ -7,10 +7,10 @@ Install the wrapper from npm, then apply the iOS Podfile and Android Gradle chan
 ```sh
 npm install @rolla-health/react-native-sdk@0.1.16 --save-exact
 # or
-yarn add @rolla-health/react-native-sdk@0.1.16
+yarn add -E @rolla-health/react-native-sdk@0.1.16
 ```
 
-No authentication is required — the package is published to the public npm registry. Your `package.json` should end up with an exact pin for the wrapper and for React (see [Prerequisites → React version pin](01-prerequisites.md#react-version-pin)):
+Both flags write the exact version — a caret here is the one thing the [Versioning](01-prerequisites.md#versioning) rules forbid. No authentication is required — the package is published to the public npm registry. Your `package.json` should end up with an exact pin for the wrapper and for React (see [Prerequisites → React version pin](01-prerequisites.md#react-version-pin)):
 
 ```jsonc
 {

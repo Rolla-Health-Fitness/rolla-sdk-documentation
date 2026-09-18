@@ -480,17 +480,19 @@ Method promises reject with an `Error` carrying a `code`; `onError` carries the 
 | `code` | Raised by | Meaning | Host App Recovery |
 |--------|-----------|---------|-------------------|
 | `INVALID_CONFIG` | `show`, `openScreen`, headless calls | A configuration value the SDK does not know — a misspelled module, data source, language or transition, an unparsable color, a missing `token` or `partnerId` | Fix the value; TypeScript catches most of these at compile time |
-| `ALREADY_PRESENTING` | `show` | `show()` called while another `show()` is pending or the SDK UI is on screen | Check `isPresenting()` before calling; `dismiss()` first if needed |
+| `ALREADY_PRESENTING` | `show` (wrapper or native) | `show()` called while another `show()` is pending or the SDK UI is on screen | Check `isPresenting()` before calling; `dismiss()` first if needed |
 | `NO_PRESENTER` (iOS) / `NO_ACTIVITY` (Android) | `show`, `openScreen` | No view controller or foreground activity to present from | Call from a mounted, settled screen — see [Code Integration](04-code-integration.md#present-the-sdk) |
 | `NO_ACTIVE_SESSION` | `updateToken`, `clearSession` | The engine is cold, so there is no session to update or clear | `updateToken`: pass the newest pair in your next configuration. `clearSession`: pass the configuration so the wrapper warms the engine first |
-| `UPDATE_TOKEN_FAILED` / `CLEAR_SESSION_FAILED` | `updateToken`, `clearSession` | The native SDK reported a failure | Inspect `message`; retry |
+| `UPDATE_TOKEN_FAILED` / `CLEAR_SESSION_FAILED` | `updateToken`, `clearSession` | The native SDK reported a failure without a code of its own (Android always; iOS passes the SDK's `RollaError` code through when it has one) | Inspect `message`; retry |
 | `SHOW_FAILED` | `show` | The native SDK failed to launch without a more specific code | Inspect `message`; retry, then `destroyEngine()` and re-initialize |
 | `ENGINE_FAILED` | native | Flutter engine failed to start | Retry after a delay. If persistent, `destroyEngine()` and re-initialize. Check device memory |
 | `INIT_FAILED` | native | SDK init failed — `message` explains why | Common causes: invalid credentials, network failure, expired token. Verify the configuration and retry |
 | `FLUTTER_ERROR` | native | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with the code |
+| `INVALID_CONTEXT` | native | The presenting view controller or activity was not in a valid state | Present from a screen that is on screen and resumed |
+| `UNDERLYING_ERROR` | native | Wraps a platform-native error | Inspect `message`; handle based on the underlying cause |
 | `UNKNOWN` | native | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent |
 
-The native codes and their meaning are the same as on the native platforms — see [iOS RollaError](../ios/10-api-reference.md#rollaerror) and [Android RollaError](../android/08-api-reference.md#rollaerror).
+The wrapper's own codes reject the promise only; the native codes reject the pending `show()` **and** arrive through `onError` (with `presentationFailed: true` when they ended a presentation). The native codes and their meaning are the same as on the native platforms — see [iOS RollaError](../ios/10-api-reference.md#rollaerror) and [Android RollaError](../android/08-api-reference.md#rollaerror).
 
 ## RollaCloseReason
 

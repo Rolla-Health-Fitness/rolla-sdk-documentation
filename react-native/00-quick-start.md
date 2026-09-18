@@ -19,7 +19,7 @@ Your app must register users and obtain access tokens from Rolla's authenticatio
 ```sh
 npm install @rolla-health/react-native-sdk@0.1.16 --save-exact
 # or
-yarn add @rolla-health/react-native-sdk@0.1.16
+yarn add -E @rolla-health/react-native-sdk@0.1.16
 ```
 
 > A fresh React Native 0.80 template needs `--legacy-peer-deps` with npm because its `react-test-renderer@18` conflicts with React 19 — see [Installation](02-installation.md#1-install-the-package).
@@ -110,20 +110,23 @@ await Rolla.destroyEngine();             // only after the clear has resolved
 A single, copy-pasteable component covering configuration, presentation, events, and cleanup:
 
 ```tsx
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Rolla, RollaConfiguration } from '@rolla-health/react-native-sdk';
 
 export function RollaScreen({ session }: { session: Session }) {
   const [opening, setOpening] = useState(false);
 
-  const configuration: RollaConfiguration = {
-    token: session.accessToken,
-    refreshToken: session.refreshToken,
-    tokenExpiresIn: session.expiresIn,
-    partnerId: 'your-partner-id',
-    environment: 'rnd', // 'production' for release builds
-  };
+  const configuration = useMemo<RollaConfiguration>(
+    () => ({
+      token: session.accessToken,
+      refreshToken: session.refreshToken,
+      tokenExpiresIn: session.expiresIn,
+      partnerId: 'your-partner-id',
+      environment: 'rnd', // 'production' for release builds
+    }),
+    [session],
+  );
 
   useEffect(() => {
     const refreshed = Rolla.addListener('onTokenRefreshed', (e) => {

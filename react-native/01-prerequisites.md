@@ -8,10 +8,9 @@ Before integrating the Rolla SDK into your React Native app, verify the followin
 |-------------|-------|
 | **React Native** | `0.80.3` with the **New Architecture** enabled (`newArchEnabled=true`). The wrapper is a codegen-backed TurboModule and runs Bridgeless; the legacy architecture is not supported. See [React Native version floor](#react-native-version-floor) |
 | **React** | Exactly the version your React Native release pins — `19.1.0` for RN 0.80.3, no caret. See [React version pin](#react-version-pin) |
-| **JavaScript engine** | Hermes (the React Native default) |
-| **iOS** | Deployment target `15.1`; CocoaPods with `use_frameworks! :linkage => :static`; Xcode 15+. See [iOS Prerequisites](../ios/01-prerequisites.md) |
+| **JavaScript engine** | Validated with Hermes, the React Native default |
+| **iOS** | Deployment target `15.1`; CocoaPods with `use_frameworks! :linkage => :static`. See [iOS Prerequisites](../ios/01-prerequisites.md) |
 | **Android** | `minSdk 26`, `compileSdk` / `targetSdk` `36`, Kotlin `2.2.0`, JDK 17 to build, core-library desugaring. See [Android Prerequisites](../android/01-prerequisites.md) |
-| **Node** | 18+ with npm 9+ or Yarn |
 | **Partner ID** | Provided by Rolla during onboarding (contact [support@rolla.app](mailto:support@rolla.app)) |
 | **Devices** | Physical iPhone and Android handsets — Bluetooth and GPS features are not available in simulators or emulators |
 

@@ -52,7 +52,7 @@ Add the following inside the top-level `<dict>` of `ios/YourApp/Info.plist`. Cus
 | `NSBluetoothAlwaysUsageDescription`, `NSBluetoothPeripheralUsageDescription` | Band pairing and sync | Crash at `CBCentralManager` init |
 | `NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription` | Outdoor and background activity tracking | Crash at `CLLocationManager` request |
 | `NSMotionUsageDescription` | Smartphone-only workouts, activity detection | Crash at `CMMotionManager` start |
-| `NSHealthShareUsageDescription` | Apple Health read | HealthKit authorization fails |
+| `NSHealthShareUsageDescription` | Apple Health read | Crash at HealthKit authorization |
 | `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` | Profile picture, saving activity images | Crash at the photo picker |
 | `MBXAccessToken` | Route maps | Blank maps |
 | `UIBackgroundModes` (`location`, `bluetooth-central`) | Band connection and GPS while backgrounded | Tracking stops when the app leaves the foreground |

@@ -6,15 +6,10 @@ A complete, step-by-step guide to integrating the Rolla SDK into your React Nati
 
 The wrapper is a TurboModule over the **same** native iOS pod (`RollaSDK`) and Android Maven artifact (`com.rolla.sdk:android_release`) that the [iOS](../ios/README.md) and [Android](../android/README.md) guides document. The Flutter engine, Bluetooth and GPS handling, foreground services, and all SDK UI live inside those native artifacts — your React Native code never sees Flutter. Everything that happens inside your `ios/` and `android/` projects (entitlements, manifests, widget extensions) works exactly as in a native app, so this guide links to the native pages for that and documents the React Native surface itself.
 
-## Versions
+**Wrapper version this guide targets:** `@rolla-health/react-native-sdk@0.1.16`
+**Native SDK it links:** `0.1.15` (iOS pod `RollaSDK` and Android `com.rolla.sdk:android_release`) — pinned by the wrapper, never declared by you
 
-| `@rolla-health/react-native-sdk` | Native SDK it links | Notes |
-|----------------------------------|---------------------|-------|
-| **`0.1.16`** (current) | **`0.1.15`** | Completes the JavaScript surface of the 0.1.15 SDK: every host event, the headless methods, `openScreen`, notification taps. A React Native-only release — there is no native 0.1.16 |
-| `0.1.15` | `0.1.15` | Presentation and token API only |
-| `0.2.0` and later | Equal to the package version | Every official SDK release ships an npm release carrying the same number |
-
-Pin the **exact** package version in your `package.json`. The wrapper pins the native artifacts exactly in turn, so you never declare `RollaSDK` or `android_release` yourself — see [Prerequisites → Versioning](01-prerequisites.md#versioning).
+The package is released in lockstep with the native SDK; `0.1.16` is the one React Native-only release, and from `0.2.0` on the package version equals the native version. Pin the exact version. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
 
 ## Table of Contents
 
