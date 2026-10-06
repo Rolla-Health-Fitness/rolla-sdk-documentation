@@ -4,17 +4,17 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 
 > **Configuration is read at initialization.** Apart from tokens, which you can push live with `RollaSDK.updateToken()` (see [Token Management](06-token-management.md)), the options apply for the lifetime of the SDK instance. To change branding, language, modules or data sources, call `initializeWithToken` again with the new values — it disposes and rebuilds the SDK — and re-render `RollaSdkHome`.
 
-## `initializeWithToken` parameters
+## `initializeWithToken` Parameters
 
 | Parameter | Type | Required | Default | Description |
 |-----------|------|----------|---------|-------------|
 | `accessToken` | `String` | Yes | — | JWT access token from `POST /api/login` |
-| `userId` | `String` | Yes | — | User identifier for local data namespacing (per-user storage isolation). Pass the JWT `sub` claim (`JwtDecoder.extractUserId`) or your own stable id. Never sent to the backend; an empty string falls back to the JWT `sub` |
+| `userId` | `String` | Yes | — | User identifier for local data namespacing (per-user storage isolation). Pass the JWT `sub` claim (`JwtDecoder.extractUserId`) or your own stable id, never empty, and the same value to `RollaSdkHome`. Never sent to the backend |
 | `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
 | `environment` | `RollaEnvironment` | No | `production` | Target backend: `rnd` (sandbox) or `production`. Must match where the token was issued — see [Code Integration](04-code-integration.md#environment-values) |
 | `baseUrl` | `String?` | No | from `environment` | Override the backend URL; leave unset to use `environment.baseUrl` |
 | `refreshToken` | `String?` | No | unset | Refresh token for the SDK's own credential renewal |
-| `tokenExpiresIn` | `Duration?` | No | unset | Access-token lifetime, for proactive refresh. A `Duration`, not seconds |
+| `tokenExpiresIn` | `Duration?` | No | unset | Access-token lifetime, for proactive refresh. A `Duration`, not seconds — wrap `expires_in` with `Duration(seconds: …)` |
 | `onTokenExpired` | `Future<TokenRefreshResult?> Function()?` | No | unset | Invoked when the SDK cannot refresh internally. See [Token Management](06-token-management.md) |
 | `onLogout` | `VoidCallback?` | No | unset | The user signed out from inside the SDK |
 | `onSessionExpired` | `VoidCallback?` | No | unset | Every refresh path failed; the session is unrecoverable |
@@ -35,7 +35,7 @@ The same options exist on the native wrappers' `RollaConfiguration`; the changel
 
 For the identity and auth essentials (`accessToken`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
 
-## Custom branding (optional)
+## Custom Branding (Optional)
 
 Pass a `Branding` instance via the `branding:` parameter. Colors are `dart:ui` `Color` values — use the `0xAARRGGBB` literal, not a hex string:
 
@@ -48,7 +48,7 @@ const Branding partnerBranding = Branding(
   appName: 'Your App Name',                  // names your app in consent and permission copy
   primaryColor: Color(0xFF1976D2),           // seeds the SDK's entire color scheme, light and dark
   defaultThemeMode: ThemeMode.system,        // light | dark | system
-  headerLogoAsset: null,                     // your logo, pre-bundled into the SDK by Rolla
+  headerLogoAsset: null,                     // your logo, pre-bundled into the SDK by Rolla; null shows no logo
   privacyUrl: 'https://example.com/privacy', // privacy link on the consent screen
   defaultLocale: null,                       // fallback locale when no language is configured or stored
 
@@ -71,7 +71,7 @@ await RollaSDK.initializeWithToken(
 - **`appName`** — your app's display name. SDK copy that refers to the app names it explicitly — the consent screen's legal intro and the battery-optimization / motion-permission prompts — in every SDK language. It is also the `MaterialApp.title` of the SDK shell.
 - **`primaryColor`** — seeds the whole SDK color scheme (buttons, navigation, inputs, charts, share cards) in both light and dark themes; it is not just an accent. The loading indicator shown while the SDK starts uses it too.
 - **`defaultThemeMode`** — the theme the SDK UI runs in: `ThemeMode.light`, `ThemeMode.dark`, or following the device setting (`ThemeMode.system`).
-- **`headerLogoAsset`** — path of your logo inside the SDK bundle (see [Branding assets](#branding-assets) below). `null` keeps the SDK default.
+- **`headerLogoAsset`** — path of your logo inside the SDK bundle (see [Branding assets](#branding-assets) below). `null` shows no logo: a `Branding` you pass replaces the defaults, so the SDK's default logo is not used.
 - **`privacyUrl`** — your privacy policy, linked from the consent screen's "privacy policy" text.
 - **`defaultLocale`** — a fallback UI locale, consulted only when `language` is unset and the user has neither a stored pick nor a profile language yet.
 
@@ -81,7 +81,7 @@ await RollaSDK.initializeWithToken(
 
 The class declares further optional fields (`termsUrl`, `onboardingImageAsset`, `signUpImageAsset`, the `auth*` text and background fields, `partnerId`) that this version of the SDK does not render. Leave them unset. The full declaration is in [API Reference → `Branding`](07-api-reference.md#branding).
 
-## Branding assets
+## Branding Assets
 
 Image assets used by the SDK (such as the logo referenced by `headerLogoAsset`) must be **pre-bundled inside the SDK package** at build time — they are loaded from the SDK's own asset bundle, not from your app's `pubspec.yaml` assets, and the header logo must be an **SVG** (the SDK renders it with its own SVG widget).
 
@@ -92,7 +92,7 @@ During onboarding, coordinate with Rolla to supply:
 
 Rolla will bundle these into the SDK and provide the correct asset path to use in your `Branding`.
 
-## Rolla Band references
+## Rolla Band References
 
 The SDK can refer to the paired wearable either generically ("fitness device") or specifically as the "Rolla Band" throughout its UI. This is controlled by the `removeRollaBandReferences` parameter:
 
@@ -119,8 +119,8 @@ await RollaSDK.initializeWithToken(
 
 - **Authoritative when set.** The configured language wins for the instance's lifetime — persisted in-SDK picks and the backend profile language cannot override it.
 - **Applied at initialization.** Changing the language means calling `initializeWithToken` again, like any configuration change.
-- **Kept in sync with the backend.** When the configured language differs from the user's profile, the SDK writes it to the profile at startup, so backend-generated content (goal labels, insights) arrives in the same language as the SDK UI.
-- **Unset keeps the profile-driven behavior.** With `language` unset, the SDK follows the profile's language — which your app can set via [`POST /api/setprofile`](../sdk-auth-api/03-profile.md) if you manage language selection server-side. A host that lets users change the device locale, like Rolla's own white-label app, leaves it unset.
+- **Kept in sync with the backend.** When the configured language differs from the user's profile, the SDK writes it to the profile when `RollaSdkHome` first mounts, so backend-generated content (goal labels, insights) arrives in the same language as the SDK UI.
+- **Unset keeps the profile-driven behavior.** With `language` unset, the SDK follows the profile's language — which your app can set via [`POST /api/setprofile`](../sdk-auth-api/03-profile.md) if you manage language selection server-side.
 
 ### `RollaLanguage`
 
@@ -135,7 +135,7 @@ await RollaSDK.initializeWithToken(
 | `serbianCyrillic` | Serbian — Cyrillic script (Српски) |
 | `arabic` | Arabic (العربية), right-to-left |
 
-## Module configuration
+## Module Configuration
 
 By default every module is enabled. To hide a module's entire UI everywhere it appears in the SDK, pass its `RollaDisabledModule` value in `disabledModules` (or omit the parameter to keep everything enabled):
 
@@ -163,9 +163,9 @@ Insights are short personalized reads generated from the user's own health data,
 
 Additional modules will become disable-able in future releases. If there is a module you need to hide that isn't listed yet, contact Rolla during onboarding and we will prioritize adding it to `RollaDisabledModule`.
 
-## Options button
+## Options Button
 
-On by default. The three-dot action at the trailing edge of the Home app bar opens an "Options" bottom sheet with shortcuts to Data Sources, Goals, Leaderboards and the FAQ — the entries for modules you disabled are left out. Pass `showOptionsButton: false` if your app reaches those screens through its own navigation, for example with `openScreen` (see [API Reference → Host-driven navigation](07-api-reference.md#host-driven-navigation)) or by letting the SDK's Profile tab do it.
+On by default. The three-dot action at the trailing edge of the Home app bar opens an "Options" bottom sheet with shortcuts to Data Sources, Goals, Leaderboards and the FAQ — the entries for modules you disabled are left out. Pass `showOptionsButton: false` if your app reaches those screens through its own navigation, for example with `openScreen` (see [API Reference → Host-Driven Navigation](07-api-reference.md#host-driven-navigation)) or by letting the SDK's Profile tab do it.
 
 ## Goals on Home
 
@@ -180,7 +180,7 @@ await RollaSDK.initializeWithToken(
 
 The section is the bottom-most element of the Home scroll. It is particularly useful together with `showOptionsButton: false`, where it becomes the user's way to view and edit goals directly from Home. Users who reach the SDK with goals never selected are asked to choose them once, right after their first data-source connect — see [Goal selection after the first data-source connect](../sdk-auth-api/03-profile.md#goal-selection-after-the-first-data-source-connect).
 
-## Data source configuration
+## Data Source Configuration
 
 By default the SDK offers every data source the user can connect (Rolla Band, Garmin, Oura, Apple Health on iOS, Health Connect on Android). To hide specific sources, pass their `RollaDataSource` values in `disabledDataSources` (or omit the parameter to offer everything):
 
@@ -193,7 +193,7 @@ await RollaSDK.initializeWithToken(
 
 A hidden source's connect option is suppressed everywhere the user picks a source to connect — the Data Sources screen and the onboarding data-source step. This is useful when you want to route users toward a specific source: disabling everything except the band, for example, sends users straight to the "Pair your band" flow.
 
-### Behavior notes
+### Behavior Notes
 
 - **Deny-list semantics.** An empty set (the default) offers every source. Each value present hides that source. This matches `disabledModules`.
 - **Already-connected sources stay visible.** If a user has already connected a source that you later disable, it still appears on the Data Sources screen so they can view or disconnect it — only offering a *new* connection is suppressed.
@@ -210,7 +210,7 @@ A hidden source's connect option is suppressed everywhere the user picks a sourc
 | `appleHealth` | Apple Health (iOS only) |
 | `healthConnect` | Health Connect (Android only) |
 
-## Profile completeness
+## Profile Completeness
 
 The SDK's own onboarding (consent, account details, goals) runs in front of Home when the user's profile is incomplete. `isProfileComplete` tells the SDK what to assume:
 
@@ -220,7 +220,7 @@ The SDK's own onboarding (consent, account details, goals) runs in front of Home
 | `true` | Your app owns onboarding and guarantees a complete profile; the SDK skips the check without an API call |
 | `false` | Always run the account-details onboarding — a deterministic hook for testing |
 
-## Invalid values
+## Invalid Values
 
 Every option above is a Dart enum or typed value, so a misspelled module, language or data source is a compile error rather than a silent no-op. The only runtime check is on identity: `initializeWithToken` throws an `ArgumentError` when neither `userId` nor the token's `sub` claim resolves to a user — see [Code Integration](04-code-integration.md#initialize-with-a-token).
 

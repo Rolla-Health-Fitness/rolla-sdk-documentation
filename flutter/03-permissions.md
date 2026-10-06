@@ -1,12 +1,12 @@
-# Permissions
+# Permissions & Entitlements
 
-The Rolla SDK uses Bluetooth Low Energy, Core Location, Core Motion, HealthKit / Health Connect, Photos, and Mapbox. Because a Flutter host compiles the Dart package (not a prebuilt AAR or pod), **your app must declare the platform permissions itself** in `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml` — a fresh `flutter create` scaffold ships with none of them. This page lists what the scaffold is missing and links to the native pages for the rationale and the exact wording.
+The Rolla SDK uses Bluetooth Low Energy, Core Location, Core Motion, HealthKit / Health Connect, Photos, and Mapbox. The package does not change which permissions are required — they are declared in your `ios/` and `android/` projects exactly as in a native app. This page lists what a fresh `flutter create` scaffold is missing and links to the native pages for the rationale and the exact wording.
 
 ## iOS
 
 ### Info.plist
 
-iOS calls `abort()` (SIGABRT) the moment the SDK touches Bluetooth, Location, Motion or HealthKit without a corresponding usage-description string in `Info.plist` — there is no Dart exception to catch. A fresh Flutter scaffold has none of the keys below.
+iOS calls `abort()` (SIGABRT) the moment the SDK touches Bluetooth, Location, Motion, HealthKit or Photos without a corresponding usage-description string in `Info.plist` — there is no Dart exception to catch. A fresh Flutter scaffold has none of the keys below.
 
 Also required: `MBXAccessToken` (your Mapbox public token) and a `UIBackgroundModes` array with `location` and `bluetooth-central`, so outdoor tracking continues and the band stays connected when the app is backgrounded.
 
@@ -67,7 +67,18 @@ Two capabilities live in `ios/Runner/Runner.entitlements`, not in `Info.plist` �
 
 Exact keys and steps: [iOS Permissions & Entitlements → Configure Entitlements](../ios/03-permissions-and-entitlements.md#configure-entitlements). Apple Health needs no code on your side — the SDK reads the 14 HealthKit types listed in [iOS Apple Health Integration](../ios/06-apple-health.md) and prompts the user from its own UI.
 
-### Live Activities (optional, iOS 16.1+)
+### Notification Delegate
+
+The SDK posts its notifications through `flutter_local_notifications`, which needs your `AppDelegate` to be the notification-center delegate so taps reach the SDK and its notifications show while the app is in the foreground. Add one line to `ios/Runner/AppDelegate.swift`, after the plugin registration:
+
+```swift
+GeneratedPluginRegistrant.register(with: self)
+UNUserNotificationCenter.current().delegate = self as UNUserNotificationCenterDelegate
+```
+
+If a push library already owns the delegate, keep it — the plugin forwards through the delegate the app already has. Where a tap leads: [API Reference → Notification Taps](07-api-reference.md#notification-taps).
+
+### Live Activities (Optional, iOS 16.1+)
 
 The SDK drives a Lock Screen / Dynamic Island Live Activity during workouts. Everything it needs is native and lives in your `ios/` project exactly as in a Swift app: a Widget Extension target named `liveworkout`, three Swift files (the shared `LiveWorkoutAttributes` data contract compiled into both targets, the widget bundle, and the SwiftUI UI you own and can restyle), the Push Notifications capability on both targets, and two keys in the main app's `Info.plist`:
 
@@ -82,7 +93,7 @@ No Dart is involved. Follow the step-by-step procedure and copy the complete Swi
 
 ## Android
 
-### Mapbox token
+### Mapbox Token
 
 Route maps need the Mapbox public token in `android/app/src/main/res/values/strings.xml` — the Android counterpart of `MBXAccessToken`:
 
@@ -94,7 +105,7 @@ Without it the SDK runs, but every map stays blank — see [Android Permissions 
 
 ### AndroidManifest.xml
 
-The package's own Android manifest declares the Bluetooth, location, activity-recognition, foreground-service, notification and boot permissions the SDK needs, and the manifest merger pulls them into your app — you do not declare those. Three things are still yours to declare, because Google reviews the **merged** manifest under your app's identity:
+The package's own Android manifest declares the Bluetooth (including `BLUETOOTH_ADVERTISE`), location, activity-recognition, foreground-service, notification and boot permissions the SDK needs, and the manifest merger pulls them into your app — you do not declare those. Three things are still yours to declare, because Google reviews the **merged** manifest under your app's identity:
 
 **Internet.** Flutter's debug manifest adds `INTERNET` for hot reload; release builds need it declared explicitly.
 
@@ -158,17 +169,17 @@ Every entry is explained in [Android Permissions → Health Connect](../android/
 
 **Your Play listing.** Declare the permissions you ship in the Data Safety form and your privacy policy; the rationale matrix on the Android permissions page is written to be lifted into both. Listing the SDK-merged permissions explicitly in your own manifest, as the demo does, keeps that declaration reviewable in one place.
 
-### Launch mode
+### Launch Mode
 
-Keep Flutter's default `android:launchMode="singleTop"` on `MainActivity`. The SDK runs inside your activity, so a tap on one of its notifications re-enters the same activity and the SDK routes it — see [API Reference → Notification taps](07-api-reference.md#notification-taps).
+Keep Flutter's default `android:launchMode="singleTop"` on `MainActivity`. The SDK runs inside your activity, so a tap on one of its notifications re-enters the same activity and the SDK routes it — see [API Reference → Notification Taps](07-api-reference.md#notification-taps).
 
-### Notification channels
+### Notification Channels
 
 The SDK creates its notification channels itself, with brand-neutral names that read naturally under your app's name in system settings — nothing to declare. See [Android Permissions → Notification Channels](../android/03-permissions.md#notification-channels).
 
-## Runtime prompts
+## Runtime Prompts
 
-Runtime permission prompts — the Bluetooth, location, motion, HealthKit and Health Connect dialogs — are driven by the SDK from its own UI when the user reaches the feature that needs them. Your Dart code calls no permission API. The exception is the headless calls: because there is no SDK UI to prompt from, a missing permission makes them return a typed reason (`bluetoothPermissionRequired`, `healthConnectPermissionRequired`, …) instead of prompting — request the permission first, for example with [`permission_handler`](https://pub.dev/packages/permission_handler). See [API Reference → Headless calls](07-api-reference.md#headless-calls).
+Runtime permission prompts — the Bluetooth, location, motion, HealthKit and Health Connect dialogs — are driven by the SDK from its own UI when the user reaches the feature that needs them. Your Dart code calls no permission API. One prompt comes earlier: `initializeWithToken` requests the notification permission (Android 13+ `POST_NOTIFICATIONS`; iOS alert, badge and sound) the first time it runs, so call it at a point where that prompt makes sense, or request the permission yourself beforehand. The exception is the headless calls: because there is no SDK UI to prompt from, a missing permission makes them return a typed reason (`bluetoothPermissionRequired`, `healthConnectPermissionRequired`, …) instead of prompting — request the permission first, for example with [`permission_handler`](https://pub.dev/packages/permission_handler). See [API Reference → Headless Calls](07-api-reference.md#headless-calls).
 
 ---
 

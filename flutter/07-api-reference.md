@@ -14,7 +14,7 @@ Static entry point. Initialize once, then render `RollaSdkHome`.
 
 ### `RollaSDK.initializeWithToken(...)`
 
-Initializes the SDK with credentials your backend minted. Must complete before you render `RollaSdkHome`. Calling it again disposes the previous instance and re-initializes; a different `userId` first clears the previous user's local caches. Throws `ArgumentError` when neither `userId` nor the token's `sub` claim identifies a user.
+Initializes the SDK with the tokens obtained from the Rolla auth API. Must complete before you render `RollaSdkHome`. Calling it again disposes the previous instance and re-initializes; a different `userId` first clears the previous user's local caches. Throws `ArgumentError` when neither `userId` nor the token's `sub` claim identifies a user.
 
 ```dart
 static Future<void> initializeWithToken({
@@ -45,25 +45,25 @@ static Future<void> initializeWithToken({
 
 Every parameter is described in [Configuration → `initializeWithToken` parameters](05-configuration.md#initializewithtoken-parameters); the callbacks in [Code Integration](04-code-integration.md) and [Token Management](06-token-management.md).
 
-### Session & tokens
+### Session & Tokens
 
 | Member | Description |
 |--------|-------------|
-| `static bool get isInitialized` | `true` once `initializeWithToken` has completed. Guard `RollaSdkHome` rendering on this |
+| `static bool get isInitialized` | Whether an SDK instance exists. It turns `true` partway through `initializeWithToken` and is not reactive, so gate rendering on your own completion flag or the awaited future, not on this |
 | `static Future<bool> updateToken({required String accessToken, String? refreshToken, Duration? expiresIn})` | Push fresh credentials — a proactive push, or the pair you refreshed elsewhere. Returns `false` when the SDK kept a newer pair it already held, or is not initialized. See [Token Management → Pushing a new token](06-token-management.md#pushing-a-new-token) |
 | `static Future<void> logout()` | Clear stored tokens and dispose the SDK instance. Call when your user logs out of your app |
 
-### Navigation & headless
+### Navigation & Headless
 
 | Member | Description |
 |--------|-------------|
 | `static Future<RollaOpenScreenStatus> openScreen(RollaScreen screen)` | Open the SDK UI directly on a specific screen — see [Host-driven navigation](#host-driven-navigation) |
-| `static Future<RollaSyncResult> syncHealthData({bool includeSamples = false})` | Headless sync of the user's primary data source — see [Headless calls](#synchealthdata) |
-| `static Future<BandBatteryResult> getBandBatteryLevel()` | Headless live battery read from the paired Rolla band — see [Headless calls](#getbandbatterylevel) |
-| `static Future<PairedBandResult> getPairedBandInfo()` | Headless paired-band query, zero Bluetooth — see [Headless calls](#getpairedbandinfo) |
+| `static Future<RollaSyncResult> syncHealthData({bool includeSamples = false})` | Headless sync of the user's primary data source — see [`syncHealthData`](#synchealthdata) |
+| `static Future<BandBatteryResult> getBandBatteryLevel()` | Headless live battery read from the paired Rolla Band — see [`getBandBatteryLevel`](#getbandbatterylevel) |
+| `static Future<PairedBandResult> getPairedBandInfo()` | Headless paired-band query, zero Bluetooth — see [`getPairedBandInfo`](#getpairedbandinfo) |
 | `static Future<void> handleInsightGenerationPush({required String trigger, required String status})` | Forward a Rolla data-only FCM push (`{ trigger, status }`) so the insights feed refreshes when `status == 'complete'`. Safe no-op otherwise; only relevant if your app owns Firebase Messaging and forwards Rolla pushes |
 
-> **Advanced:** `RollaSDK.initialize(config: RollaSDKConfig(...))` lets you supply a custom `RollaAuthProvider` instead of a token. Most integrations should use `initializeWithToken`; the configuration options above are only supported via `initializeWithToken`.
+> **Advanced:** `RollaSDK.initialize(config: RollaSDKConfig(...))` lets you supply a custom `RollaAuthProvider` instead of a token. Most integrations should use `initializeWithToken`; the configuration options above are only supported via `initializeWithToken`. The other public statics on `RollaSDK` (`instance`, `reset`, the `set…` methods, `runDeliberateLogout`, the configuration getters) are plumbing for the native wrappers and the SDK's own UI — do not call them.
 
 ## `RollaSdkHome`
 
@@ -72,8 +72,8 @@ The single widget that renders the entire SDK experience. It builds its **own** 
 ```dart
 const RollaSdkHome({
   Key? key,
-  required String userId,      // same value passed at init
-  bool isNativeModal = false,  // native add-to-app only; pure-Flutter hosts leave false
+  required String userId,      // must equal the userId passed to initializeWithToken
+  bool isNativeModal = false,  // internal; leave false
 })
 ```
 
@@ -82,9 +82,9 @@ const RollaSdkHome({
 return RollaSdkHome(userId: user.id);
 ```
 
-On mount it evaluates the mandatory startup gates (profile onboarding, consent, permissions, data-source connection) and shows whichever applies before Home. It also detects an activity interrupted by a crash and offers to resume, save or discard it.
+`userId` must equal the value passed to `initializeWithToken`; a different value switches the SDK to another user's local storage. On mount it evaluates the mandatory startup gates (profile onboarding, consent, permissions, data-source connection) and shows whichever applies before Home. It also detects an activity interrupted by a crash and offers to resume, save or discard it.
 
-## Host-driven navigation
+## Host-Driven Navigation
 
 ### `openScreen`
 
@@ -115,7 +115,7 @@ The screens your app can open directly — a deliberate whitelist:
 | `goals` | The goals editor |
 | `home` | The SDK Home screen — restores Home as the root, with its usual bottom navigation and back-to-host button |
 | `insights` | The insights feed — requires the insights module to be enabled (see [`RollaDisabledModule`](05-configuration.md#rolladisabledmodule)) |
-| `resume` | No navigation at all: the SDK exactly as the user left it. Always resolves as `opened` |
+| `resume` | No navigation at all: the SDK exactly as the user left it. Never `blockedByGate` or `screenDisabled`; resolves `opened` once `RollaSdkHome` is attached |
 
 ### `RollaOpenScreenStatus`
 
@@ -130,9 +130,9 @@ Every outcome is a typed status — the call never throws:
 | `uiUnavailable` | `RollaSdkHome` did not mount within the wait — nothing was opened. Push your SDK route right after calling |
 | `superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 
-## Notification taps
+## Notification Taps
 
-The SDK posts its own notifications (a workout in progress on Android, the inactivity reminder, the band battery warning, a background-location warning) and handles a tap on any of them itself — there is no API to call:
+The SDK posts its own notifications (a workout in progress on Android, the inactivity reminder, the band battery warning, a background-location warning) and handles a tap on any of them itself — there is no API to call. On iOS this needs your `AppDelegate` to be the notification-center delegate, one line described in [Permissions & Entitlements → Notification Delegate](03-permissions.md#notification-delegate):
 
 | Notification | When the SDK posts it | Tap leads to |
 |--------------|-----------------------|--------------|
@@ -141,11 +141,13 @@ The SDK posts its own notifications (a workout in progress on Android, the inact
 | **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight | Home |
 | **Workout in progress** / **Location Tracking** (Android only — the foreground-service notifications) | For the whole of a Bluetooth or GPS workout | The live workout, exactly as the user left it |
 
-A screen target is routed through `openScreen` under the hood, so it is subject to the same rule: the SDK waits up to 15 seconds for `RollaSdkHome` to be on screen, including after a tap that cold-launched the app. With `RollaSdkHome` as your authenticated root ([Option B](04-code-integration.md#option-b--make-it-your-apps-root)) every tap lands; with the SDK on a pushed route, a tap opens your app and the navigation is dropped unless your app presents the SDK on launch. The SDK never claims your app's notification handling for notifications that are not its own.
+A screen target is routed through `openScreen` under the hood, so it is subject to the same rule: a tap that cold-launched the app is kept until `initializeWithToken` has run, and from then the SDK waits up to 15 seconds for `RollaSdkHome` to be on screen. With `RollaSdkHome` as your authenticated root ([Option B](04-code-integration.md#option-b--make-it-your-apps-root)) every tap lands; with the SDK on a pushed route, a tap opens your app and the navigation is dropped unless your app presents the SDK on launch.
 
-## Headless calls
+> **If your app also uses `flutter_local_notifications`**, both share the plugin's single instance and its single tap callback: whichever calls `initialize` last receives all taps, the SDK's included. Running your own local notifications alongside the SDK is not supported in 0.1.15 — tell Rolla if you need it.
 
-Three methods run **headlessly** — no `RollaSdkHome` needs to be on screen, only `initializeWithToken` must have completed. Because there is no SDK UI to prompt from, **your app owns OS permissions**: when one is missing, the methods return a typed reason instead of prompting. They never throw; a transport failure is reported in the result.
+## Headless Calls
+
+Three methods run **headlessly** — no `RollaSdkHome` needs to be on screen, only `initializeWithToken` must have completed (before that, `getBandBatteryLevel` reports `noBandPaired`, `getPairedBandInfo` reports `unknown` and `syncHealthData` is `skipped` with `notInitialized` — check your own init state first). Because there is no SDK UI to prompt from, **your app owns OS permissions**: when one is missing, the methods return a typed reason instead of prompting; the one prompt the SDK does raise is the notification permission, at `initializeWithToken`. They never throw; a transport failure is reported in the result.
 
 ### `syncHealthData`
 
@@ -157,7 +159,7 @@ Runs a full sync of the user's primary data source (band over BLE, Apple Health,
 
 | Field | Meaning |
 |-------|---------|
-| `outcome` | `success`, `partial`, `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error`) |
+| `outcome` | `success`, `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error`); `partial` is reserved and not produced in 0.1.15 |
 | `hasNewData` | Whether anything new was uploaded (success only) |
 | `source` | `band`, `appleHealth`, `healthConnect`, `garmin`, `oura`, or `unknown` |
 | `startedAt` / `lastSyncAt` | When the sync started / completed on the device. `startedAt` is `null` for `skipped`; `lastSyncAt` is set on success |
@@ -184,7 +186,7 @@ switch (result.outcome) {
 static Future<BandBatteryResult> getBandBatteryLevel()
 ```
 
-A **live BLE read** from the paired Rolla band — the band must be reachable. Returns `status` and `level`: a percentage in `level` when `status` is `BandBatteryStatus.available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected`, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `notRollaDevice` — reserved, not currently returned — or `unknownError`). Never a stale value reported as live.
+A **live BLE read** from the paired Rolla Band — the band must be reachable. Returns `status` and `level`: a percentage in `level` when `status` is `BandBatteryStatus.available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected`, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `notRollaDevice` — reserved, not currently returned — or `unknownError`). Never a stale value reported as live.
 
 ### `getPairedBandInfo`
 
@@ -192,7 +194,7 @@ A **live BLE read** from the paired Rolla band — the band must be reachable. R
 static Future<PairedBandResult> getPairedBandInfo()
 ```
 
-Answers "does this account currently have a Rolla band?" with **zero Bluetooth** — no scan, no connect, no BLE permission; works with Bluetooth off. Returns `status` and `band`:
+Answers "does this account currently have a Rolla Band?" with **zero Bluetooth** — no scan, no connect, no BLE permission; works with Bluetooth off. Returns `status` and `band`:
 
 | Status | Meaning |
 |--------|---------|
@@ -209,7 +211,7 @@ if (paired.isPaired) {
 }
 ```
 
-## Types & enums
+## Types & Enums
 
 ### `RollaEnvironment`
 
@@ -232,7 +234,7 @@ Returned from `onTokenExpired`; return `null` instead to signal that you have no
 class TokenRefreshResult {
   final String accessToken;
   final String? refreshToken;
-  final Duration? expiresIn;   // a Duration, not seconds
+  final Duration? expiresIn;
 
   const TokenRefreshResult({
     required this.accessToken,
@@ -361,7 +363,7 @@ class RollaBandInfo {
 }
 ```
 
-## Other exports
+## Other Exports
 
 | Export | Purpose |
 | --- | --- |
@@ -372,9 +374,9 @@ class RollaBandInfo {
 | `RollaSDKConfig`, `RollaAuthProvider`, `TokenAuthProvider`, `RollaAuthTokens` | Advanced `RollaSDK.initialize` configuration. |
 | `Failure` and its subclasses | The error type carried by `RollaSyncResult.error` and the module read results. |
 
-## Not available in Flutter
+## Not Available in Flutter
 
-The native wrappers expose a few things the Dart package does not, because a Flutter host runs the SDK on its own engine:
+The native wrappers expose a few things the Dart package does not, because the SDK runs inside your app's own Flutter engine:
 
 - **Host event callbacks** (`rollaDidCompleteActivity`, `onBandPaired`, `onUiSyncCompleted`, …): there is no event-listener API. In Flutter you observe the SDK lifecycle through the callbacks you pass to `initializeWithToken` (`onLogout`, `onSessionExpired`, `onRequestDismiss`, `onTokenExpired`) and the typed results of the headless calls.
 - **`notificationTarget`**: the SDK routes its own notification taps itself — see [Notification taps](#notification-taps).

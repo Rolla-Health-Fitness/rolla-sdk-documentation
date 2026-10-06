@@ -4,24 +4,24 @@ Add the `rolla_sdk` package from pub.dev, then apply the iOS and Android changes
 
 > A Flutter host depends on the **Dart package** — there are no extra Maven repositories or Podfile sources to add. Flutter's tooling resolves the SDK's native dependencies for you; you only apply the platform floors below and the [Permissions](03-permissions.md) in the next step.
 
-## 1. Add the package
+## 1. Add the Package
 
 ```sh
-flutter pub add rolla_sdk
+flutter pub add rolla_sdk:0.1.15
 ```
 
-This writes the current release to `pubspec.yaml`:
+This pins the current release in `pubspec.yaml` — an exact version, not a caret, because 0.1.x releases can carry breaking changes (see [Prerequisites → Versioning](01-prerequisites.md#versioning)):
 
 ```yaml
 dependencies:
-  rolla_sdk: ^0.1.15
+  rolla_sdk: 0.1.15
 ```
 
 No authentication is required — the package is published to the public pub.dev registry. Requires **Flutter 3.35.6 / Dart 3.9.2** or newer, see [Prerequisites](01-prerequisites.md).
 
-> `rolla_sdk` pins three plugins to exact versions on purpose — `mapbox_maps_flutter 2.22.0`, `health 13.3.1`, `device_info_plus 12.3.0` — because the SDK's native code is built against them. If your app depends on one of these directly, align your constraint with the pinned version or `flutter pub get` fails to solve.
+> `rolla_sdk` pins three plugins to exact versions on purpose — `mapbox_maps_flutter 2.22.0`, `health 13.3.1`, `device_info_plus 12.3.0` — because the SDK's native code is built against them. If your app depends on one of these directly, align your constraint with the pinned version or `flutter pub get` fails to solve. It also constrains other common packages to a major version (`go_router ^14`, `flutter_bloc ^8`, `get_it ^8`, `flutter_local_notifications ^17`, `geolocator ^10`, `share_plus ^10`); if `flutter pub get` reports a conflict on one of these, align your constraint.
 
-## 2. iOS — deployment target and pods
+## 2. iOS — Deployment Target and Pods
 
 Set the deployment target to **14.0** in `ios/Podfile`:
 
@@ -74,9 +74,9 @@ dependencies {
 
 For the rationale behind each floor, see [Android Gradle Setup](../android/02-gradle-setup.md) and [Android Prerequisites](../android/01-prerequisites.md).
 
-**ProGuard / R8:** the package's Android half bundles consumer rules, so minified release builds need no manual configuration. Verify your release build with `minifyEnabled true` through the full flow once — see [Android Gradle Setup → ProGuard / R8](../android/02-gradle-setup.md#proguard--r8).
+**ProGuard / R8:** the package's Android half bundles consumer rules, so minified release builds need no manual configuration. Verify a minified release build (`flutter build apk --release` runs R8 by default; `isMinifyEnabled = true` if you configure it explicitly) through the full flow once — see [Android Gradle Setup → ProGuard / R8](../android/02-gradle-setup.md#proguard--r8).
 
-## 4. Verify the build
+## 4. Verify the Build
 
 Build for each platform to confirm the floors resolve before writing integration code:
 
@@ -96,4 +96,4 @@ flutter build ios --no-codesign   # iOS build sanity check
 
 ---
 
-**Previous:** [Prerequisites](01-prerequisites.md) | **Next:** [Permissions](03-permissions.md) | **Home:** [README](README.md)
+**Previous:** [Prerequisites](01-prerequisites.md) | **Next:** [Permissions & Entitlements](03-permissions.md) | **Home:** [README](README.md)
