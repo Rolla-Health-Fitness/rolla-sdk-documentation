@@ -2,13 +2,13 @@
 
 Get the Rolla SDK running in your Flutter app in under 10 minutes.
 
-> **This guide covers the minimal integration.** For permissions, branding, modules, and token details, see the [full documentation](README.md).
+> **This guide covers the minimal integration.** For permissions, branding, modules, host-driven navigation, the headless calls, and token details, see the [full documentation](README.md).
 
 ## Prerequisites
 
 - **Flutter 3.35.6+ / Dart 3.9.2+**
 - **iOS 14.0+** deployment target (`platform :ios, '14.0'` in `ios/Podfile`)
-- **Android `minSdk 26`**, **build JDK 17+**, **Kotlin 2.2.0+**, and **core library desugaring** — see [Installation](02-installation.md)
+- **Android `minSdk 26`**, **Kotlin 2.2.0+**, **JDK 17** to build, and **core library desugaring** — see [Installation](02-installation.md)
 - **Partner ID and sandbox credentials** from your Rolla SDK starter package (contact [support@rolla.app](mailto:support@rolla.app))
 - **A physical device** for hardware-backed features (Bluetooth band pairing, motion sensors)
 
@@ -24,7 +24,7 @@ This adds the current release to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rolla_sdk: ^0.1.12
+  rolla_sdk: ^0.1.15
 ```
 
 Then apply the platform floors (iOS deployment target, Android `minSdk` and desugaring) from [Installation](02-installation.md).
@@ -45,7 +45,7 @@ The response contains everything step 3 needs:
 - `access_token` → `accessToken`
 - `refresh_token` → `refreshToken`
 - `expires_in` → `tokenExpiresIn` (seconds; step 3 wraps it in a `Duration`)
-- `userId` — the access token is a JWT whose `sub` claim is the Rolla user ID; decode it (or use your own user id / email)
+- `userId` — the access token is a JWT whose `sub` claim is the Rolla user ID. The package exports a decoder for it: `JwtDecoder.extractUserId(accessToken)`. Your own stable user id works too.
 
 See [Auth API — Authentication](../sdk-auth-api/02-authentication.md) for the full flow (`/api/register` → `/api/login` → tokens).
 
@@ -63,7 +63,7 @@ await RollaSDK.initializeWithToken(
   accessToken: session.accessToken,
   refreshToken: session.refreshToken,
   tokenExpiresIn: Duration(seconds: session.expiresIn),
-  userId: 'your-user-id',            // the login JWT's `sub` claim (step 2), or your own id / email
+  userId: JwtDecoder.extractUserId(session.accessToken)!, // the JWT's `sub` claim (step 2), or your own id
   partnerId: 'your-partner-id',
   environment: RollaEnvironment.rnd, // sandbox; .production for release builds
 
@@ -71,7 +71,7 @@ await RollaSDK.initializeWithToken(
   showBackButton: true,
   onRequestDismiss: () => Navigator.of(context).pop(),
 
-  // Hand back fresh tokens when the SDK asks; null signals refresh failed.
+  // Hand back fresh tokens when the SDK asks; null means you have none.
   onTokenExpired: () async {
     final r = await myBackend.fetchRollaTokens();
     return TokenRefreshResult(
@@ -81,8 +81,9 @@ await RollaSDK.initializeWithToken(
     );
   },
 
-  // User logged out from inside the SDK — return to your app.
+  // The user signed out inside the SDK, or the session is unrecoverable — return to your app.
   onLogout: () => Navigator.of(context).pop(),
+  onSessionExpired: () => Navigator.of(context).pop(),
 );
 ```
 
@@ -142,9 +143,9 @@ For the production-ready version of this screen (error handling, retry), see [Co
 ## Next Steps
 
 - **Permissions:** Add the required Info.plist keys and manifest entries — [Permissions](03-permissions.md)
-- **Branding:** Customize colors, logos, and enabled modules — [Branding & Modules](05-branding-and-modules.md)
+- **Configuration:** Customize branding, force a UI language, and control module and data-source visibility — [Configuration](05-configuration.md)
 - **Token details:** Full token lifecycle and edge cases — [Token Management](06-token-management.md)
-- **API Reference:** All methods, callbacks, and types — [API Reference](07-api-reference.md)
+- **Beyond the Home screen:** `openScreen`, the headless calls, notification taps — [API Reference](07-api-reference.md)
 
 ---
 

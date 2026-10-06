@@ -13,7 +13,18 @@ The entire integration is two calls:
 import 'package:rolla_sdk/rolla_sdk.dart';
 ```
 
-Everything you need — `RollaSDK`, `RollaSdkHome`, `RollaEnvironment`, `TokenRefreshResult`, `Branding`, `RollaDisabledModule` — is exported from this one barrel file.
+Everything you need — `RollaSDK`, `RollaSdkHome`, `RollaEnvironment`, `TokenRefreshResult`, `Branding`, `RollaLanguage`, `RollaDisabledModule`, `RollaDataSource`, `RollaScreen`, `JwtDecoder` — is exported from this one barrel file.
+
+## Authentication & token flow
+
+The SDK needs a **user access token** (JWT) to identify the user and authorize API calls. You obtain this token from Rolla's auth API **after** the user has logged in.
+
+- **Typical flow:** User logs in to your app → your app calls your backend → your backend returns `access_token`, `refresh_token`, and `expires_in` from Rolla's auth API → you pass all three into `initializeWithToken`.
+- **When to fetch:** Right before initializing, so the SDK starts with the maximum remaining lifetime. If the user is already logged in, use your existing session (a stored pair, or a refresh to get a new access token).
+- **What to pass:** All three token fields — `accessToken`, `refreshToken`, and `tokenExpiresIn`. The access token alone opens the SDK, but the other two are what let it keep the session alive on its own — see [Token Management](06-token-management.md#your-apps-responsibilities).
+- **Partner ID:** Use the partner ID Rolla gave you. It is fixed per partner, not per user.
+
+> **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
 
 ## Initialize with a token
 
@@ -22,22 +33,34 @@ Everything you need — `RollaSDK`, `RollaSdkHome`, `RollaEnvironment`, `TokenRe
 ```dart
 await RollaSDK.initializeWithToken(
   accessToken: session.accessToken,
-  refreshToken: session.refreshToken,            // optional
-  tokenExpiresIn: const Duration(seconds: 1800), // optional, enables proactive refresh
-  userId: 'user-123',                            // your logged-in user's id or user email
+  refreshToken: session.refreshToken,                   // lets the SDK refresh on its own
+  tokenExpiresIn: Duration(seconds: session.expiresIn), // enables proactive refresh
+  userId: JwtDecoder.extractUserId(session.accessToken)!, // or your own stable user id
   partnerId: 'your-partner-id',
-  environment: RollaEnvironment.rnd,             // .rnd while integrating; .production when live
-  branding: myBranding,                          // optional, see Branding & Modules
+  environment: RollaEnvironment.rnd,                    // .rnd while integrating; .production when live
+  branding: myBranding,                                 // optional, see Configuration
   onTokenExpired: () async { /* return fresh tokens */ },
+  onSessionExpired: () { /* the session is dead: show your login */ },
   onLogout: () { /* return to your app */ },
 );
 ```
 
-For `userId`, pass a stable identifier or the user's email. The login response's access token is a JWT whose `sub` claim contains the Rolla user ID, so you can also decode it from there — no extra API call needed.
+These are the identity and auth essentials. `initializeWithToken` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `showOptionsButton`, `showGoalsSection`, `removeRollaBandReferences`, `isProfileComplete` and the UI chrome flags — see [Configuration](05-configuration.md) for the full reference.
+
+For `userId`, pass the Rolla user ID — the `sub` claim of the login JWT, which `JwtDecoder.extractUserId` reads for you — or a stable identifier of your own. It namespaces the SDK's persisted data per user on shared devices and is never sent to the backend. An empty string makes the SDK fall back to the JWT `sub` claim itself; if neither resolves, `initializeWithToken` throws an `ArgumentError` rather than mixing users' data.
 
 > **Use `RollaEnvironment.rnd` while integrating.** Your starter-package credentials belong to the `rnd` sandbox and won't authenticate against production. The parameter defaults to `.production`, so set it explicitly. Switch to `.production` once Rolla provisions your production credentials.
 
-`initializeWithToken` resets any prior instance and returns once the SDK is ready; after it completes, `RollaSDK.isInitialized` is `true`. Kick it off from `initState()` (or a button handler) and show a spinner while it runs — re-running it disposes and rebuilds the SDK, so do not call it on every rebuild.
+### Environment values
+
+| Value | Description |
+|-------|-------------|
+| `RollaEnvironment.production` | Live / release builds (`https://ross.rolla.cloud`) — the default |
+| `RollaEnvironment.rnd` | Development and QA sandbox (`https://ross-rnd.rolla.cloud`) |
+
+### Re-initialization
+
+`initializeWithToken` returns once the SDK is ready; after it completes, `RollaSDK.isInitialized` is `true`. Calling it again disposes the previous instance and rebuilds the SDK — kick it off from `initState()` (or a button handler) and show a spinner while it runs; do not call it on every rebuild. Re-initializing for a **different** user first wipes the previous user's local caches (band state, metrics), so two accounts on one device never see each other's data; re-initializing for the same user keeps them.
 
 ## Placing `RollaSdkHome`
 
@@ -45,7 +68,7 @@ For `userId`, pass a stable identifier or the user's email. The login response's
 
 - **Initialize first.** Render the widget only after `initializeWithToken` completes — guard on your own state flag or `RollaSDK.isInitialized`.
 - **Do not wrap it in another `MaterialApp`.** It builds its own `MaterialApp.router` internally and owns navigation, theming, and routing from that point on.
-- **Wire the exit for your placement.** A pushed screen needs `showBackButton` + `onRequestDismiss` (next section); an app-root placement exits through `onLogout` instead.
+- **Wire the exit for your placement.** A pushed screen needs `showBackButton` + `onRequestDismiss` (next section); an app-root placement exits through `onLogout` and `onSessionExpired` instead.
 
 ### Option A — push it as a screen
 
@@ -74,7 +97,7 @@ Widget build(BuildContext context) {
 }
 ```
 
-There is nothing to dismiss in this topology — leave `showBackButton` off and route back to your login screen from `onLogout`.
+There is nothing to dismiss in this topology — leave `showBackButton` off and route back to your login screen from `onLogout` and `onSessionExpired`. This placement is also the one where the SDK's own notification taps land on the right screen, because `RollaSdkHome` is on screen whenever the app is — see [API Reference → Notification taps](07-api-reference.md#notification-taps).
 
 ### Option C — gate it with a `FutureBuilder`
 
@@ -115,9 +138,11 @@ await RollaSDK.initializeWithToken(
 );
 ```
 
-> **Both are required for a pure-Flutter host.** `showBackButton: true` alone renders the button, but tapping it does nothing — the SDK has no way to dismiss itself without `onRequestDismiss`, and the user is left with no way back to your app. (Native add-to-app hosts receive the dismiss over a method channel instead and don't need the callback.) Requires `rolla_sdk` **0.1.12** or newer.
+> **Both are required for a pure-Flutter host.** `showBackButton: true` alone renders the button, but tapping it does nothing — the SDK has no way to dismiss itself without `onRequestDismiss`, and the user is left with no way back to your app. (Native add-to-app hosts receive the dismiss over a method channel instead and don't need the callback.)
 
-## Handle logout
+`onRequestDismiss` is also what the SDK calls when the user presses back on a screen you opened directly with `RollaSDK.openScreen` — that screen is the root of the SDK UI, so back exits to your app. Pass the callback whenever you use `openScreen`, even with `showBackButton` off. See [API Reference → Host-driven navigation](07-api-reference.md#host-driven-navigation).
+
+## Handle logout and session expiry
 
 Pass `onLogout` to learn when the user signs out from inside the SDK, so you can clear your own auth state and route back to your login screen:
 
@@ -129,6 +154,8 @@ onLogout: () {
 
 `onLogout` fires after the SDK has already cleared its own tokens and session. To clear the SDK from your side (e.g. when the user logs out of *your* app), call `RollaSDK.logout()`.
 
+`onSessionExpired` is the other way a session ends: the SDK received a `401`, could not refresh on its own, got nothing usable from `onTokenExpired`, and found nothing newer in storage — typically because the session was revoked server-side. Treat it like a logout you did not initiate: clear your session and show your login. It never fires during a deliberate `RollaSDK.logout()`.
+
 ## Control the SDK UI chrome
 
 `initializeWithToken` accepts flags that tune what chrome the SDK renders:
@@ -136,11 +163,12 @@ onLogout: () {
 | Flag | Default | Effect when changed |
 | --- | --- | --- |
 | `showBackButton` | `false` | `true` renders a back button in the SDK top bar (pair with `onRequestDismiss`, above). |
-| `hideBottomNavigation` | `false` | `true` hides the Home / Profile tabs, leaving only the activity (＋) button — a minimal embed. |
-| `showSettingsButton` | `true` | `false` hides the Home **Settings** shortcut (use if you surface Data Sources / Goals elsewhere). |
+| `hideBottomNavigation` | `false` | `true` hides the Home / Profile tabs, leaving only the activity (＋) button — a minimal embed where your app provides the surrounding navigation. |
+| `showOptionsButton` | `true` | `false` hides the three-dot options action on the Home app bar (its sheet links to Data Sources, Goals, Leaderboards and the FAQ) — use it if you surface those elsewhere. |
+| `showGoalsSection` | `false` | `true` shows the user's goals with an edit action at the bottom of Home. |
 | `showAccountSettings` | `false` | `true` exposes credential-management screens (change/reset password, change email, delete account). |
 
-> **`hideBottomNavigation` defaults differ by integration path.** Native iOS/Android hosts default it to `true`, but the Flutter `initializeWithToken` defaults it to `false` (full bottom navigation shown). To match the minimal chrome of the native integrations, pass `hideBottomNavigation: true` explicitly.
+All of them are documented with the rest of the options in [Configuration](05-configuration.md).
 
 ## Handle token refresh
 
@@ -156,12 +184,12 @@ onTokenExpired: () async {
       expiresIn: Duration(seconds: refreshed.expiresIn),
     );
   } catch (_) {
-    return null; // refresh failed
+    return null; // nothing fresher available
   }
 },
 ```
 
-The full lifecycle (internal refresh, `RollaSDK.updateToken()`, logout) is in [Token Management](06-token-management.md).
+The full lifecycle (internal refresh, `onSessionExpired`, `RollaSDK.updateToken()`, logout) is in [Token Management](06-token-management.md).
 
 ## Complete Example
 
@@ -183,7 +211,7 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
   String? _error;
 
   /// The Rolla user id from the login JWT's `sub` claim. A partner with
-  /// their own user system can pass its id (or the user's email) instead.
+  /// their own user system can pass its id instead.
   String? _userId;
 
   @override
@@ -200,21 +228,20 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
 
     try {
       final session = await myBackend.fetchRollaTokens();
+      final userId = JwtDecoder.extractUserId(session.accessToken)!;
 
       await RollaSDK.initializeWithToken(
         accessToken: session.accessToken,
         refreshToken: session.refreshToken,
         tokenExpiresIn: Duration(seconds: session.expiresIn),
-        userId: session.userId, // decoded from the JWT's `sub` claim
+        userId: userId,
         partnerId: 'your-partner-id',
         environment: RollaEnvironment.rnd, // sandbox during integration
-        branding: myBranding,              // see Branding & Modules
+        branding: myBranding,              // see Configuration
         // Show the SDK's back button and pop our route when it's tapped.
         showBackButton: true,
-        onRequestDismiss: () {
-          if (mounted) Navigator.of(context).pop();
-        },
-        // Hand back fresh tokens when the SDK asks; null signals refresh failed.
+        onRequestDismiss: _leaveSdk,
+        // Hand back fresh tokens when the SDK asks; null means we have none.
         onTokenExpired: () async {
           try {
             final refreshed = await myBackend.fetchRollaTokens();
@@ -227,16 +254,15 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
             return null;
           }
         },
-        // User logged out from inside the SDK — return to our app.
-        onLogout: () {
-          if (mounted) Navigator.of(context).pop();
-        },
+        // The user signed out inside the SDK, or the session is unrecoverable.
+        onLogout: _leaveSdk,
+        onSessionExpired: _leaveSdk,
       );
 
       if (!mounted) return;
       setState(() {
         _initializing = false;
-        _userId = session.userId;
+        _userId = userId;
       });
     } catch (e) {
       if (!mounted) return;
@@ -245,6 +271,10 @@ class _RollaLaunchScreenState extends State<RollaLaunchScreen> {
         _error = e.toString();
       });
     }
+  }
+
+  void _leaveSdk() {
+    if (mounted) Navigator.of(context).pop();
   }
 
   @override
@@ -279,4 +309,4 @@ Push it from your own screen as an ordinary route ([Option A](#option-a--push-it
 
 ---
 
-**Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions](03-permissions.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)

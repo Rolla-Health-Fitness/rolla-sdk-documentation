@@ -1,8 +1,9 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS and Android apps.
+Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
 
 **Latest SDK Version:** 0.1.15
+**Latest Flutter package:** [`rolla_sdk@0.1.15`](flutter/README.md)
 
 ---
 
@@ -46,6 +47,28 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ---
 
+## Flutter Integration
+
+[**Go to Flutter Guide →**](flutter/README.md)
+
+The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embeds the same SDK directly in your Flutter app, running on your app's own Flutter engine. It documents the Dart surface and links to the iOS / Android guides for everything inside the native projects.
+
+| # | Section | Description |
+|---|---------|-------------|
+| 0 | [Quick Start](flutter/00-quick-start.md) | Minimal integration in under 10 minutes |
+| 1 | [Prerequisites](flutter/01-prerequisites.md) | Flutter/Dart floor, native platform floors, versioning, partner credentials |
+| 2 | [Installation](flutter/02-installation.md) | `flutter pub add rolla_sdk`, iOS deployment target, Gradle deltas + desugaring |
+| 3 | [Permissions](flutter/03-permissions.md) | Info.plist keys and entitlements; Mapbox token and manifest entries |
+| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal, logout |
+| 5 | [Configuration](flutter/05-configuration.md) | Branding, language, modules, data sources, UI chrome |
+| 6 | [Token Management](flutter/06-token-management.md) | Auth lifecycle, `onTokenExpired`, `onSessionExpired`, refresh, logout |
+| 7 | [API Reference](flutter/07-api-reference.md) | `RollaSDK`, `RollaSdkHome`, host-driven navigation, headless calls, types |
+| 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific issues & support |
+
+> **Versions:** `rolla_sdk@0.1.15` contains SDK `0.1.15`; the package version always equals the SDK version it carries. Flutter hosts declare the platform permissions themselves — a missing iOS usage string aborts the app with SIGABRT. See [Flutter Permissions](flutter/03-permissions.md).
+
+---
+
 ## Auth API — SDK Authentication
 
 [**Go to Auth API Guide →**](sdk-auth-api/README.md)
@@ -63,7 +86,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ## Platform Capabilities
 
-Feature support comparison between iOS and Android.
+Feature support comparison between iOS and Android. The Flutter package embeds the same SDK, so every row applies to a Flutter host on the respective platform; the Dart surface differs where the [Flutter guide](flutter/README.md) says so (no host event callbacks, no `notificationTarget`, no engine lifecycle).
 
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
@@ -93,15 +116,16 @@ Feature support comparison between iOS and Android.
 
 ## Version Compatibility
 
-| Requirement | iOS | Android |
-|-------------|-----|---------|
-| **Min OS** | iOS 14.0 | API 26 (Android 8.0) |
-| **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
-| **Dependency Manager** | CocoaPods | Gradle 8.0+ |
-| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
-| **Compile / Target SDK** | — | API 36 |
-| **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
-| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
+| Requirement | iOS | Android | Flutter |
+|-------------|-----|---------|---------|
+| **Min OS** | iOS 14.0 | API 26 (Android 8.0) | iOS 14.0 / API 26 |
+| **Flutter** | — | — | 3.35.6+ / Dart 3.9.2+ |
+| **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ | both |
+| **Dependency Manager** | CocoaPods | Gradle 8.0+ | pub + both |
+| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) | Dart (Kotlin 2.2.0+ for the Android build) |
+| **Compile / Target SDK** | — | API 36 | API 36 |
+| **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` | same as Android |
+| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` | `rolla_sdk: ^<version>` (pub.dev) |
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|
