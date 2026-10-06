@@ -20,15 +20,26 @@ Add the Mapbox access token to `app/src/main/res/values/strings.xml` for map fun
 
 You will receive the Mapbox token from Rolla along with your partner credentials.
 
+## Smartphone-Only Workouts (`ACTIVITY_RECOGNITION`)
+
+Smartphone-only workout tracking lets workouts be started and tracked with no paired wearable, using the phone's step counter and motion sensors. Reading the phone's step counter on Android 10+ (API 29+) requires the `ACTIVITY_RECOGNITION` permission.
+
+You can add this permission yourself, or let the manifest merger pull it in from the SDK's bundled manifest — the SDK already declares it, so it merges in automatically:
+
+```xml
+<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+```
+
+`ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, so the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
+
 ## Health Connect (Android)
 
-`0.1.10` adds Google Health Connect support. Unlike Bluetooth/location, the Health Connect permissions are **not** declared by the SDK — Google's policy review requires them to be declared by the host app so they appear in the Play Store listing under the host app's identity. You must add the entries below to your `AndroidManifest.xml`.
+The SDK supports Google Health Connect. The SDK's bundled manifest declares only part of the Health Connect read set — the rest must come from your app, and Google's policy review evaluates the **merged** manifest under your app's identity. Declare the full set below in your `AndroidManifest.xml` (the manifest merger deduplicates the entries the SDK already carries), so your Play listing and Data Safety declarations match exactly what the app can request.
 
 Add inside the `<manifest>` element, alongside your other `<uses-permission>` entries:
 
 ```xml
 <!-- Health Connect permissions -->
-<uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
 <uses-permission android:name="android.permission.health.READ_HEART_RATE_VARIABILITY" />
 <uses-permission android:name="android.permission.health.READ_STEPS" />
@@ -117,6 +128,27 @@ Before shipping a build with Health Connect enabled, update:
 
 Google's policy review compares the manifest entries above against these two surfaces. A mismatch is the most common reason for a Play rejection on a Health Connect-enabled build.
 
+## Notification Channels
+
+On Android 8.0+ every notification is posted through a notification channel, and channels are user-visible: they appear under **your app's name** in system settings (Settings → Apps → Notifications). The SDK creates its channels automatically with brand-neutral names — you don't declare or configure anything:
+
+| Channel ID | Name | Used for |
+|------------|------|----------|
+| `rolla_warnings` | Important Alerts | Important alerts and warnings (high importance) |
+| `rolla_engagement` | Engagement Tips | Reminders and engagement nudges (default importance) |
+| `location_tracking` | Location Tracking | The persistent notification of the GPS workout-tracking foreground service (low importance) |
+| `ble_workout` | Workout (Bluetooth) | The persistent notification of the Bluetooth workout foreground service (low importance) |
+
+The first two are created when the SDK's notification subsystem initializes inside the engine; the two service channels appear once the respective foreground service first runs during a workout.
+
+> **Channel names are not configurable today.** The names ship brand-neutral precisely so they read naturally under any host app. If you insist on naming these channels yourself, please contact Rolla about the possibility of adding configurable notification-channel names to the SDK configuration.
+
+## Notification Taps and Scheduled Reminders
+
+Every notification the SDK posts carries a payload naming its tap destination, so your launcher activity can recognize a Rolla notification and route the tap — see [notificationTarget](08-api-reference.md#notificationtarget) in the API reference.
+
+The SDK's scheduled reminders — the inactivity reminder and the evening battery warning — fire through `flutter_local_notifications`' `com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver`, and its `ScheduledNotificationBootReceiver` re-registers the pending ones after a reboot or an app update. The SDK's manifest declares both, so manifest merging adds them to your app — there is nothing for you to add. The one case that needs attention is an app that already declares these receivers because another Flutter module in it bundles `flutter_local_notifications` too: with the standard attributes (`android:exported="false"`) the merge is clean; different attributes need a `tools:replace`.
+
 ## Permissions Rationale
 
 This section is the partner-facing justification for every permission the SDK requests on Android. The wording is intended to be lifted into a privacy policy or pasted into the **Play Console → App content → Data safety** form. Permissions are grouped by the user-visible capability they gate.
@@ -127,7 +159,7 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `ACCESS_FINE_LOCATION` | Required | During an outdoor activity the SDK records the user's GPS trace to draw the route polyline, compute distance, pace, and elevation, and to attribute the workout to a specific place. Fine (GPS-grade) accuracy is what produces a clean, on-the-road polyline; coarse-only fixes drift across blocks and make pace and split data unusable. |
 | `ACCESS_COARSE_LOCATION` | Required | Android pairs fine and coarse location and asks the user to choose between *Precise* and *Approximate* at the runtime prompt. The SDK declares both so the prompt presents the choice; if the user picks Approximate, the route exists but is reduced to neighborhood-level granularity. |
-| `ACCESS_BACKGROUND_LOCATION` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. When the phone locks, Android moves the app to the background and the foreground location service requires this permission to keep streaming GPS fixes. Without it, **the polyline drops out the moment the user locks the phone or switches apps mid-workout**, leaving gaps in the recorded route. The SDK pairs background location with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active. |
+| `ACCESS_BACKGROUND_LOCATION` | Optional, strongly recommended | Outdoor workouts are routinely longer than the screen-on timeout. A location foreground service started while the app is in use keeps receiving GPS after the screen locks, but *Always* location covers the cases those semantics alone don't: tracking that must survive the service being restarted while the app is backgrounded, and OEM/Android-version differences in how strictly foreground-service location access is enforced. The SDK pairs it with `FOREGROUND_SERVICE_LOCATION` and a persistent notification so the user can see that tracking is still active. |
 
 ### Bluetooth
 
@@ -147,13 +179,13 @@ This section is the partner-facing justification for every permission the SDK re
 | `READ_ACTIVE_CALORIES_BURNED`, `READ_TOTAL_CALORIES_BURNED` | Optional, recommended | Reads calories-burned samples (active = movement, total = active + basal) for the energy-balance view. |
 | `READ_SLEEP` | Optional, recommended | Reads sleep sessions and stages so the user's sleep summary reflects the device they actually slept with (band, watch, ring, etc.). |
 | `READ_WEIGHT`, `READ_BLOOD_PRESSURE` | Optional, recommended | Reads body-weight and blood-pressure measurements written by smart scales and BP cuffs that integrate with Health Connect, so trends in the Rolla profile reflect the user's full picture. |
-| `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect only exposes data recorded *after* the user grants a given permission. This permission lets the SDK read up to 30 days of history written before the grant, so the first-launch dashboard isn't artificially empty. |
+| `READ_HEALTH_DATA_HISTORY` | Optional, recommended | By default Health Connect lets an app read only the last 30 days of data recorded before its first permission grant. This permission unlocks records older than that 30-day window, so a long-time Health Connect user's history isn't artificially cut off. |
 
 ### Activity Recognition
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `ACTIVITY_RECOGNITION` | Required for Health Connect step access on Android 10+ | Google's Health Connect docs require apps that read step data to declare this permission so the user understands that step counting depends on motion sensing. No SDK code currently calls the Activity Recognition Transition API directly. |
+| `ACTIVITY_RECOGNITION` | Required for smartphone-only workouts | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. The SDK reads the phone's step counter to track workouts started with no paired wearable, and requests the permission at runtime before the first such workout. Its bundled manifest already declares the permission, so you don't need to add it yourself. |
 
 ### Foreground Service
 
@@ -174,7 +206,8 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules engagement reminders (e.g. "you haven't worn your band in 3 days") via `AndroidScheduleMode.exactAllowWhileIdle`. Exact alarms fire reliably under Doze; inexact alarms can drift by hours, which makes "your morning workout reminder" unusable. |
+| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules its reminders (the inactivity reminder and the evening battery warning) as exact, Doze-tolerant alarms (`AlarmManager.setExactAndAllowWhileIdle`) so they fire on time. Declaring the permission is your call: with it in your manifest, exact timing applies once the app may schedule exact alarms — granted on install through Android 13, and on Android 14+ once the user enables *Alarms & reminders* for your app in system settings (the SDK leaves that prompt to you). Otherwise the SDK falls back to an inexact alarm instead of dropping the reminder; it may then arrive somewhat later than scheduled. |
+| `RECEIVE_BOOT_COMPLETED` | Required for scheduled reminders | Scheduled reminders are alarm-based; without this permission every pending reminder is lost when the device reboots. The SDK declares it itself, so it appears in your merged manifest automatically. |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Optional, strongly recommended | The SDK opens the system battery-optimization exemption screen so the user can whitelist the app. Without the exemption, OEM battery managers (Xiaomi, Huawei, Samsung "deep sleep") can suspend the foreground service mid-workout, dropping the polyline and disconnecting the band. |
 
 ### Network

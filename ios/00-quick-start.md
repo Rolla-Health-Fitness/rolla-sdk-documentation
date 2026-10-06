@@ -30,7 +30,7 @@ source 'https://cdn.cocoapods.org/'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'RollaSDK', '0.1.10'
+  pod 'RollaSDK', '0.1.15'
 end
 ```
 
@@ -59,7 +59,7 @@ class YourViewController: UIViewController {
         let configuration = RollaConfiguration(
             token: "your-access-token",       // JWT from POST /api/login
             refreshToken: "your-refresh-token", // From POST /api/login
-            tokenExpiresIn: 1800,             // Seconds until token expires (TimeInterval)
+            tokenExpiresIn: TimeInterval(1800),  // Seconds until token expires (TimeInterval)
             partnerId: "your-partner-id",
             environment: "rnd"                // Use "production" for release builds
         )
@@ -84,13 +84,14 @@ extension YourViewController: RollaDelegate {
         self.rolla = nil
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         print("Rolla SDK error: \(error.localizedDescription)")
     }
 
     func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
         // Token expired and SDK cannot refresh it.
-        // Fetch a new token from your backend, then push it to the SDK:
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, then push them to the SDK:
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn in
             rolla.updateToken(
                 token: newToken,
@@ -143,11 +144,11 @@ class RollaViewController: UIViewController, RollaDelegate {
 
     // MARK: - Present the SDK
 
-    func showRolla(token: String) {
+    func showRolla(token: String, refreshToken: String) {
         let config = RollaConfiguration(
             token: token,
             refreshToken: refreshToken,
-            tokenExpiresIn: 1800,
+            tokenExpiresIn: TimeInterval(1800),
             partnerId: "your-partner-id",
             environment: "rnd"               // "production" for release builds
         )
@@ -164,7 +165,7 @@ class RollaViewController: UIViewController, RollaDelegate {
         self.rolla = nil
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         print("Rolla error: \(error.localizedDescription)")
     }
 
@@ -198,7 +199,7 @@ class RollaViewController: UIViewController, RollaDelegate {
 ## Next Steps
 
 - **Permissions:** Set up Bluetooth, location, and HealthKit entitlements — [Permissions & Entitlements](03-permissions-and-entitlements.md)
-- **Branding:** Customize colors, logos, and enabled modules — [Branding & Modules](05-branding-and-modules.md)
+- **Configuration:** Customize branding, force a UI language, and control module and data-source visibility — [Configuration](05-configuration.md)
 - **Apple Health:** Enable health data sync — [Apple Health Integration](06-apple-health.md)
 - **Token details:** Full token lifecycle and edge cases — [Token Management](07-token-management.md)
 - **API Reference:** All methods, delegates, and enums — [API Reference](10-api-reference.md)

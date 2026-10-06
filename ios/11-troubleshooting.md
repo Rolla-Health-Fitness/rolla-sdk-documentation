@@ -15,7 +15,6 @@ This section provides solutions to common issues encountered when integrating an
 
 - Verify `NSHealthShareUsageDescription` is in Info.plist
 - Verify HealthKit capability is added in Xcode (Signing & Capabilities)
-- Ensure `"integrations"` module is enabled (or modules is `nil`)
 - HealthKit is not available on iPads without the Health app
 
 ### Build errors
@@ -30,7 +29,7 @@ This section provides solutions to common issues encountered when integrating an
 If you call `show(from:)` while the SDK UI is already on screen, the SDK does **not** crash or queue a second presentation. Instead, it immediately fires a `.alreadyPresenting` error through your delegate:
 
 ```swift
-func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
     if case .alreadyPresenting = error {
         // SDK is already showing — no action needed
     }
@@ -43,8 +42,11 @@ To avoid this, check `rolla.isPresenting` before calling `show(from:)`, or guard
 
 | Symptom | Likely cause | Fix |
 |---------|-------------|-----|
-| SDK opens then immediately closes or shows an error | Expired access token | Fetch a fresh token from your backend before calling `show(from:)` |
-| `rollaDidRequestTokenRefresh` fires immediately | Token was already expired at launch | Ensure `tokenExpiresIn` reflects the *remaining* lifetime, not the original TTL |
+| SDK opens then immediately closes or shows an error | Expired access token | Initialize with a current token pair — see [Token Management](07-token-management.md) |
+| Works at first, then `Access denied (HTTP 401)` on SDK screens after ~30 minutes; re-entering the SDK temporarily fixes it — until it recurs | The SDK's refresh token was consumed outside the SDK (or never passed), and `rollaDidRequestTokenRefresh` goes unanswered. Re-entry only masks the problem: your app passes a fresh access token at initialization, which works for another 30 minutes | [Responsibilities 2–4](07-token-management.md#your-apps-responsibilities) |
+| `rollaDidRequestTokenRefresh` fires repeatedly in bursts | Same cause — every request that fails after an unsuccessful internal refresh escalates to your app | Answer it with `updateToken()`; verify the refresh token you pass at initialization is the latest one |
+| 401 errors start right after your own backend refreshes its session | Your backend consumed the refresh token the SDK was holding (single-use rotation) | [Responsibility 5](07-token-management.md#your-apps-responsibilities) |
+| `rollaDidRequestTokenRefresh` fires immediately at launch | The access token was already expired and the refresh token invalid at initialization | Initialize with the newest persisted pair (a `tokenExpiresIn` that overshoots the token's own expiry is corrected automatically) |
 | SDK works in `"rnd"` but fails in `"production"` | Token was issued for the wrong environment | Verify your backend issues tokens against the correct Rolla environment |
 | "Unauthorized" or 401-style errors | Wrong partner ID or mismatched credentials | Double-check the `partnerId` passed to `RollaConfiguration` |
 

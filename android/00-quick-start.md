@@ -9,7 +9,7 @@ Get the Rolla SDK running in your Android app in under 10 minutes.
 - **Android API 26+** (Android 8.0) minimum SDK — required by the bundled Health Connect plugin
 - **Android Studio Hedgehog** (2023.1) or later
 - **Gradle 8.0+**
-- **Build JDK 17+** — SDK `0.1.10` is compiled with Java 17 (class file major version 61)
+- **Build JDK 17+** — SDK `0.1.15` is compiled with Java 17 (class file major version 61)
 - **Kotlin 2.2.0+** required by the bundled Health Connect plugin
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 
@@ -37,7 +37,7 @@ Add the dependency to `app/build.gradle.kts`:
 ```kotlin
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
-    implementation("com.rolla.sdk:android_release:0.1.10")
+    implementation("com.rolla.sdk:android_release:0.1.15")
 }
 
 android {
@@ -57,10 +57,10 @@ Create a minimal `RollaConfiguration`, initialize the SDK, and show it:
 
 ```kotlin
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaConfiguration
 import com.rolla.sdk.wrapper.RollaListener
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaError
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 
 class YourActivity : AppCompatActivity() {
 
@@ -101,7 +101,8 @@ private val rollaListener = object : RollaListener {
 
     override fun onTokenExpired(rolla: Rolla) {
         // Token expired and SDK's internal refresh failed.
-        // Fetch a new token from your backend, then push it to the SDK:
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, then push them to the SDK:
         YourAPI.fetchNewToken { newToken, newRefreshToken, expiresIn ->
             rolla.updateToken(
                 token = newToken,
@@ -138,10 +139,10 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import com.rolla.sdk.wrapper.Rolla
-import com.rolla.sdk.wrapper.RollaCloseReason
-import com.rolla.sdk.wrapper.RollaConfiguration
-import com.rolla.sdk.wrapper.RollaError
 import com.rolla.sdk.wrapper.RollaListener
+import com.rolla.sdk.wrapper.config.RollaConfiguration
+import com.rolla.sdk.wrapper.features.session.RollaCloseReason
+import com.rolla.sdk.wrapper.features.session.RollaError
 
 class RollaActivity : AppCompatActivity() {
 
@@ -149,7 +150,7 @@ class RollaActivity : AppCompatActivity() {
 
     // --- Present the SDK ---
 
-    fun showRolla(token: String) {
+    fun showRolla(token: String, refreshToken: String) {
         val config = RollaConfiguration(
             token = token,
             partnerId = "your-partner-id",
@@ -202,7 +203,7 @@ class RollaActivity : AppCompatActivity() {
 ## Next Steps
 
 - **Permissions:** Configure internet, Mapbox, and manifest settings — [Permissions](03-permissions.md)
-- **Branding:** Customize colors, logos, and enabled modules — [Branding & Modules](05-branding-and-modules.md)
+- **Configuration:** Customize branding, force a UI language, and control module and data-source visibility — [Configuration](05-configuration.md)
 - **Token details:** Full token lifecycle and edge cases — [Token Management](06-token-management.md)
 - **API Reference:** All methods, listener interface, and enums — [API Reference](08-api-reference.md)
 

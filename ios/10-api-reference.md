@@ -1,52 +1,342 @@
-# API Reference
+# Public API Reference
 
-This section provides a comprehensive reference of the Rolla SDK's public API, including the main Rolla class, delegate protocol, and error types.
+The complete public API of the Rolla SDK on iOS: the `Rolla` class, the host-driven navigation and notification-tap types, the `RollaDelegate` protocol and its host events, the headless methods, and the error and close-reason types. `RollaConfiguration` and its option enums are documented on the [Configuration](05-configuration.md) page.
 
-## Native API Reference
+**On this page:** [Rolla Class](#rolla-class) · [RollaTransition](#rollatransition) · [Host-Driven Navigation](#host-driven-navigation) · [RollaDelegate Protocol](#rolladelegate-protocol) · [Host Events](#host-events) · [Headless Methods](#headless-methods) · [RollaError](#rollaerror) · [RollaCloseReason](#rollaclosereason)
 
-### Rolla Class
+## Rolla Class
+
+One instance per configuration. Create it, assign the delegate, and present:
+
+```swift
+let rolla = Rolla(configuration: configuration)
+rolla.delegate = self
+rolla.show(from: self)
+```
+
+### Presentation
 
 | Method / Property | Description |
 |-------------------|-------------|
-| `init(configuration: RollaConfiguration)` | Initialize with a configuration |
-| `var delegate: RollaDelegate?` | Set the delegate for callbacks |
-| `var isPresenting: Bool` | Whether the SDK is currently visible |
-| `show(from: UIViewController)` | Present the SDK modally |
-| `dismiss()` | Dismiss the SDK UI (engine stays alive) |
-| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK. The `completion` handler is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. |
-| `clearSession(completion:)` | Clear all persisted session data |
-| `static destroyEngine()` | Destroy the Flutter engine and free memory |
+| <code>Rolla(configuration:&nbsp;RollaConfiguration)</code> | Create an instance — see [Configuration](05-configuration.md) for every option |
+| <code>var&nbsp;delegate:&nbsp;RollaDelegate?</code> | Receives every callback — see [RollaDelegate](#rolladelegate-protocol) |
+| <code>var&nbsp;isPresenting:&nbsp;Bool</code> | `true` from `show(from:)` — or an [`openScreen`](#host-driven-navigation) that presents — until the SDK UI closes |
+| <code>show(from:&nbsp;UIViewController,&nbsp;transition:&nbsp;RollaTransition&nbsp;=&nbsp;.default)</code> | Present the SDK UI modally. `transition` selects the open/close animation — see [RollaTransition](#rollatransition) |
+| <code>openScreen(_:from:transition:completion:)</code> | Open the SDK UI directly on a specific screen — see [Host-Driven Navigation](#host-driven-navigation) |
+| <code>static&nbsp;notificationTarget(userInfo:)</code> / <code>static&nbsp;notificationTarget(response:)</code> | Resolve a tapped Rolla notification to its destination, ready for `openScreen` — see [notificationTarget](#notificationtarget) |
+| `dismiss()` | Dismiss the SDK UI; the engine stays alive — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
-### RollaDelegate Protocol
+### Session & Tokens
 
 | Method | Description |
 |--------|-------------|
-| `rollaDidClose(_:reason:)` | Called when the SDK UI is dismissed |
-| `rolla(_:didFailWithError:)` | Called when an error occurs |
-| `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | Called when the SDK refreshes tokens internally |
-| `rollaDidRequestTokenRefresh(_:)` | Called when the host app must provide new tokens |
+| `updateToken(token:refreshToken:expiresIn:completion:)` | Push fresh credentials to the SDK. The `completion` handler is optional but recommended — if omitted, the update still executes but your app receives no success/failure feedback. See [Token Management](07-token-management.md) |
+| `clearSession(completion:)` | Purge all persisted session data (tokens, auth metadata) — call on logout |
 
-All methods have default empty implementations.
+### Headless & Engine
 
-## RollaConfiguration
+> **Headless** means callable without the SDK UI ever being opened — no `show(from:)` needed, no screen presented. The SDK runs its engine invisibly in the background and hands your app a typed result.
 
-The `RollaConfiguration` struct defines all parameters for SDK initialization. See [Code Integration](04-code-integration.md) for usage examples.
+| Method | Description |
+|--------|-------------|
+| `warmUpEngine(completion:)` | Start and configure the engine ahead of time, without any UI — see [Headless Methods](#warmupengine) |
+| `syncHealthData(includeSamples:completion:)` | Headless sync of the user's primary data source — see [Headless Methods](#synchealthdata) |
+| `getBandBatteryLevel(completion:)` | Headless live battery read from the paired Rolla band — see [Headless Methods](#getbandbatterylevel) |
+| `getPairedBandInfo(completion:)` | Headless paired-band query, zero Bluetooth — see [Headless Methods](#getpairedbandinfo) |
+| <code>static&nbsp;destroyEngine()</code> | Fully tear down the Flutter engine and free its memory — see [Engine Lifecycle](08-engine-lifecycle.md) |
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `token` | `String` | Yes | — | JWT access token from `POST /api/login` |
-| `partnerId` | `String` | Yes | — | Partner identifier provided by Rolla |
-| `refreshToken` | `String?` | No | `nil` | Refresh token for automatic credential renewal |
-| `tokenExpiresIn` | `TimeInterval?` | No | `nil` | Token lifetime in seconds. Note: Android uses `Int` for this parameter |
-| `userId` | `String?` | No | Extracted from JWT | User identifier for local data namespacing (per-user storage isolation); defaults to the `sub` claim in the JWT if not provided. Not sent as a request header |
-| `environment` | `String?` | No | `"rnd"` | Target environment. See [Code Integration](04-code-integration.md) for available values |
-| `modules` | `[String]?` | No | `nil` (all enabled) | List of modules to enable. Selective enabling is not yet supported |
-| `branding` | `RollaBranding?` | No | `nil` | Custom branding configuration. See [Branding and Modules](05-branding-and-modules.md) |
-| `showSettingsButton` | `Bool` | No | `true` | Render a Settings button on the Home screen, below the Metrics list. Tapping it opens a bottom sheet with shortcuts to Data Sources and Goals. Defaults to true because most partners need this button.
+## RollaTransition
 
-## Error Handling
+The optional `transition` parameter on `show(from:)` and [`openScreen`](#openscreen) selects how the SDK UI animates in — the closing animation always mirrors the opening one. Omitting it keeps the existing behavior, so existing integrations need no changes:
 
-The SDK provides detailed error information through `RollaError`:
+| Value | Animation |
+|-------|-----------|
+| `.default` | The SDK's standard transition — identical to previous releases |
+| `.fade` | A 0.35&nbsp;s cross-fade, on open and close |
+
+```swift
+rolla.show(from: self, transition: .fade)
+```
+
+## Host-Driven Navigation
+
+### openScreen
+
+```swift
+func openScreen(_ screen: RollaScreen, from viewController: UIViewController, transition: RollaTransition = .default, completion: @escaping (RollaOpenScreenStatus) -> Void)
+```
+
+Opens the SDK UI directly on a specific screen. If the SDK UI is hidden, the call presents it, animating in with `transition`. If the SDK UI is already visible, it just switches to the requested screen. The opened screen becomes the **root of the SDK UI**, so back returns the user straight to your app — never to an SDK Home screen the user did not visit. Each subsequent call replaces the root with the new screen.
+
+When the SDK UI is not showing, what happens next depends on the engine:
+
+- **Warm engine**: the SDK stays hidden while it navigates, and is presented only if the request resolves as `.opened`. Every other status leaves the SDK hidden and tells you why it was not presented. The engine is warm after a prior `show(from:)`, a `warmUpEngine()`, or any headless call.
+- **Cold engine**: it must present before it can navigate, so the SDK opens behind its loader and resolves the request while starting up. A failure such as `.screenDisabled` therefore leaves the SDK on the Home screen, and the status tells you why the requested screen could not be presented.
+
+To avoid the cold start entirely, call `warmUpEngine()` before the first `openScreen` — typically right after login.
+
+```swift
+rolla.openScreen(.insights, from: self, transition: .fade) { status in
+    if status != .opened { print("Not opened: \(status)") }
+}
+```
+
+### RollaScreen
+
+The screens your app can open directly — a deliberate whitelist:
+
+| Value | Opens |
+|-------|-------|
+| `.activityHistory` | The activity history list |
+| `.goals` | The goals editor |
+| `.home` | The SDK Home screen — restores Home as the root |
+| `.insights` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `.resume` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `.opened` |
+
+### RollaOpenScreenStatus
+
+Every outcome is a typed status — the call never fails silently:
+
+| Status | Meaning |
+|--------|---------|
+| `.opened` | The SDK UI is on the requested screen |
+| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` with the insights module disabled) — nothing was opened |
+| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
+| `.uiUnavailable` | The SDK UI could not be shown — the `from` view controller is not attached to a window, or the SDK never became ready to navigate |
+| `.superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
+| `.notInitialized` / `.unknownError` | Internal problems; neither is an expected runtime condition |
+
+Presentation failures additionally fire `rollaDidFailWithError(_:error:)` exactly as a failed `show(from:)` would — the completion status is additive, not a replacement for the delegate.
+
+### notificationTarget
+
+```swift
+static func notificationTarget(userInfo: [AnyHashable: Any]) -> RollaNotificationTarget?
+static func notificationTarget(response: UNNotificationResponse) -> RollaNotificationTarget?
+```
+
+Every notification the SDK posts carries a payload that names its destination. The SDK never claims your app's `UNUserNotificationCenter` delegate — your app owns it and receives every tap through it, including the SDK's, and the same delegate is what lets a Rolla notification that arrives while your app is frontmost show as a banner (see `willPresent` below). `notificationTarget` reads the payload: `nil` means the notification is not Rolla's; otherwise you get a typed destination to act on — typically by calling [`openScreen`](#openscreen). The payload itself is `userInfo["payload"]` on the notification content, if you ever need it.
+
+These are the notifications the SDK posts on iOS and where a tap leads (English copy shown; the SDK localizes the text):
+
+| Notification | When the SDK posts it | Tap resolves to |
+|--------------|-----------------------|-----------------|
+| **Background tracking disabled** | The SDK UI leaves the foreground mid-workout — the app goes to the background, or your own screen covers it — and *Always* location is missing | `.appSettings` — the fix is a permission, so the OS app-settings page is the destination |
+| **Stay on track** (inactivity reminder) | Two calendar days after the SDK was last opened, at 10:00 — every open of the SDK re-arms it | `.screen(.insights)`, or `.screen(.home)` when the insights module was disabled at the time the reminder was scheduled |
+| **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight — right away if it is already there, otherwise at 18:00 | `.screen(.home)` |
+
+All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
+
+Two rules shape the handler. Assign the delegate inside `application(_:didFinishLaunchingWithOptions:)` and not later: when a tap cold-launches your app, iOS delivers `didReceive` right after launch, and only to a delegate that is already in place. And do not present the SDK from the delegate itself: the inactivity reminder fires days after the last open, so its tap usually cold-launches the app — before your `Rolla` session and your UI exist. Keep the screen aside and let the view controller that owns your `Rolla` instance open it once it is on screen.
+
+```swift
+// AppDelegate.swift — UIKit lifecycle. SwiftUI lifecycle: drop @main here and expose the class via @UIApplicationDelegateAdaptor.
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+
+    /// A tapped Rolla screen waiting for the view controller that owns your Rolla instance.
+    static var pendingRollaScreen: RollaScreen?
+    /// That view controller while it is alive — it registers itself in viewDidLoad (below).
+    static weak var rollaHost: YourViewController?
+
+    func application(_ application: UIApplication,
+                     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        UNUserNotificationCenter.current().delegate = self
+        return true
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+
+    // Foreground arrivals: while your app is frontmost iOS shows nothing unless you say so here.
+    // Rolla's permission warning can arrive while iOS still counts your app as foreground, so show
+    // Rolla's as banners — and keep deciding for your own notifications exactly as you do today.
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                willPresent notification: UNNotification,
+                                withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
+        if Rolla.notificationTarget(userInfo: notification.request.content.userInfo) != nil {
+            completionHandler([.banner, .list, .sound])
+        } else {
+            completionHandler([]) // Your own notifications: your existing decision goes here.
+        }
+    }
+
+    func userNotificationCenter(_ center: UNUserNotificationCenter,
+                                didReceive response: UNNotificationResponse,
+                                withCompletionHandler completionHandler: @escaping () -> Void) {
+        defer { completionHandler() }
+        guard let target = Rolla.notificationTarget(response: response) else { return }
+        switch target {
+        case .appSettings:
+            if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
+        case .screen(let screen):
+            // Never present from here. Stash the screen; the owning view controller routes it now
+            // if it is already up, otherwise from its viewDidAppear.
+            Self.pendingRollaScreen = screen
+            Self.rollaHost?.routePendingRollaScreen()
+        @unknown default:
+            break // A destination newer than this app — a plain launch is the right fallback.
+        }
+    }
+}
+
+// In the view controller that owns your Rolla instance:
+override func viewDidLoad() {
+    super.viewDidLoad()
+    AppDelegate.rollaHost = self
+}
+
+override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+    routePendingRollaScreen()
+}
+
+func routePendingRollaScreen() {
+    // Needs a session (rolla is nil until the user is signed in) and a place to present from: the SDK UI
+    // already up (its full-screen presentation takes this view out of the window), or this view in a window.
+    guard let screen = AppDelegate.pendingRollaScreen, let rolla,
+          rolla.isPresenting || viewIfLoaded?.window != nil else { return }
+    AppDelegate.pendingRollaScreen = nil
+    rolla.openScreen(screen, from: self) { status in
+        if status != .opened { print("Not opened: \(status)") }
+    }
+}
+```
+
+Present from the view controller that is actually on screen — the one you would pass to `show(from:)`, never a root that is busy presenting something else. `RollaNotificationTarget` is built with library evolution enabled, so an exhaustive `switch` over it warns unless it ends in `@unknown default`.
+
+### RollaNotificationTarget
+
+Where a recognized tap should lead:
+
+| Target | Meaning |
+|--------|---------|
+| `.appSettings` | Take the user to the OS app-settings page (`UIApplication.openSettingsURLString`) — carried by the background-location warning, see the table above |
+| `.screen(RollaScreen)` | Open the [`RollaScreen`](#rollascreen) it carries via `openScreen` — the table above lists which notification leads where |
+
+## RollaDelegate Protocol
+
+All sixteen methods have default empty implementations — implement only the ones you need, and existing integrations compile unchanged when new methods are added. The protocol has two halves:
+
+- **Presentation & token callbacks** (below) — the SDK needs your app to react: dismissal, errors, token exchange.
+- **[Host events](#host-events)** — the SDK tells your app what happened inside it: syncs, activities, band, profile. Purely observational.
+
+### Presentation & Token Callbacks
+
+| Callback | Method | Called when |
+|----------|--------|-------------|
+| SDK&nbsp;closed | `rollaDidClose(_:reason:)` | The SDK UI was dismissed — see [RollaCloseReason](#rollaclosereason) |
+| Error&nbsp;occurred | `rollaDidFailWithError(_:error:)` | An error occurred — see [RollaError](#rollaerror) |
+| Token&nbsp;refreshed | `rollaDidRefreshToken(_:token:refreshToken:expiresIn:)` | The SDK refreshed tokens internally — store them for future use |
+| Token&nbsp;refresh&nbsp;needed | `rollaDidRequestTokenRefresh(_:)` | The SDK could not refresh the token — obtain fresh tokens from the Rolla auth API and call `updateToken` (see [Token Management](07-token-management.md)) |
+
+## Host Events
+
+Twelve delegate methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
+
+- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Main thread.** Like all SDK callbacks, events arrive on the main thread.
+
+### Sync Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Headless&nbsp;sync&nbsp;completed | `rollaDidCompleteHealthDataSync(_:result:)` | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the completion handler receives |
+| UI&nbsp;sync&nbsp;completed | `rollaDidCompleteUISync(_:result:)` | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
+
+**`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+### Activity Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Activity&nbsp;started | `rollaDidStartActivity(_:activity:)` | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
+| Activity&nbsp;completed | `rollaDidCompleteActivity(_:activity:)` | An activity reaches a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed` |
+| Activity&nbsp;removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (crash-recovery discard) or `deleted` (user deleted it, backend-confirmed) |
+
+**Lifecycle guarantees.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
+
+### Band Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Band&nbsp;paired | `rollaDidPairBand(_:band:)` | The user pairs a band inside the SDK UI |
+| Band&nbsp;unpaired | `rollaDidUnpairBand(_:band:)` | The user unpairs the band inside the SDK UI (backend-confirmed) |
+| Band&nbsp;connected | `rollaDidConnectBand(_:band:)` | The paired band establishes a live BLE link |
+| Band&nbsp;disconnected | `rollaDidDisconnectBand(_:band:)` | The paired band loses its live BLE link (debounced a few seconds) |
+
+**Link events are not a proximity signal.** `rollaDidConnectBand`/`rollaDidDisconnectBand` report genuine BLE link transitions of the user's own band only: connect fires immediately, disconnect only after the BLE supervision timeout plus a ~3-second debounce (a drop with an immediate reconnect reports nothing). They are orthogonal to paired/unpaired — an unpair or logout drops the physical link too, so a disconnect legitimately accompanies those. Use [`getPairedBandInfo`](#getpairedbandinfo) for the pairing state.
+
+### Profile & Settings Events
+
+| Event | Method | Fires when |
+|-------|--------|-----------|
+| Primary&nbsp;source&nbsp;changed | `rollaDidChangePrimarySource(_:change:)` | The user's primary data source changes |
+| Goals&nbsp;changed | `rollaDidChangeGoals(_:change:)` | The user saves goal changes inside the SDK UI (backend-confirmed) — one call per save |
+| Profile&nbsp;updated | `rollaDidUpdateProfile(_:update:)` | The user updates profile data inside the SDK UI — carries only the changed fields |
+
+## Headless Methods
+
+Four methods run **headlessly** — no SDK UI needs to be opened. Each starts the engine automatically on first use. Because there is no UI to prompt from, **your app owns OS permissions**: when one is missing, the methods fail fast with a typed reason instead of prompting.
+
+### warmUpEngine
+
+```swift
+func warmUpEngine(completion: ((Result<Void, RollaError>) -> Void)? = nil)
+```
+
+Starts and configures the engine ahead of time so the headless calls — and the first `show(from:)` — have zero start-up latency. Optional: the methods below warm the engine themselves if needed; this only moves the one-time cost to a moment you control (a common pattern is right after login). Safe to call repeatedly — a repeat call for the same user is a no-op that preserves the session. See [Engine Lifecycle](08-engine-lifecycle.md#warming-up-the-engine).
+
+### syncHealthData
+
+```swift
+func syncHealthData(includeSamples: Bool = false, completion: @escaping (Result<RollaSyncResult, RollaError>) -> Void)
+```
+
+Runs a full sync of the user's primary data source (band over BLE, or Apple Health) and resolves to a typed `RollaSyncResult` — the call never throws, and the same result is also delivered to `rollaDidCompleteHealthDataSync(_:result:)`:
+
+| Field | Meaning |
+|-------|---------|
+| `outcome` | `success`, `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error`) |
+| `hasNewData` | Whether anything new was uploaded (success only) |
+| `source` | `band`, `appleHealth`, `healthConnect`, `garmin`, `oura` |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on success |
+| `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
+| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays |
+
+### getBandBatteryLevel
+
+```swift
+func getBandBatteryLevel(completion: @escaping (Result<RollaBatteryResult, RollaError>) -> Void)
+```
+
+A **live BLE read** from the paired Rolla band — the band must be reachable. Resolves to a typed `RollaBatteryResult`: a percentage when `status` is `available`, otherwise a documented reason (`noBandPaired`, `bandNotConnected` — a band is paired but couldn't be reached, `notRollaDevice` — reserved for forward compatibility, not currently returned, `bluetoothUnavailable`, `bluetoothPermissionRequired`, `unknownError`). Never a stale value reported as live.
+
+### getPairedBandInfo
+
+```swift
+func getPairedBandInfo(completion: @escaping (Result<RollaPairedBandResult, RollaError>) -> Void)
+```
+
+Answers "does this account currently have a Rolla band?" with **zero Bluetooth** — no scan, no connect, no BLE permission; works with Bluetooth off. Resolves to a typed `RollaPairedBandResult`:
+
+| Status | Meaning |
+|--------|---------|
+| `bandPaired` | A band is paired — `band` carries its MAC address (always present) plus the last cached battery/firmware/serial, each possibly nil if the SDK hasn't read the band recently |
+| `noBandPaired` | The user's profile confirms no band is paired |
+| `unknown` | Could not be determined (offline with no local record) — reported instead of guessing |
+
+The lookup is network-first: the profile is the authoritative pairing record, so a band unpaired remotely from another device is reported correctly. This is a pairing-state query, not a link-state one — live connect/disconnect transitions arrive via `rollaDidConnectBand`/`rollaDidDisconnectBand`.
+
+```swift
+rolla.getPairedBandInfo { result in
+    if case .success(let info) = result, info.isPaired {
+        print("Band: \(info.band!.macAddress)")
+    }
+}
+```
+
+## RollaError
 
 ```swift
 public enum RollaError: Error {
@@ -60,9 +350,19 @@ public enum RollaError: Error {
 }
 ```
 
-## Close Reasons
+Recommended host app actions for each case:
 
-The SDK provides close reasons through `RollaCloseReason`:
+| Error Case | Code | Meaning | Host App Recovery |
+|------------|------|---------|-------------------|
+| `.engineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
+| `.initializationFailed(String)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
+| `.flutterError(code:message:)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
+| `.alreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
+| `.invalidPresentationContext` | `INVALID_CONTEXT` | View controller not in window hierarchy | Ensure the view controller is visible and in the hierarchy before calling `show(from:)`. |
+| `.underlying(Error)` | `UNDERLYING_ERROR` | Wraps a native error | Inspect the wrapped error. Handle based on underlying cause. |
+| `.unknown` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
+
+## RollaCloseReason
 
 ```swift
 enum RollaCloseReason {
@@ -75,27 +375,11 @@ enum RollaCloseReason {
 }
 ```
 
-## Error Recovery Guide
-
-Recommended host app actions for each `RollaError` case:
-
-| Error Case | Code | Meaning | Host App Recovery |
-|------------|------|---------|-------------------|
-| `.engineFailedToStart` | `ENGINE_FAILED` | Flutter engine failed to start | Retry after a delay. If persistent, call `destroyEngine()` and re-initialize. Check device memory. |
-| `.initializationFailed(String)` | `INIT_FAILED` | SDK init failed — detail string explains why | Check detail message. Common causes: invalid credentials, network failure, expired token. Verify config and retry. |
-| `.flutterError(code:message:)` | `FLUTTER_ERROR` | Internal Flutter error | Log code and message. Retry. If persistent, `destroyEngine()` and re-init. Report to Rolla support with error code. |
-| `.alreadyPresenting` | `ALREADY_PRESENTING` | `show()` called while SDK is already visible | Check `isPresenting` before calling `show()`. Call `dismiss()` first if needed. |
-| `.invalidPresentationContext` | `INVALID_CONTEXT` | View controller not in window hierarchy | Ensure the view controller is visible and in the hierarchy before calling `show(from:)`. |
-| `.underlying(Error)` | `UNDERLYING_ERROR` | Wraps a native error | Inspect the wrapped error. Handle based on underlying cause. |
-| `.unknown` | `UNKNOWN` | Unrecognized error | Log all details. Retry. Report to Rolla support if persistent. |
-
-## Close Reason Reference
-
-When each `RollaCloseReason` is triggered:
+When each reason is triggered:
 
 | Close Reason | When Triggered |
 |-------------|----------------|
-| `.flutterRequested(reason:)` | SDK's internal UI initiated the close (e.g., user tapped close/done). Optional `reason` may provide context. |
+| `.flutterRequested(reason:)` | SDK's internal UI initiated the close (e.g. user tapped close/done). Optional `reason` may provide context. |
 | `.hostNavigationBack` | User pressed back gesture or navigation back. |
 | `.hostModalDismiss` | User dismissed the modal via swipe-down gesture. |
 | `.programmatic` | Host app called `dismiss()` programmatically. |

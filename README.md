@@ -1,8 +1,8 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
+Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
-**Latest SDK Version:** 0.1.12
+**Latest SDK Version:** 0.1.15
 
 ---
 
@@ -17,7 +17,7 @@ Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
 | 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
-| 5 | [Branding & Modules](ios/05-branding-and-modules.md) | Custom theming, available modules |
+| 5 | [Configuration](ios/05-configuration.md) | Branding, language, modules, data sources |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
 | 7 | [Token Management](ios/07-token-management.md) | Auth lifecycle, refresh, session clear |
 | 8 | [Engine Lifecycle](ios/08-engine-lifecycle.md) | Flutter engine, memory management |
@@ -38,34 +38,11 @@ Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter
 | 2 | [Gradle Setup](android/02-gradle-setup.md) | Maven repos, SDK dependency, desugaring |
 | 3 | [Permissions](android/03-permissions.md) | Internet, Mapbox token, manifest merger |
 | 4 | [Code Integration](android/04-code-integration.md) | Import, configure, present, listener |
-| 5 | [Branding & Modules](android/05-branding-and-modules.md) | Custom theming, module configuration |
+| 5 | [Configuration](android/05-configuration.md) | Branding, language, modules, data sources |
 | 6 | [Token Management](android/06-token-management.md) | Auth lifecycle, refresh, session clear |
 | 7 | [Engine Lifecycle](android/07-engine-lifecycle.md) | Flutter engine, dismiss, memory |
 | 8 | [API Reference](android/08-api-reference.md) | Rolla class, listener, errors, close reasons |
 | 9 | [Troubleshooting](android/09-troubleshooting.md) | Common issues & support |
-
----
-
-## Flutter Integration
-
-[**Go to Flutter Guide →**](flutter/README.md)
-
-The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embeds the SDK directly in your Flutter widget tree.
-
-| # | Section | Description |
-|---|---------|-------------|
-| 0 | [Quick Start](flutter/00-quick-start.md) | Minimal integration in under 10 minutes |
-| 1 | [Prerequisites](flutter/01-prerequisites.md) | Flutter/Dart floor, native platform floors, partner credentials |
-| 2 | [Installation](flutter/02-installation.md) | `flutter pub add rolla_sdk`, iOS deployment target, Gradle deltas + desugaring |
-| 3 | [Permissions](flutter/03-permissions.md) | Info.plist keys and AndroidManifest entries the host app adds |
-| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal |
-| 5 | [Branding & Modules](flutter/05-branding-and-modules.md) | `Branding(...)` config, `disabledModules` |
-| 6 | [Token Management](flutter/06-token-management.md) | `onTokenExpired` → `TokenRefreshResult`, `updateToken()`, logout |
-| 7 | [API Reference](flutter/07-api-reference.md) | Public Dart API: `RollaSDK`, `RollaSdkHome`, `Branding`, enums, types |
-| 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific symptoms and remedies |
-| 9 | [Compatibility Matrix](flutter/09-compatibility-matrix.md) | Package version ↔ Flutter / Dart / iOS / Android floors |
-
-> **Flutter hosts declare their own permissions.** Because the app consumes the Dart package (not a prebuilt AAR/pod), the SDK's permission strings must be added to `ios/Runner/Info.plist` and `android/app/src/main/AndroidManifest.xml` — a missing iOS usage string aborts the app with SIGABRT. See [Flutter Permissions](flutter/03-permissions.md).
 
 ---
 
@@ -77,7 +54,8 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 |---|---------|-------------|
 | 1 | [Overview](sdk-auth-api/01-overview.md) | Auth architecture, base URLs, environments, onboarding |
 | 2 | [Authentication](sdk-auth-api/02-authentication.md) | Register users, log in, obtain tokens, refresh tokens |
-| 3 | [Error Handling](sdk-auth-api/03-error-handling.md) | Error format, status codes, retry strategies, checklist |
+| 3 | [Profile](sdk-auth-api/03-profile.md) | Set profile data in advance, skip the SDK's onboarding |
+| 4 | [Error Handling](sdk-auth-api/04-error-handling.md) | Error format, status codes, retry strategies, checklist |
 
 > **Server-to-server data integration:** Rolla also offers a Partner API for backend-to-backend access to user health data, activity data, and user management. This is separate from the SDK integration. Contact [support@rolla.app](mailto:support@rolla.app) for Partner API access.
 
@@ -90,11 +68,26 @@ Feature support comparison between iOS and Android.
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding & Modules (all modules currently always enabled) | Yes | Yes | All modules currently always enabled |
+| Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
+| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, and `insights` can currently be disabled |
+| Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
+| Host-Controlled Language | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
+| Leaderboards | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
+| Insights | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
+| Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
+| `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
+| Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, activity history, goals, Home, or the last-opened state |
+| Notification Tap Routing | Yes | Yes | `notificationTarget`: recognize a tapped Rolla notification and resolve its destination — an SDK screen for `openScreen`, or the OS app-settings page |
+| External Heart Rate Monitors | Yes | Yes | Standard Bluetooth HR chest straps and arm bands as a workout's heart rate source |
+| Manual Sleep Logging | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |
+| Historical Data Import | Yes | Yes | One-time backfill offered when a data source is connected; restartable from Data Sources |
+| Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
+| Host Event Callbacks | Yes | Yes | 12 observational delegate/listener callbacks: activity lifecycle, band pairing & connection, sync results, goals, profile |
 | Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | Yes | Added in `0.1.10`; host app declares the manifest entries |
+| Health Connect | No | Yes | Host app declares the manifest entries |
 | Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
 | Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
+| Smartphone-Only Workout Tracking | Yes | Yes | Needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
 | Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
 | Background Location | Yes | Yes | |
 
@@ -130,7 +123,7 @@ The Rolla SDK provides a complete health and fitness experience embedded inside 
 ### Integration Flow
 
 1. **Obtain your Partner ID** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` during onboarding
-2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI, not at registration time.
+2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI — or your app [sets it in advance](sdk-auth-api/03-profile.md) after login so the SDK's onboarding is skipped.
 3. **Log in** — your app calls `POST /api/login` with the user's email, password, and `Partner-ID` header to obtain an access token and refresh token
 4. **Present the SDK** — initialize with the tokens and call `show()` — the SDK handles everything from there
 

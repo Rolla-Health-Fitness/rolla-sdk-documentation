@@ -8,11 +8,13 @@ This section covers importing the SDK, creating a configuration, initializing an
 import RollaSDK
 ```
 
+## Authentication & Token Flow
+
 The SDK needs a **user access token** (JWT) to identify the user and authorize API calls. You obtain this token from Rolla's auth API **after** the user has logged in.
 
-- **Typical flow:** User logs in the app → app calls backend → backend returns `access_token` (and optionally `refresh_token`, `expires_in`) → you pass that token into `RollaConfiguration` when opening the SDK.
+- **Typical flow:** User logs in to your app → your app calls your backend → your backend returns `access_token`, `refresh_token`, and `expires_in` from Rolla's auth API → you pass all three into `RollaConfiguration` when opening the SDK.
 - **When to fetch:** Before calling `rolla.show(from:)`. If the user is already logged in, use your existing session (e.g. stored token or refresh to get a new access token).
-- **What to pass:** At minimum, the **access token** (string). For better behavior, also pass `refreshToken` and `tokenExpiresIn`.
+- **What to pass:** All three token fields — the **access token**, `refreshToken`, and `tokenExpiresIn`. The access token alone opens the SDK, but the other two are what let it keep the session alive on its own — see [Token Management](07-token-management.md#your-apps-responsibilities).
 - **Partner ID:** Use the partner ID Rolla gave you. It is fixed per partner, not per user.
 
 > **Note:** You are responsible for authentication — the SDK only consumes the token you provide.
@@ -24,13 +26,12 @@ let configuration = RollaConfiguration(
     token: "your-access-token",
     refreshToken: "your-refresh-token",  // Optional
     tokenExpiresIn: TimeInterval(1800),  // Optional: token expiry in seconds (TimeInterval)
-    userId: "user-id",  // Optional: extracted from JWT if not provided
     partnerId: "your-partner-id",
-    environment: "production",  // or "rnd" for development
-    modules: nil,  // Optional: nil enables all modules
-    branding: nil  // Optional: custom branding configuration
+    environment: "production"  // or "rnd" for development
 )
 ```
+
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, and `showOptionsButton` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 
@@ -51,6 +52,8 @@ rolla.delegate = self
 rolla.show(from: self)
 ```
 
+Instead of `show(from:)`, `openScreen` opens the SDK directly on a specific screen (insights, activity history, goals, etc.) — for example from your own menu entries — see [Host-Driven Navigation](10-api-reference.md#host-driven-navigation). The SDK's own notifications fit the same model: each names the screen it should open, `notificationTarget` reads that off the tap in your notification-center delegate, and a screen result goes to `openScreen` — see [notificationTarget](10-api-reference.md#notificationtarget).
+
 ## Implement RollaDelegate
 
 ```swift
@@ -60,7 +63,7 @@ extension YourViewController: RollaDelegate {
         // Clean up any references
     }
 
-    func rolla(_ rolla: Rolla, didFailWithError error: RollaError) {
+    func rollaDidFailWithError(_ rolla: Rolla, error: RollaError) {
         // Handle errors
         print("Rolla SDK error: \(error.localizedDescription)")
     }
@@ -71,8 +74,9 @@ extension YourViewController: RollaDelegate {
     }
 
     func rollaDidRequestTokenRefresh(_ rolla: Rolla) {
-        // Called when the token has expired and the SDK cannot refresh it
-        // You must fetch a new token from your backend and call:
+        // Called when the token has expired and the SDK cannot refresh it.
+        // Obtain fresh tokens from the Rolla auth API (/api/login), directly
+        // or through your backend, and call:
         rolla.updateToken(token: newToken, refreshToken: newRefreshToken, expiresIn: newExpiresIn) { result in
             switch result {
             case .success:
@@ -87,29 +91,22 @@ extension YourViewController: RollaDelegate {
 
 All delegate methods have default empty implementations, so you only need to implement the ones relevant to your use case.
 
+The four above are the presentation and token callbacks — the minimum for a production integration. `RollaDelegate` has twelve more optional methods that push SDK events to your app (activity lifecycle, sync results, band pairing and live link state, primary source, goals, profile) — see the [RollaDelegate reference](10-api-reference.md#rolladelegate-protocol) and its [Host Events](10-api-reference.md#host-events) delivery semantics.
+
 ## Threading
 
-All public SDK methods dispatch to the main thread internally — you can safely call them from any thread:
+The SDK is thread-safe at its public surface, so you never have to think about threads when calling it:
 
-| Method | Thread-safe | Notes |
-|--------|:-----------:|-------|
-| `show(from:)` | Yes | Dispatches to main queue before presenting |
-| `dismiss()` | Yes | Dispatches to main queue before dismissing |
-| `updateToken(...)` | Yes | Dispatches to main queue; completion fires on main thread |
-| `clearSession(...)` | Yes | Dispatches to main queue; completion fires on main thread |
+- **Every method on a `Rolla` instance** — presentation, token, and headless methods alike — dispatches to the main queue internally. Call them from any thread.
+- **Every callback** — all `RollaDelegate` methods and every completion handler — arrives on the main thread. You can update your UI directly inside them.
+- **The one exception is the static `Rolla.destroyEngine()`**: it runs synchronously on the calling thread, with no internal dispatch — call it from the main thread.
 
-**Delegate callbacks** also arrive on the main thread. Flutter's platform channel delivers messages on the main thread, and the SDK does not re-dispatch to a background queue. You can safely update your UI directly inside delegate methods like `rollaDidClose(_:reason:)` or `rolla(_:didFailWithError:)`.
-
-> **Summary:** You do not need to wrap any SDK call or delegate handler in `DispatchQueue.main.async` — the SDK handles this for you.
+> **Summary:** You never need `DispatchQueue.main.async` around an SDK call or delegate handler.
 
 ## Cross-Platform Note: `tokenExpiresIn` Type
 
-On iOS, `tokenExpiresIn` is a `TimeInterval` (a `Double` representing seconds). On Android, it is an `Int` (seconds).
-
-If you maintain a shared backend or cross-platform token logic, be aware of this difference — passing a floating-point value where an integer is expected (or vice versa) can cause subtle bugs. Both platforms interpret the value as **seconds until expiry**.
-
-The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` delegate callback (`TimeInterval?` on iOS, `Int?` on Android).
+Both platforms mean the same thing — **seconds until expiry** — but the declared type follows each platform's idiom: `TimeInterval?` (a `Double` number of seconds) on iOS, `Int?` on Android. The same applies to the `expiresIn` parameter in the `rollaDidRefreshToken` delegate callback. There is no unit difference: if your backend returns `expires_in` in seconds, pass it straight through on both platforms.
 
 ---
 
-**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Branding & Modules](05-branding-and-modules.md) | **Home:** [README](README.md)
+**Previous:** [Permissions & Entitlements](03-permissions-and-entitlements.md) | **Next:** [Configuration](05-configuration.md) | **Home:** [README](README.md)
