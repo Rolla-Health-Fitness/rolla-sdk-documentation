@@ -6,7 +6,7 @@ A complete, step-by-step guide to integrating the Rolla SDK into your Flutter ap
 
 `rolla_sdk` embeds the **same** SDK that the [iOS](../ios/README.md) and [Android](../android/README.md) guides document, as a package that runs inside your app's own Flutter engine. There is no separate engine to manage and no native wrapper: your app calls the static `RollaSDK` API and renders one widget, `RollaSdkHome`. Everything that happens inside your `ios/` and `android/` projects (usage strings, entitlements, manifest entries, the Live Activity extension) works exactly as in a native app, so this guide links to the native pages for that and documents the Dart surface itself.
 
-**Package version this guide targets:** `rolla_sdk` **0.1.15** (pub.dev)
+**Package version this guide targets:** `rolla_sdk` **0.1.15+1** (pub.dev; the `+1` is a page-only republish of 0.1.15, same code)
 **SDK version it contains:** `0.1.15` — the package is released in lockstep with the native SDK and carries the same number. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
 
 ## Table of Contents

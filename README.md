@@ -3,7 +3,7 @@
 Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
 
 **Latest SDK Version:** 0.1.15
-**Latest Flutter package:** [`rolla_sdk@0.1.15`](flutter/README.md)
+**Latest Flutter package:** [`rolla_sdk@0.1.15+1`](flutter/README.md)
 
 ---
 
