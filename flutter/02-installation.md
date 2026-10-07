@@ -7,14 +7,14 @@ Add the `rolla_sdk` package from pub.dev, then apply the iOS and Android changes
 ## 1. Add the Package
 
 ```sh
-flutter pub add rolla_sdk:0.1.15
+flutter pub add rolla_sdk:0.1.15+1
 ```
 
 This pins the current release in `pubspec.yaml` — an exact version, not a caret, because 0.1.x releases can carry breaking changes (see [Prerequisites → Versioning](01-prerequisites.md#versioning)):
 
 ```yaml
 dependencies:
-  rolla_sdk: 0.1.15
+  rolla_sdk: 0.1.15+1
 ```
 
 No authentication is required — the package is published to the public pub.dev registry. Requires **Flutter 3.35.6 / Dart 3.9.2** or newer, see [Prerequisites](01-prerequisites.md).

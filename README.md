@@ -65,7 +65,7 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 | 7 | [API Reference](flutter/07-api-reference.md) | `RollaSDK`, `RollaSdkHome`, host-driven navigation, headless calls, types |
 | 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific issues & support |
 
-> **Versions:** `rolla_sdk@0.1.15` contains SDK `0.1.15`; from 0.1.15 on, the package version equals the SDK version. Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
+> **Versions:** `rolla_sdk@0.1.15+1` contains SDK `0.1.15` (the `+1` is a page-only republish of `0.1.15`, same code); from 0.1.15 on, the package version equals the SDK version. Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
 
 ---
 

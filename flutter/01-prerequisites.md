@@ -25,11 +25,12 @@ The package is released in lockstep with the native SDK, and the package version
 
 | pub.dev `rolla_sdk` | SDK version | Notes |
 |---------------------|-------------|-------|
-| **`0.1.15`** (current) | `0.1.15` | The 0.1.15 configuration options as `initializeWithToken` parameters, plus `openScreen` and the headless calls; see [API Reference → Not Available in Flutter](07-api-reference.md#not-available-in-flutter) for the exceptions |
+| **`0.1.15+1`** (current) | `0.1.15` | The 0.1.15 configuration options as `initializeWithToken` parameters, plus `openScreen` and the headless calls; see [API Reference → Not Available in Flutter](07-api-reference.md#not-available-in-flutter) for the exceptions |
+| `0.1.15` | `0.1.15` | Same code as `0.1.15+1`; its pub.dev page listed a non-existent iOS entitlement, so pin `0.1.15+1` instead. |
 | `0.1.12`, `0.1.11` | pre-release snapshots (June 2026) | Superseded; no longer supported |
 | `0.2.0` and later | Equal to the package version | Every official SDK release ships a pub.dev release carrying the same number |
 
-- **Pin the exact version:** `flutter pub add rolla_sdk:0.1.15` writes `rolla_sdk: 0.1.15` to your `pubspec.yaml`. A caret (`^0.1.15`) would let `flutter pub upgrade` pick up any later 0.1.x release, and 0.1.x releases can carry `[breaking]` changes — upgrade deliberately.
+- **Pin the exact version:** `flutter pub add rolla_sdk:0.1.15+1` writes `rolla_sdk: 0.1.15+1` to your `pubspec.yaml`. A caret (`^0.1.15`) would let `flutter pub upgrade` pick up any later 0.1.x release, and 0.1.x releases can carry `[breaking]` changes — upgrade deliberately.
 - **Upgrading is one number:** bump the package, run `cd ios && pod install` and `cd android && ./gradlew --refresh-dependencies` (see [Installation → Verify the build](02-installation.md#4-verify-the-build)), rebuild.
 - **The changelog is the SDK changelog.** Every "Both platforms" entry applies to a Flutter host and the iOS / Android sections apply on the respective platform. Entries name the native wrapper surface (`RollaConfiguration`, `RollaDelegate` / `RollaListener`); in Flutter the same options are parameters of `RollaSDK.initializeWithToken` and the callbacks you pass to it — the mapping is in [Configuration](05-configuration.md).
 - The native SDK's [iOS](../ios/README.md) and [Android](../android/README.md) guides apply to Flutter hosts one-to-one for everything inside the native projects. This guide links to the exact native section rather than repeating it.

@@ -15,14 +15,14 @@ Get the Rolla SDK running in your Flutter app in under 10 minutes.
 ## 1. Add the Package
 
 ```sh
-flutter pub add rolla_sdk:0.1.15
+flutter pub add rolla_sdk:0.1.15+1
 ```
 
 This pins the current release in your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rolla_sdk: 0.1.15
+  rolla_sdk: 0.1.15+1
 ```
 
 Pin the exact version: 0.1.x releases can carry breaking changes, so upgrade deliberately (see [Prerequisites → Versioning](01-prerequisites.md#versioning)). Then apply the platform floors (iOS deployment target, Android `minSdk` and desugaring) from [Installation](02-installation.md).
