@@ -69,14 +69,7 @@ Smartphone-only workout tracking lets workouts be started and tracked with no pa
 
 ## Configure Entitlements
 
-### Bluetooth Central
-
-Add the Bluetooth Central entitlement to your `.entitlements` file:
-
-```xml
-<key>com.apple.developer.bluetooth-central</key>
-<true/>
-```
+Bluetooth needs no entitlement: the `bluetooth-central` entry in `UIBackgroundModes` (see [Background Modes](#background-modes)) is what keeps the band connected in the background.
 
 ### HealthKit (Required for Apple Health)
 
@@ -117,7 +110,6 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `NSBluetoothAlwaysUsageDescription` | Required for any band-paired feature | The SDK initializes a `CBCentralManager` to scan for and connect to Rolla fitness bands. iOS 13+ shows the system Bluetooth prompt the moment `CBCentralManager` is allocated. |
 | `NSBluetoothPeripheralUsageDescription` | Optional | Legacy iOS-12-and-below companion key. The SDK does not act as a peripheral (no `CBPeripheralManager` allocations), but Apple's static analyzer will warn if only one of the two Bluetooth keys is present, so we recommend declaring it for compatibility with older deployment targets and to silence the warning. |
-| Bluetooth Central Entitlement | Required (build-time) | App Store capability required for the SDK's BLE central role (band scanning and connection). Configured in `.entitlements`, not `Info.plist`. |
 
 ### Apple Health
 

@@ -7,7 +7,7 @@ This section provides solutions to common issues encountered when integrating an
 ### SDK fails to start
 
 - Ensure all Info.plist permissions are configured
-- Verify Bluetooth Central capability is enabled
+- Verify `bluetooth-central` is listed under `UIBackgroundModes` in `Info.plist`
 - Check that the token is valid and not expired
 - Verify HealthKit capability is enabled (if using Apple Health)
 
