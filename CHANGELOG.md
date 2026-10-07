@@ -12,9 +12,17 @@
 
 ## 0.1.16
 
+### Both platforms
+
+- **[fix] The inactivity reminder and the evening band-battery warning now fire once and no longer repeat a year later.** A band-battery warning left repeating by an earlier SDK version is cleared once after the update.
+
 ### iOS
 
 - **[documentation] Simplified the Live Activities guide on the `LiveWorkoutAttributes.swift` data contract.** The file belongs to the widget extension target only — the SDK compiles its own copy for the app side — and the simplest setup is to use the SDK's file as-is from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`. The [Live Activities](ios/09-live-activities.md#step-7-verify-target-membership-and-the-data-contract) guide no longer asks for the file in both targets, explains what actually happens when a widget copy declares a field the SDK does not send (the Live Activity stays hidden rather than crashing), and gives a one-line `cmp` check for confirming the copy.
+
+### Android
+
+- **[improvement] SDK reminders no longer use exact alarms.** The inactivity reminder and the band-battery warning now arrive around their planned time whether or not `SCHEDULE_EXACT_ALARM` is granted, so hosts that declared it only for the SDK can remove it. Removing it cancels a pending reminder once on update; the SDK schedules it again on the next app open or band reading. See the updated row in the [permissions guide](android/03-permissions.md#notification-taps-and-scheduled-reminders).
 
 ## 0.1.15
 
