@@ -60,12 +60,11 @@ For the rationale behind every key, in wording you can lift into your privacy po
 
 ### Entitlements
 
-Two capabilities live in `ios/Runner/Runner.entitlements`, not in `Info.plist` — a fresh Flutter scaffold has neither:
+One capability lives in `ios/Runner/Runner.entitlements`, not in `Info.plist` — a fresh Flutter scaffold does not have it:
 
 - **HealthKit** — required for Apple Health. Add the capability in Xcode (Runner target → Signing & Capabilities → + Capability → HealthKit); it writes `com.apple.developer.healthkit` and the empty `com.apple.developer.healthkit.access` array. The App ID must have HealthKit enabled on your Apple Developer account.
-- **Bluetooth Central** — `com.apple.developer.bluetooth-central`, the capability for the SDK's Bluetooth central role.
 
-Exact keys and steps: [iOS Permissions & Entitlements → Configure Entitlements](../ios/03-permissions-and-entitlements.md#configure-entitlements). Apple Health needs no code on your side — the SDK reads the 14 HealthKit types listed in [iOS Apple Health Integration](../ios/06-apple-health.md) and prompts the user from its own UI.
+Bluetooth needs no entitlement: the `bluetooth-central` entry in `UIBackgroundModes` above is what keeps the band connected in the background. Exact keys and steps: [iOS Permissions & Entitlements → Configure Entitlements](../ios/03-permissions-and-entitlements.md#configure-entitlements). Apple Health needs no code on your side — the SDK reads the 14 HealthKit types listed in [iOS Apple Health Integration](../ios/06-apple-health.md) and prompts the user from its own UI.
 
 ### Notification Delegate
 
