@@ -14,6 +14,8 @@
 
 ### Both platforms
 
+- **[fix] Token callbacks now reach your app during headless calls.** `rollaDidRefreshToken` / `onTokenRefreshed` and `rollaDidRequestTokenRefresh` / `onTokenExpired` previously fired only while the SDK UI was presented, so a `syncHealthData` or `getBandBatteryLevel` call that rotated the tokens left your app holding a spent refresh token, and a failed refresh made the call wait 10 seconds before failing. Both callbacks now fire for the engine's lifetime, UI or not, and a failed refresh with no delegate/listener attached fails the request right away. See the [Android](android/06-token-management.md#how-it-works) / [iOS](ios/07-token-management.md#how-it-works) Token Management guides.
+
 - **[fix] The inactivity reminder and the evening band-battery warning now fire once and no longer repeat a year later.** A band-battery warning left repeating by an earlier SDK version is cleared once after the update.
 
 ### iOS
