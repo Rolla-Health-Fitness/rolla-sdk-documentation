@@ -14,6 +14,8 @@
 
 ### Both platforms
 
+- **[feature] `syncHealthData` now reports the result of each data stream, and returns `partial` when only some of them uploaded.** The new `RollaSyncResult.streamResults` lists every stream the sync attempted as uploaded, no new data, or failed with an error. A sync where a stream failed but new data still reached the server now returns `partial` (`hasNewData` true, `error` set to the first failure) instead of `success` — handle it as a sync that ran — and one where nothing did returns `failure`. UI syncs reported through [`onUiSyncCompleted`](android/08-api-reference.md#sync-events) / [`rollaDidCompleteUISync`](ios/10-api-reference.md#sync-events) follow the same rules; syncs where no stream fails are unchanged. See the [Android](android/08-api-reference.md#synchealthdata) / [iOS](ios/10-api-reference.md#synchealthdata) `syncHealthData` references.
+
 - **[fix] Token callbacks now reach your app during headless calls.** `rollaDidRefreshToken` / `onTokenRefreshed` and `rollaDidRequestTokenRefresh` / `onTokenExpired` previously fired only while the SDK UI was presented, so a `syncHealthData` or `getBandBatteryLevel` call that rotated the tokens left your app holding a spent refresh token, and a failed refresh made the call wait 10 seconds before failing. Both callbacks now fire for the engine's lifetime, UI or not, and a failed refresh with no delegate/listener attached fails the request right away. See the [Android](android/06-token-management.md#how-it-works) / [iOS](ios/07-token-management.md#how-it-works) Token Management guides.
 
 - **[fix] The inactivity reminder and the evening band-battery warning now fire once and no longer repeat a year later.** A band-battery warning left repeating by an earlier SDK version is cleared once after the update.
@@ -23,6 +25,8 @@
 - **[documentation] Simplified the Live Activities guide on the `LiveWorkoutAttributes.swift` data contract.** The file belongs to the widget extension target only — the SDK compiles its own copy for the app side — and the simplest setup is to use the SDK's file as-is from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`. The [Live Activities](ios/09-live-activities.md#step-7-verify-target-membership-and-the-data-contract) guide no longer asks for the file in both targets, explains what actually happens when a widget copy declares a field the SDK does not send (the Live Activity stays hidden rather than crashing), and gives a one-line `cmp` check for confirming the copy.
 
 ### Android
+
+- **[fix] Health Connect workouts now import during `syncHealthData` calls made without the SDK UI on screen.** The workout import requested its permissions on every sync, which a sync without the SDK UI cannot do, so workouts waited for the next sync inside the SDK UI. Permissions that are already granted are now checked instead of requested.
 
 - **[improvement] SDK reminders no longer use exact alarms.** The inactivity reminder and the band-battery warning now arrive around their planned time whether or not `SCHEDULE_EXACT_ALARM` is granted, so hosts that declared it only for the SDK can remove it. Removing it cancels a pending reminder once on update; the SDK schedules it again on the next app open or band reading. See the updated row in the [permissions guide](android/03-permissions.md#notification-taps-and-scheduled-reminders).
 

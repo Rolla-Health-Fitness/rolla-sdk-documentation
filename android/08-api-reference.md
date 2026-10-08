@@ -228,7 +228,9 @@ Twelve listener methods push SDK events to your app, so you never have to poll. 
 | Headless&nbsp;sync&nbsp;completed | <code>onSyncHealthDataCompleted(rolla,&nbsp;result)</code> | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the callback receives |
 | UI&nbsp;sync&nbsp;completed | <code>onUiSyncCompleted(rolla,&nbsp;result)</code> | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
 
-**`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `null` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+**`syncedData` on UI syncs.** On a successful or partial band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `null` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+**Outcomes on UI syncs.** `outcome` and `streamResults` follow the same rules as the headless result, so a UI sync where a stream failed reports `PARTIAL` (or `FAILURE` when no new data reached the server), even while the SDK UI itself shows the sync as complete.
 
 ### Activity Events
 
@@ -281,12 +283,24 @@ Runs a full sync of the user's primary data source (band over BLE, or Health Con
 
 | Field | Meaning |
 |-------|---------|
-| `outcome` | `SUCCESS`, `SKIPPED` (expectedly did nothing — see `skipReason`), or `FAILURE` (see `error`) |
-| `hasNewData` | Whether anything new was uploaded (success only) |
+| `outcome` | `SUCCESS`, `PARTIAL` (the sync ran and uploaded new data, but at least one stream failed — see `streamResults`; what failed is retried on the next sync), `SKIPPED` (expectedly did nothing — see `skipReason`), or `FAILURE` (see `error` — also when streams failed and no new data reached the server) |
+| `hasNewData` | Whether anything new was uploaded (`SUCCESS`; always `true` on `PARTIAL`) |
 | `source` | `BAND`, `APPLE_HEALTH`, `HEALTH_CONNECT`, `GARMIN`, `OURA` |
-| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on success |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on `SUCCESS` and `PARTIAL` |
 | `skipReason` | `NO_BAND_PAIRED` (no band on the account), `BAND_NOT_CONNECTED` (a band is paired but couldn't be reached right now), `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE` |
-| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays |
+| `error` | Set on `FAILURE` and `PARTIAL`. When streams failed, it is the first failed stream's error; each failed stream's own error is in `streamResults` |
+| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays. `null` on `SKIPPED` and `FAILURE` |
+| `streamResults` | One `RollaSyncStreamResult` per stream the sync attempted, in upload order — heart rate, HRV, steps and sleep, then weight, blood pressure and workouts for Health Connect. Each carries `stream`, `status` (`UPLOADED`, `NO_NEW_DATA`, `FAILED`) and, when failed, a diagnostic `error` string (not stable — don't parse it). A `FAILED` stream can still have uploaded part of its data — Health Connect steps upload day by day — and that part is in `syncedData`. Empty when no stream ran: `SKIPPED`, a failure before any stream started, and Garmin/Oura refreshes. Later versions may add values to `RollaSyncStream` and `RollaSyncStreamStatus` — keep an `else` branch when switching over them |
+
+```kotlin
+rolla.syncHealthData(context) { result ->
+    result.onSuccess { sync ->
+        if (sync.didRun) println("Synced, new data: ${sync.hasNewData}") // SUCCESS or PARTIAL
+        sync.streamResults.filter { it.status == RollaSyncStreamStatus.FAILED }
+            .forEach { println("${it.stream} failed: ${it.error}") }
+    }
+}
+```
 
 ### getBandBatteryLevel
 
