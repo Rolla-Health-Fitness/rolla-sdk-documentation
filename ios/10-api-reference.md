@@ -91,7 +91,10 @@ The screens your app can open directly — a deliberate whitelist:
 | `.goals` | The goals editor |
 | `.home` | The SDK Home screen — restores Home as the root |
 | `.insights` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `.nutrition` | The Nutrition tab, opened as the SDK root — requires the nutrition module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
 | `.resume` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `.opened` |
+
+Later versions may add cases to `RollaScreen`, so end a `switch` over it with `@unknown default`.
 
 ### RollaOpenScreenStatus
 
@@ -100,7 +103,7 @@ Every outcome is a typed status — the call never fails silently:
 | Status | Meaning |
 |--------|---------|
 | `.opened` | The SDK UI is on the requested screen |
-| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` with the insights module disabled) — nothing was opened |
+| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` or `.nutrition` with its module disabled) — nothing was opened |
 | `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
 | `.uiUnavailable` | The SDK UI could not be shown — the `from` view controller is not attached to a window, or the SDK never became ready to navigate |
 | `.superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |

@@ -15,7 +15,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 | 0 | [Quick Start](ios/00-quick-start.md) | Minimal integration in under 10 minutes |
 | 1 | [Prerequisites](ios/01-prerequisites.md) | iOS version, CocoaPods, Xcode |
 | 2 | [CocoaPods Setup](ios/02-cocoapods-setup.md) | Add SDK dependency, build settings |
-| 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Mapbox, HealthKit |
+| 3 | [Permissions & Entitlements](ios/03-permissions-and-entitlements.md) | Info.plist, Bluetooth, Location, Camera, Mapbox, HealthKit |
 | 4 | [Code Integration](ios/04-code-integration.md) | Import, configure, present, delegate |
 | 5 | [Configuration](ios/05-configuration.md) | Branding, language, modules, data sources |
 | 6 | [Apple Health](ios/06-apple-health.md) | HealthKit integration, 14 data types |
@@ -69,14 +69,15 @@ Feature support comparison between iOS and Android.
 |---------|:---:|:-------:|-------|
 | Core SDK (present, dismiss, token management) | Yes | Yes | |
 | Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
-| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, and `insights` can currently be disabled |
+| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, `insights`, and `nutrition` can currently be disabled |
 | Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
 | Host-Controlled Language | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
 | Leaderboards | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
 | Insights | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
+| Nutrition | Yes | Yes | On by default: calorie budget, meals, water, weight goals, meal plans, and day templates; AI meal estimates from a photo or description, enabled per partner by Rolla; Home-screen entry beside Insights; hide via `disabledModules`; needs `NSCameraUsageDescription` (iOS) / two CameraX manifest overrides (Android) |
 | Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
 | `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
-| Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, activity history, goals, Home, or the last-opened state |
+| Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, nutrition, activity history, goals, Home, or the last-opened state |
 | Notification Tap Routing | Yes | Yes | `notificationTarget`: recognize a tapped Rolla notification and resolve its destination — an SDK screen for `openScreen`, or the OS app-settings page |
 | External Heart Rate Monitors | Yes | Yes | Standard Bluetooth HR chest straps and arm bands as a workout's heart rate source |
 | Manual Sleep Logging | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |

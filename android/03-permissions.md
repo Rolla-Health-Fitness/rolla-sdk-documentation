@@ -32,6 +32,26 @@ You can add this permission yourself, or let the manifest merger pull it in from
 
 `ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, so the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
 
+## Nutrition Photo Scan (CameraX manifest overrides)
+
+AI meal estimation in the nutrition module can start from a photo of the meal, taken with CameraX inside the SDK. CameraX's library manifest merges four entries into your app:
+
+- `CAMERA` — the scan needs it; keep it.
+- `RECORD_AUDIO` — never used; it shows as Microphone on your Play listing.
+- `WRITE_EXTERNAL_STORAGE`, capped at API 28 — it implies an uncapped `READ_EXTERNAL_STORAGE`; nothing to override, but expect both in your merged manifest.
+- A **required** `android.hardware.camera.any` feature — it hides your app from devices without a camera.
+
+The SDK cannot override a sibling library's manifest entries; only your app manifest outranks them. Add these two overrides inside the `<manifest>` element of your `AndroidManifest.xml`, and declare the tools namespace on that element (`xmlns:tools="http://schemas.android.com/tools"`) if it isn't there yet:
+
+```xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+<uses-feature android:name="android.hardware.camera.any"
+    android:required="false"
+    tools:replace="android:required" />
+```
+
+Apps that skip this still build and run, but they advertise a microphone permission they never use and lose camera-less devices from their store listing. Marking the camera optional is safe: the photo scan is one way to log a meal among several — search, recents, manual entry and a typed description all work without a camera.
+
 ## Health Connect (Android)
 
 The SDK supports Google Health Connect. The SDK's bundled manifest declares only part of the Health Connect read set — the rest must come from your app, and Google's policy review evaluates the **merged** manifest under your app's identity. Declare the full set below in your `AndroidManifest.xml` (the manifest merger deduplicates the entries the SDK already carries), so your Play listing and Data Safety declarations match exactly what the app can request.
@@ -186,6 +206,13 @@ This section is the partner-facing justification for every permission the SDK re
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
 | `ACTIVITY_RECOGNITION` | Required for smartphone-only workouts | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. The SDK reads the phone's step counter to track workouts started with no paired wearable, and requests the permission at runtime before the first such workout. Its bundled manifest already declares the permission, so you don't need to add it yourself. |
+
+### Camera
+
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `CAMERA` | Required for the nutrition photo scan | The SDK opens the camera so the user can photograph a meal for an AI nutrition estimate. Photos are cropped, turned upright and stripped of location and other hidden metadata on the phone, sent only when the user scans, and deleted once the estimate comes back. CameraX's manifest already declares the permission, so you don't need to add it yourself. |
+| `RECORD_AUDIO` | Not needed — remove it | Merged in by CameraX and never used by the SDK. It shows as Microphone on your Play listing unless you remove it with `tools:node="remove"` — see [Nutrition Photo Scan](#nutrition-photo-scan-camerax-manifest-overrides). |
 
 ### Foreground Service
 

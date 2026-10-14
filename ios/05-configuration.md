@@ -130,10 +130,19 @@ let configuration = RollaConfiguration(
 | `.bloodPressure` | The Blood Pressure tracking and manual-logging module |
 | `.leaderboards` | The Leaderboards module (weekly/monthly competitive rankings) |
 | `.insights` | The Insights module (the insights feed, the Home screen's Insights entry, and its unread badge) |
+| `.nutrition` | The Nutrition module (the Nutrition tab, the Meal quick action, the Home screen's Nutrition entry, and `RollaScreen.nutrition`) |
 
 Leaderboards let users compare their Health Score or Active Points against other users in your tenant over weekly and monthly periods, with join/leave controls per challenge type. Disable the module to hide competitive rankings everywhere in the SDK UI.
 
-Insights are short personalized reads generated from the user's own health data, refreshed as new data syncs. The Home screen's Overview section shows an Insights entry carrying the unread count; it opens the insights feed, and leaving the feed returns to Home. Disable the module to remove the feed and every path to it from the SDK UI.
+Insights are short personalized reads generated from the user's own health data, refreshed as new data syncs. Disable the module to remove the feed and every path to it from the SDK UI.
+
+The Home screen's Overview section shows one entry card: an Insights row carrying the unread count, and a Nutrition row. Each row opens its screen, and leaving the screen returns to Home. Disabling a module removes only its row; with both disabled, there is no card.
+
+Nutrition is on by default. It adds the Nutrition tab, a Meal entry in the quick-action (+) menu, its row in the Home entry card, and calls to the nutrition endpoints. It covers the daily calorie budget, meals, water, weight goals, meal plans and reusable day templates, all stored on the user's account. The budget needs the profile's gender, height and birthdate, a weight reading and a chosen weight goal; the tab asks for whatever is missing before it opens — see the [Profile guide](../sdk-auth-api/03-profile.md) for setting profile data in advance.
+
+Apps updating from 0.1.15 or earlier gain the tab unless they pass `.nutrition` in `disabledModules`. That removes the tab, the quick action and the Home row, and opening `RollaScreen.nutrition` resolves as `.screenDisabled`. Both `RollaScreen` and `RollaDisabledModule` gain a `.nutrition` case, so a `switch` over either needs that case or `@unknown default`.
+
+AI meal estimation turns a photo or a short typed description into a meal. The user can edit the estimate — rename it, change portions, remove items — and nothing is logged until they confirm; it is saved as one meal, with the foods as its ingredients. Rolla enables it per partner on the backend, so there is nothing to configure in the SDK; where it is off, the photo scan and the typed-description option simply don't appear. Where it is on, the user agrees before the camera opens for the first time and can withdraw that agreement in the Nutrition settings screen. Photos are cropped, turned upright and stripped of location and other hidden metadata on the phone, sent only when the user scans, and deleted once the estimate comes back. The photo scan needs a camera usage description in your `Info.plist` — see [Camera](03-permissions-and-entitlements.md#camera-required-for-the-nutrition-photo-scan).
 
 Additional modules will become disable-able in future releases. If there is a module you need to hide that isn't listed yet, contact Rolla during onboarding and we will prioritize adding it to `RollaDisabledModule`.
 
