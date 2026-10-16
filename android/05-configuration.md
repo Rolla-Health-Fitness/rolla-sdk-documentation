@@ -145,7 +145,7 @@ Leaderboards let users compare their Health Score or Active Points against other
 
 Insights are short personalized reads generated from the user's own health data, refreshed as new data syncs. Disable the module to remove the feed and every path to it from the SDK UI.
 
-The Home screen's Overview section shows one entry card: an Insights row carrying the unread count, and a Nutrition row. Each row opens its screen, and leaving the screen returns to Home. Disabling a module removes only its row; with both disabled, there is no card.
+The Home screen's Overview section shows one entry card, in the tab order: a Nutrition row, then an Insights row carrying the unread count. Each row opens its screen, and leaving the screen returns to Home. Disabling a module removes only its row; with both disabled, there is no card.
 
 Nutrition is on by default. It adds the Nutrition tab, a Meal entry in the quick-action (+) menu, its row in the Home entry card, and calls to the nutrition endpoints. It covers the daily calorie budget, meals, water, weight goals, meal plans and reusable day templates, all stored on the user's account. The budget needs the profile's gender, height and birthdate, a weight reading and a chosen weight goal; the tab asks for whatever is missing before it opens — see the [Profile guide](../sdk-auth-api/03-profile.md) for setting profile data in advance.
 
