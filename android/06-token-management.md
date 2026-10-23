@@ -33,7 +33,7 @@ All of the following should be implemented.
 
 ## Listener Callbacks
 
-Both callbacks are part of `RollaListener` (attach it via `rolla.listener = ...` before showing the SDK or making a headless call). While the SDK UI is presented they go to the listener of the presenting `Rolla` instance, otherwise to the instance that most recently called `show()`, `openScreen`, `warmUpEngine()` or a headless method; a call from an instance without a listener never takes them over while the UI is shown.
+Both callbacks are part of `RollaListener` (attach it via `rolla.listener = ...` before showing the SDK or making a headless call). While the SDK UI is presented they go to the listener of the presenting `Rolla` instance, otherwise to the instance that most recently called `show()`, `openScreen`, `warmUpEngine()` or a headless method; a call from an instance without a listener never takes them over while the UI is shown. The same rule covers every [host event](08-api-reference.md#host-events).
 
 ```kotlin
 override fun onTokenRefreshed(rolla: Rolla, token: String, refreshToken: String?, expiresIn: Int?) {

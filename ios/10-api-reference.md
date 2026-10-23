@@ -237,7 +237,7 @@ All sixteen methods have default empty implementations — implement only the on
 
 Twelve delegate methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery, presenter-first.** Events are armed by any of `show(from:)`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. While the SDK UI is presented (or being opened) they stay with the `Rolla` instance that presented it: a headless call from another instance in that time does not take them over, so a throwaway instance without a delegate cannot swallow the open UI's events (if that open never presents, the turned-away caller takes them when it ends). With nothing presented, the instance that most recently called the SDK receives them. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
 
 ### Sync Events

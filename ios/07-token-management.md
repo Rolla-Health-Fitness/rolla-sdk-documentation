@@ -33,7 +33,7 @@ All of the following should be implemented.
 
 ## Delegate Callbacks
 
-Both callbacks are part of `RollaDelegate` (attach it via `rolla.delegate = ...` before showing the SDK or making a headless call). While the SDK UI is presented they go to the delegate of the presenting `Rolla` instance, otherwise to the instance that most recently called `show(from:)`, `openScreen`, `warmUpEngine()` or a headless method; a call from an instance without a delegate never takes them over while the UI is shown.
+Both callbacks are part of `RollaDelegate` (attach it via `rolla.delegate = ...` before showing the SDK or making a headless call). While the SDK UI is presented they go to the delegate of the presenting `Rolla` instance, otherwise to the instance that most recently called `show(from:)`, `openScreen`, `warmUpEngine()` or a headless method; a call from an instance without a delegate never takes them over while the UI is shown. The same rule covers every [host event](10-api-reference.md#host-events).
 
 ```swift
 // Called when the SDK refreshes the token internally
