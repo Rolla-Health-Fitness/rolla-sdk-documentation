@@ -119,7 +119,7 @@ Presentation failures additionally fire `onRollaError(rolla, error)` exactly as 
 fun notificationTarget(intent: Intent): RollaNotificationTarget?
 ```
 
-Every notification the SDK posts opens your **launcher activity** when tapped — the activity carrying your `MAIN`/`LAUNCHER` intent filter, whether or not it is the one you present the SDK from — and carries a payload that names its destination. `notificationTarget` reads that payload off the delivering intent. `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own); otherwise you get a typed destination to act on, typically by calling [`openScreen`](#openscreen). The payload itself is the `payload` string extra on that intent, if you ever need it.
+Every notification the SDK posts opens your **launcher activity** when tapped — the activity carrying your `MAIN`/`LAUNCHER` intent filter, whether or not it is the one you present the SDK from — and carries a payload that names its destination. The one case that never reaches you is a workout notification tapped while the SDK UI is already open: the SDK brings its own UI to the front and your activity stays out of it. `notificationTarget` reads that payload off the delivering intent. `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own); otherwise you get a typed destination to act on, typically by calling [`openScreen`](#openscreen). The payload itself is the `payload` string extra on that intent, if you ever need it.
 
 These are the notifications the SDK posts and where a tap leads (English copy shown; the reminders and the warning follow the SDK language):
 
@@ -128,7 +128,7 @@ These are the notifications the SDK posts and where a tap leads (English copy sh
 | **Background tracking disabled** | The SDK UI leaves the foreground mid-workout — the app goes to the background, or one of your screens covers it — and *Always* location is missing; on Android 12+ only during a GPS workout | `AppSettings` — the fix is a permission, so the OS app-settings page is the destination |
 | **Stay on track** (inactivity reminder) | Two calendar days after the SDK was last opened, at 10:00 — every open of the SDK re-arms it | `Screen(INSIGHTS)`, or `Screen(HOME)` when the insights module was disabled at the time the reminder was scheduled |
 | **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight — right away if it is already there, otherwise at 18:00 | `Screen(HOME)` |
-| **Workout in progress** / **Location Tracking** (the ongoing workout notifications) | For the whole of a Bluetooth or GPS workout | `Screen(RESUME)` — the live workout, exactly as the user left it |
+| **Workout in progress** / **Location Tracking** (the ongoing workout notifications) | For the whole of a Bluetooth or GPS workout | `Screen(RESUME)` — the live workout, exactly as the user left it. With the SDK UI already open, the tap brings it to the front by itself and your activity receives nothing |
 
 All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
 
@@ -182,7 +182,7 @@ private fun handleNotificationTap(intent: Intent, tapCreatedThisInstance: Boolea
 
 - `singleTop`, with your launcher already the top activity: the tap comes through `onNewIntent` on the live instance.
 - Otherwise — a `standard` launcher, or a `singleTop` one with the SDK UI or another of your activities on top: Android stacks a new instance on the task and the tap comes through its `onCreate`.
-- Avoid `singleTask` and `singleInstance`: a `singleTask` launcher takes the tap by destroying every activity above it, an open SDK UI included, and a `singleInstance` launcher lives alone in its task, so the tap brings that task forward and leaves the SDK UI behind.
+- Avoid `singleTask` and `singleInstance`: a `singleTask` launcher takes a reminder or warning tap by destroying every activity above it, an open SDK UI included (the workout notifications are spared — with the SDK UI open they bring it to the front without going through your activity), and a `singleInstance` launcher lives alone in its task, so the tap brings that task forward and leaves the SDK UI behind.
 
 `notificationTarget` also returns `null` for the copy of a tap intent that Android re-delivers when the user relaunches the app from Recents, so an old tap never replays.
 

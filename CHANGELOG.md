@@ -45,9 +45,13 @@
 
 - **[breaking] Override two entries CameraX merges into your app manifest.** The nutrition photo scan pulls in CameraX, whose manifest adds `RECORD_AUDIO` — never used, but shown as Microphone on your Play listing — and a required `android.hardware.camera.any` feature that hides your app from devices without a camera. The SDK cannot override a sibling library's entries; only your app manifest outranks them. Remove `RECORD_AUDIO` with `tools:node="remove"` and mark the camera feature `android:required="false"`. Apps that skip this still build and run. See [Nutrition Photo Scan](android/03-permissions.md#nutrition-photo-scan-camerax-manifest-overrides) for the snippet.
 
+- **[fix] The SDK screen no longer crashes when Android restores it after the app's process was killed.** With the SDK UI on screen when the system reclaimed the process, returning to the app from Recents recreated the SDK screen without the engine behind it and the app crashed. The restored screen now closes itself at once and the app continues on your activity underneath; no close event is delivered for it.
+
 - **[fix] Health Connect workouts now import during headless `syncHealthData` calls.** The workout import requested its permissions on every sync, which a sync without the SDK UI cannot do, so workouts waited for the next sync inside the SDK UI. Workouts now import whenever the permissions they need are already granted, and the workouts stream reports `permissionRequired` instead of failing when they are not.
 
 - **[improvement] SDK reminders no longer use exact alarms.** The inactivity reminder and the band-battery warning now arrive around their planned time whether or not `SCHEDULE_EXACT_ALARM` is granted, so hosts that declared it only for the SDK can remove it. Removing it cancels a pending reminder once on update; the SDK schedules it again on the next app open or band reading. See the updated row in the [permissions guide](android/03-permissions.md#notification-taps-and-scheduled-reminders).
+
+- **[improvement] Tapping an ongoing workout notification while the SDK UI is open brings that UI to the front.** The "Workout in progress" and "Location Tracking" notifications now open an invisible SDK-owned activity that returns the live SDK screen directly, so a `singleTask` launcher no longer closes and re-opens it, and your launcher activity receives no tap in that case. With the SDK UI closed, or the app not running, the tap reaches your launcher activity exactly as before, through `onNewIntent` or `onCreate` by your `launchMode`, with the same `payload` for `Rolla.notificationTarget`. The reminder and permission notifications are unchanged. See [notificationTarget](android/08-api-reference.md#notificationtarget).
 
 ## 0.1.15
 
