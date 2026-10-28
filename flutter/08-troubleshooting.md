@@ -21,6 +21,40 @@ There is no Dart-side exception — the abort happens in the native layer before
 
 **Fix:** add every required key to `ios/Runner/Info.plist`. See [Permissions & Entitlements → iOS](03-permissions.md#ios).
 
+### App Stops at Launch After Building with Xcode 27
+
+**Symptom:** the app closes immediately at launch, before any Flutter UI appears, and the device log shows:
+
+```
+Application failed to launch: UIScene life cycle is required for apps built with this SDK.
+```
+
+**Cause:** Xcode 27 builds require the UIScene life cycle, and `ios/Runner/Info.plist` has no scene manifest. Projects created before Flutter 3.41 have none.
+
+**Fix:** add the following inside the top-level `<dict>` of `ios/Runner/Info.plist`. Keep `UIMainStoryboardFile`, and leave `AppDelegate.swift` as it is:
+
+```xml
+<key>UIApplicationSceneManifest</key>
+<dict>
+  <key>UIApplicationSupportsMultipleScenes</key>
+  <false/>
+  <key>UISceneConfigurations</key>
+  <dict>
+    <key>UIWindowSceneSessionRoleApplication</key>
+    <array>
+      <dict>
+        <key>UISceneConfigurationName</key>
+        <string>flutter</string>
+        <key>UISceneDelegateClassName</key>
+        <string>FlutterSceneDelegate</string>
+        <key>UISceneStoryboardFile</key>
+        <string>Main</string>
+      </dict>
+    </array>
+  </dict>
+</dict>
+```
+
 ### The SDK's Back Button Does Nothing
 
 **Symptom:** you pass `showBackButton: true`, the back button renders in the SDK top bar, but tapping it has no effect — the user is stuck inside the SDK with no way back to your app.
