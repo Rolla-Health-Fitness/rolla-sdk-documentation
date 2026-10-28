@@ -39,6 +39,10 @@
 
 - **[breaking] Add `NSCameraUsageDescription` to your `Info.plist` before updating.** The nutrition photo scan opens the camera, and iOS terminates an app that asks for the camera without the key. Add it even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. No Podfile change is needed. See [Camera](ios/03-permissions-and-entitlements.md#camera-required-for-the-nutrition-photo-scan) for a ready-to-use string.
 
+- **[breaking] The minimum iOS version is now 15.0, up from 14.0.** Set your app's deployment target and your Podfile's `platform :ios` to `'15.0'` or higher, or `pod install` refuses the SDK. Every device that runs iOS 14 can update to iOS 15. See [Prerequisites](ios/01-prerequisites.md), and if Xcode then rejects a pod's deployment target, [Deployment target errors after an Xcode update](ios/11-troubleshooting.md#deployment-target-errors-after-an-xcode-update).
+
+- **[documentation] The listed minimum Xcode version is now 26.0.** See [Prerequisites](ios/01-prerequisites.md).
+
 - **[documentation] Simplified the Live Activities guide on the `LiveWorkoutAttributes.swift` data contract.** The file belongs to the widget extension target only — the SDK compiles its own copy for the app side — and the simplest setup is to use the SDK's file as-is from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift`. The [Live Activities](ios/09-live-activities.md#step-7-verify-target-membership-and-the-data-contract) guide no longer asks for the file in both targets, explains what actually happens when a widget copy declares a field the SDK does not send (the Live Activity stays hidden rather than crashing), and gives a one-line `cmp` check for confirming the copy.
 
 ### Android
