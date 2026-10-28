@@ -9,7 +9,7 @@ This section covers adding the Rolla SDK to your project via CocoaPods, configur
 Add the Rolla SDK specs repository and dependency to your Podfile:
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 # Add Rolla SDK specs repository
 source 'https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios.git'

@@ -96,7 +96,7 @@ Feature support comparison between iOS and Android.
 
 | Requirement | iOS | Android |
 |-------------|-----|---------|
-| **Min OS** | iOS 14.0 | API 26 (Android 8.0) |
+| **Min OS** | iOS 15.0 | API 26 (Android 8.0) |
 | **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
 | **Dependency Manager** | CocoaPods | Gradle 8.0+ |
 | **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
@@ -106,8 +106,8 @@ Feature support comparison between iOS and Android.
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|
-| Core SDK | iOS 14.0 / API 26 | Both |
-| Apple Health | iOS 14.0 | iOS only |
+| Core SDK | iOS 15.0 / API 26 | Both |
+| Apple Health | iOS 15.0 | iOS only |
 | Health Connect | API 26 | Android only |
 | Running Speed | iOS 16.0 | iOS only |
 | **Live Activities** | **iOS 16.1** | **iOS only** |

@@ -38,7 +38,7 @@ The SDK handles all the real-time data flow automatically. You only need to crea
 
 ## Prerequisites
 
-- iOS deployment target 14.0+ (for your main app)
+- iOS deployment target 15.0+ (for your main app)
 - Xcode 14.0 or later
 - Valid Apple Developer account
 
