@@ -7,7 +7,7 @@ Get the Rolla SDK running in your iOS app in under 10 minutes.
 ## Prerequisites
 
 - **iOS 15.0+** deployment target
-- **Xcode 14.0+**
+- **Xcode 26.0+**
 - **CocoaPods** installed (`sudo gem install cocoapods`)
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 - **Supported runtime configurations**

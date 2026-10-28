@@ -97,7 +97,7 @@ Feature support comparison between iOS and Android.
 | Requirement | iOS | Android |
 |-------------|-----|---------|
 | **Min OS** | iOS 15.0 | API 26 (Android 8.0) |
-| **IDE** | Xcode 14.0+ | Android Studio Hedgehog (2023.1)+ |
+| **IDE** | Xcode 26.0+ | Android Studio Hedgehog (2023.1)+ |
 | **Dependency Manager** | CocoaPods | Gradle 8.0+ |
 | **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
 | **Compile / Target SDK** | — | API 36 |
