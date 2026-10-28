@@ -23,10 +23,10 @@ No authentication is required — the package is published to the public pub.dev
 
 ## 2. iOS — Deployment Target and Pods
 
-Set the deployment target to **14.0** in `ios/Podfile`:
+Set the deployment target to **15.0** in `ios/Podfile`:
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 ```
 
 Then install the pods:

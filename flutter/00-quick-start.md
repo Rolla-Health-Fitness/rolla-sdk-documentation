@@ -7,7 +7,7 @@ Get the Rolla SDK running in your Flutter app in under 10 minutes.
 ## Prerequisites
 
 - **Flutter 3.35.6+ / Dart 3.9.2+**
-- **iOS 14.0+** deployment target (`platform :ios, '14.0'` in `ios/Podfile`)
+- **iOS 15.0+** deployment target (`platform :ios, '15.0'` in `ios/Podfile`)
 - **Android `minSdk 26`**, **Kotlin 2.2.0+**, **JDK 17** to build, and **core library desugaring** — see [Installation](02-installation.md)
 - **Partner ID and sandbox (`rnd`) credentials** from your Rolla SDK starter package (contact [support@rolla.app](mailto:support@rolla.app))
 - **A physical device** for Bluetooth band pairing and motion-sensor tracking; simulators and emulators run everything else
