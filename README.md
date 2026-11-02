@@ -1,9 +1,10 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
+Documentation for embedding the Rolla SDK into partner iOS, Android, Flutter and React Native apps.
 
 **Latest SDK Version:** 0.1.15
 **Latest Flutter package:** [`rolla_sdk@0.1.15+1`](flutter/README.md)
+**Latest React Native wrapper:** [`@rolla-health/react-native-sdk@0.1.16`](react-native/README.md)
 
 ---
 
@@ -66,6 +67,29 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 | 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific issues & support |
 
 > **Versions:** `rolla_sdk@0.1.15+1` contains SDK `0.1.15` (the `+1` is a page-only republish of `0.1.15`, same code); from 0.1.15 on, the package version equals the SDK version. Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
+
+---
+
+## React Native Integration
+
+[**Go to React Native Guide →**](react-native/README.md)
+
+The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/package/@rolla-health/react-native-sdk) ships the same native iOS pod and Android Maven artifact behind a TypeScript TurboModule. It documents the JavaScript surface and links to the iOS / Android guides for everything inside the native projects.
+
+| # | Section | Description |
+|---|---------|-------------|
+| 0 | [Quick Start](react-native/00-quick-start.md) | Minimal integration in under 30 minutes |
+| 1 | [Prerequisites](react-native/01-prerequisites.md) | React Native 0.80.3 + New Architecture, React 19.1.0 exact, platform floors, versioning |
+| 2 | [Installation](react-native/02-installation.md) | `npm install`, Podfile, `settings.gradle` and `build.gradle` changes, verification |
+| 3 | [Permissions & Entitlements](react-native/03-permissions.md) | Info.plist, entitlements, Live Activities; Mapbox token, Health Connect manifest entries |
+| 4 | [Code Integration](react-native/04-code-integration.md) | Import, configure, present, events, error handling |
+| 5 | [Configuration](react-native/05-configuration.md) | Branding, language, modules, data sources, transitions |
+| 6 | [Token Management](react-native/06-token-management.md) | Auth lifecycle, token events, refresh, session clear |
+| 7 | [Engine Lifecycle](react-native/07-engine-lifecycle.md) | Warm-up, dismiss, destroy, applying a changed configuration |
+| 8 | [API Reference](react-native/08-api-reference.md) | `Rolla` methods, host-driven navigation, notification taps, 17 events, headless methods, errors |
+| 9 | [Troubleshooting](react-native/09-troubleshooting.md) | React Native-specific issues & support |
+
+> **Versions:** `@rolla-health/react-native-sdk@0.1.16` links native SDK `0.1.15`; from `0.2.0` on the package version equals the native version. See [React Native Prerequisites → Versioning](react-native/01-prerequisites.md#versioning).
 
 ---
 
