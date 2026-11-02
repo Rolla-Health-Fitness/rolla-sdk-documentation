@@ -49,12 +49,6 @@ post_install do |installer|
 end
 ```
 
-Raise them *to* the minimum, not to your app's own deployment target. RollaSDK's prebuilt `NordicDFU.xcframework` targets the minimum and imports `ZIPFoundation`, so setting `ZIPFoundation` higher fails the build with an error such as:
-
-```
-compiling for iOS 15.0, but module 'ZIPFoundation' has a minimum deployment target of iOS 16.0
-```
-
 ### Calling `show()` while the SDK is already presenting
 
 If you call `show(from:)` while the SDK UI is already on screen, the SDK does **not** crash or queue a second presentation. Instead, it immediately fires a `.alreadyPresenting` error through your delegate:
