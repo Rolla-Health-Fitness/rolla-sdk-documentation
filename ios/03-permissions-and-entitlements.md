@@ -76,7 +76,7 @@ AI meal estimation in the nutrition module can start from a photo of the meal, t
 <string>The app uses the camera to photograph a meal and estimate its nutrition. Photos are only sent when you choose to scan one, and nothing is logged until you confirm the estimate.</string>
 ```
 
-> **Breaking — add this key or the app will close.** iOS terminates any app that asks for the camera without an `NSCameraUsageDescription` string declared in its `Info.plist`, so add the key before updating to 0.1.16. Add it even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. No Podfile change is needed. The string above is a suggestion — adjust the wording to match your app's voice.
+> **Breaking — add this key or the app will close.** iOS terminates any app that asks for the camera without an `NSCameraUsageDescription` string declared in its `Info.plist`, so add the key before updating to 0.2.0. Add it even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. No Podfile change is needed. The string above is a suggestion — adjust the wording to match your app's voice.
 
 ## Configure Entitlements
 

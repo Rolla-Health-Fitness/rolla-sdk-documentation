@@ -10,9 +10,9 @@
 
 ---
 
-## 0.1.16
+## 0.2.0
 
-### Both platforms
+### All platforms
 
 - **[breaking] `RollaSyncSkipReason` gains `accessRequired` (`ACCESS_REQUIRED` on Android).** Your app will never receive this value unless you have explicitly asked Rolla to enable access codes for your users: an optional, per-partner backend setting that requires a user to enter an access code before they can use the Rolla experience. The only action needed is to add the case to any exhaustive Swift `switch` or Kotlin `when` over the skip reasons, if you have one, so your app keeps compiling. See the [Android](android/08-api-reference.md#synchealthdata) / [iOS](ios/10-api-reference.md#synchealthdata) `syncHealthData` references.
 
@@ -40,6 +40,8 @@
 - **[breaking] Add `NSCameraUsageDescription` to your `Info.plist` before updating.** The nutrition photo scan opens the camera, and iOS terminates an app that asks for the camera without the key. Add it even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. No Podfile change is needed. See [Camera](ios/03-permissions-and-entitlements.md#camera-required-for-the-nutrition-photo-scan) for a ready-to-use string.
 
 - **[breaking] The minimum iOS version is now 15.0, up from 14.0.** Set your app's deployment target and your Podfile's `platform :ios` to `'15.0'` or higher, or `pod install` refuses the SDK. Every device that runs iOS 14 can update to iOS 15. See [Prerequisites](ios/01-prerequisites.md), and if Xcode then rejects a pod's deployment target, [Deployment target errors after an Xcode update](ios/11-troubleshooting.md#deployment-target-errors-after-an-xcode-update).
+
+- **[improvement] NordicDFU and ZIPFoundation now install from source.** `pod install` adds the `NordicDFU` pod (4.16.0, the same firmware-update code as before) and `ZIPFoundation` 0.9.19, both compiled at your project's deployment target, so a `post_install` hook that raises every pod to your app's own target no longer breaks the build. Apps that depend on either pod themselves must allow these versions.
 
 - **[documentation] The listed minimum Xcode version is now 26.0.** See [Prerequisites](ios/01-prerequisites.md).
 
