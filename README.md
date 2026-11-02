@@ -110,46 +110,51 @@ The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/pa
 
 ## Platform Capabilities
 
-Feature support comparison between iOS and Android. The Flutter package embeds the same SDK, so the features apply to a Flutter host on the respective platform; the Dart surface differs where the Flutter guide says so — no host event callbacks, no `notificationTarget`, no `warmUpEngine` / engine lifecycle, no `RollaTransition`, and branding is the `Branding` class, which replaces the defaults as a whole rather than merging per field. See [Flutter API Reference → Not Available in Flutter](flutter/07-api-reference.md#not-available-in-flutter).
+Feature support across the four integration paths. The Flutter package embeds the same SDK in your app's own Flutter engine, so the features apply to a Flutter host on the respective platform; the Dart surface differs where the Flutter guide says so — no host event callbacks, no `notificationTarget`, no `warmUpEngine` / engine lifecycle, no `RollaTransition`, and branding is the `Branding` class, which replaces the defaults as a whole rather than merging per field. See [Flutter API Reference → Not Available in Flutter](flutter/07-api-reference.md#not-available-in-flutter). The React Native wrapper ships the same native iOS pod and Android artifact, so a React Native host gets every native capability on the respective platform.
 
-| Feature | iOS | Android | Notes |
-|---------|:---:|:-------:|-------|
-| Core SDK (present, dismiss, token management) | Yes | Yes | |
-| Custom Branding | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
-| Module Disabling | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, `insights`, and `nutrition` can currently be disabled |
-| Data Source Hiding | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
-| Host-Controlled Language | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
-| Leaderboards | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
-| Insights | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
-| Nutrition | Yes | Yes | On by default: calorie budget, meals, water, weight goals, meal plans, and day templates; AI meal estimates from a photo or description, enabled per partner by Rolla; Home-screen entry beside Insights; hide via `disabledModules`; needs `NSCameraUsageDescription` (iOS) / two CameraX manifest overrides (Android) |
-| Goals on Home | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
-| `show()` Transition Option | Yes | Yes | `RollaTransition`: `default` or `fade` open/close animation |
-| Host-Driven Navigation | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, nutrition, activity history, goals, Home, or the last-opened state |
-| Notification Tap Routing | Yes | Yes | `notificationTarget`: recognize a tapped Rolla notification and resolve its destination — an SDK screen for `openScreen`, or the OS app-settings page |
-| External Heart Rate Monitors | Yes | Yes | Standard Bluetooth HR chest straps and arm bands as a workout's heart rate source |
-| Manual Sleep Logging | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |
-| Historical Data Import | Yes | Yes | One-time backfill offered when a data source is connected; restartable from Data Sources |
-| Headless Methods | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed |
-| Host Event Callbacks | Yes | Yes | 12 observational delegate/listener callbacks: activity lifecycle, band pairing & connection, sync results, goals, profile |
-| Apple Health (HealthKit) | Yes | **No** | 14 data types, read-only |
-| Health Connect | No | Yes | Host app declares the manifest entries |
-| Live Activities (Lock Screen / Dynamic Island) | Yes | **No** | Requires iOS 16.1+ |
-| Bluetooth Band Sync | Yes | Yes | Background mode on iOS; foreground service on Android |
-| Smartphone-Only Workout Tracking | Yes | Yes | Needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
-| Mapbox Maps | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
-| Background Location | Yes | Yes | |
+| Feature | iOS | Android | Flutter | React&nbsp;Native | Notes |
+|---------|:---:|:-------:|:-------:|:-----------------:|-------|
+| Core&nbsp;SDK&nbsp;(present,&nbsp;dismiss,&nbsp;token&nbsp;management) | Yes | Yes | Yes | Yes | |
+| Custom&nbsp;Branding | Yes | Yes | Yes | Yes | App name (`hostAppName`), primary color, theme, logo, privacy link, Rolla Band wording (`removeRollaBandReferences`) — all optional, per-field overrides |
+| Module&nbsp;Disabling | Yes | Yes | Yes | Yes | `disabledModules`; `weight`, `bloodPressure`, `leaderboards`, `insights`, `nutrition` and `groupActivities` can currently be disabled |
+| Data&nbsp;Source&nbsp;Hiding | Yes | Yes | Yes | Yes | `disabledDataSources`; hide band/Garmin/Oura/Apple Health/Health Connect connect options |
+| Garmin&nbsp;/&nbsp;Oura&nbsp;In-App&nbsp;Sign-In&nbsp;Return&nbsp;(<code>oauthCallbackScheme</code>) | Yes | Yes | Yes | Yes | Optional; must match the `app_scheme` Rolla configures for your partner account, and Android apps register it on `flutter_web_auth_2`'s `CallbackActivity`; unset keeps the external-browser flow |
+| Host-Controlled&nbsp;Language | Yes | Yes | Yes | Yes | `language` (`RollaLanguage`); force one of the SDK's 8 languages, or leave it profile-driven |
+| Leaderboards | Yes | Yes | Yes | Yes | Opt-in weekly/monthly rankings on Health Score / Active Points; hide via `disabledModules` |
+| Insights | Yes | Yes | Yes | Yes | Personalized insights feed with a Home-screen entry and unread badge; hide via `disabledModules` |
+| Nutrition | Yes | Yes | Yes | Yes | On by default: calorie budget, meals, water, weight goals, meal plans, and day templates; AI meal estimates from a photo or description, enabled per partner by Rolla; Home-screen entry beside Insights; hide via `disabledModules`; needs `NSCameraUsageDescription` (iOS) / two CameraX manifest overrides (Android) |
+| Indoor&nbsp;Group&nbsp;Sessions | Yes | Yes | Yes | Yes | Create or join a group from the indoor activity setup and follow the participants live; Rolla's backend enables it per tenant; hide via `disabledModules` (`groupActivities`) |
+| Goals&nbsp;on&nbsp;Home | Yes | Yes | Yes | Yes | `showGoalsSection` (default `false`): the user's goals with an edit action at the bottom of Home |
+| <code>show()</code>&nbsp;Transition&nbsp;Option | Yes | Yes | **No** | Yes | `RollaTransition`: `default` or `fade` open/close animation; in Flutter, the route you push `RollaSdkHome` on owns the animation |
+| Host-Driven&nbsp;Navigation | Yes | Yes | Yes | Yes | `openScreen`: open the SDK directly on a specific screen — insights, nutrition, activity history, goals, Home, or the last-opened state |
+| Notification&nbsp;Tap&nbsp;Routing | Yes | Yes | **No** | Yes | `notificationTarget`: recognize a tapped Rolla notification and resolve its destination — an SDK screen for `openScreen`, or the OS app-settings page; in Flutter, the SDK routes its own notification taps |
+| External&nbsp;Heart&nbsp;Rate&nbsp;Monitors | Yes | Yes | Yes | Yes | Standard Bluetooth HR chest straps and arm bands as a workout's heart rate source |
+| Manual&nbsp;Sleep&nbsp;Logging | Yes | Yes | Yes | Yes | Users can log or correct a night from the sleep detail screen (last 7 days) |
+| Historical&nbsp;Data&nbsp;Import | Yes | Yes | Yes | Yes | One-time backfill offered when a data source is connected; restartable from Data Sources |
+| Headless&nbsp;Methods | Yes | Yes | Yes | Yes | `warmUpEngine`, `syncHealthData`, `getBandBatteryLevel`, `getPairedBandInfo` — no SDK UI needed; in Flutter, `initializeWithToken` takes the place of `warmUpEngine` |
+| Host&nbsp;Event&nbsp;Callbacks | Yes | Yes | **No** | Yes | 12 observational delegate/listener callbacks (events in React Native): activity lifecycle, band pairing & connection, sync results, goals, profile; not in Flutter — see [Not Available in Flutter](flutter/07-api-reference.md#not-available-in-flutter) |
+| Apple&nbsp;Health&nbsp;(HealthKit) | Yes | **No** | Yes&nbsp;(iOS) | Yes&nbsp;(iOS) | 14 data types, read-only |
+| Health&nbsp;Connect | No | Yes | Yes&nbsp;(Android) | Yes&nbsp;(Android) | Host app declares the manifest entries |
+| Live&nbsp;Activities&nbsp;(Lock&nbsp;Screen&nbsp;/&nbsp;Dynamic&nbsp;Island) | Yes | **No** | Yes&nbsp;(iOS) | Yes&nbsp;(iOS) | Requires iOS 16.1+ and a widget extension in your iOS project |
+| Bluetooth&nbsp;Band&nbsp;Sync | Yes | Yes | Yes | Yes | Background mode on iOS; foreground service on Android |
+| Smartphone-Only&nbsp;Workout&nbsp;Tracking | Yes | Yes | Yes | Yes | Needs `NSMotionUsageDescription` (iOS) / `ACTIVITY_RECOGNITION` (Android, SDK-declared) |
+| Mapbox&nbsp;Maps | Yes | Yes | Yes | Yes | Token via `Info.plist` (iOS) / `strings.xml` (Android) |
+| Background&nbsp;Location | Yes | Yes | Yes | Yes | |
 
 ## Version Compatibility
 
-| Requirement | iOS | Android |
-|-------------|-----|---------|
-| **Min OS** | iOS 15.0 | API 26 (Android 8.0) |
-| **IDE** | Xcode 26.0+ | Android Studio Hedgehog (2023.1)+ |
-| **Dependency Manager** | CocoaPods | Gradle 8.0+ |
-| **Language** | Swift | Kotlin 2.2.0+ (JDK 17+ to build) |
-| **Compile / Target SDK** | — | API 36 |
-| **Core Library Desugaring** | — | `com.android.tools:desugar_jdk_libs:2.0.4` |
-| **SDK Artifact** | `pod 'RollaSDK', '<version>'` | `com.rolla.sdk:android_release:<version>` |
+| Requirement | iOS | Android | Flutter | React&nbsp;Native |
+|-------------|-----|---------|---------|-------------------|
+| **Min&nbsp;OS** | iOS&nbsp;15.0 | API&nbsp;26&nbsp;(Android&nbsp;8.0) | iOS&nbsp;15.0&nbsp;/&nbsp;API&nbsp;26 | iOS&nbsp;15.1&nbsp;/&nbsp;API&nbsp;26 |
+| **Framework** | — | — | Flutter&nbsp;3.35.6+&nbsp;(Dart&nbsp;3.9+) | React&nbsp;Native&nbsp;0.80.3&nbsp;+&nbsp;New&nbsp;Architecture |
+| **IDE** | Xcode&nbsp;26.0+ | Android&nbsp;Studio&nbsp;Hedgehog&nbsp;(2023.1)+ | Same&nbsp;as&nbsp;iOS&nbsp;/&nbsp;Android | Same&nbsp;as&nbsp;iOS&nbsp;/&nbsp;Android |
+| **Dependency&nbsp;Manager** | CocoaPods | Gradle&nbsp;8.0+ | pub&nbsp;(CocoaPods&nbsp;/&nbsp;Gradle&nbsp;underneath) | npm&nbsp;(CocoaPods&nbsp;/&nbsp;Gradle&nbsp;underneath) |
+| **Language** | Swift | Kotlin&nbsp;2.2.0+&nbsp;(JDK&nbsp;17+&nbsp;to&nbsp;build) | Dart | TypeScript&nbsp;/&nbsp;JavaScript |
+| **Compile&nbsp;/&nbsp;Target&nbsp;SDK** | — | API&nbsp;36 | Same&nbsp;as&nbsp;Android | Same&nbsp;as&nbsp;Android |
+| **Core&nbsp;Library&nbsp;Desugaring** | — | <code>com.android.tools:desugar_jdk_libs:2.0.4</code> | Same&nbsp;as&nbsp;Android | Same&nbsp;as&nbsp;Android |
+| **SDK&nbsp;Artifact** | <code>pod&nbsp;'RollaSDK',&nbsp;'&lt;version&gt;'</code> | <code>com.rolla.sdk:android_release:&lt;version&gt;</code> | <code>rolla_sdk:&nbsp;&lt;version&gt;</code>&nbsp;(pub.dev,&nbsp;exact) | <code>@rolla-health/react-native-sdk@&lt;version&gt;</code>&nbsp;(npm,&nbsp;exact) |
+
+Flutter and React Native apps build their iOS and Android projects with the same toolchain as the iOS and Android columns, including Kotlin 2.2.0+ and JDK 17 on Android.
 
 | Feature | Minimum Version | Platform |
 |---------|----------------|----------|
@@ -166,14 +171,14 @@ Feature support comparison between iOS and Android. The Flutter package embeds t
 
 ## Overview
 
-The Rolla SDK provides a complete health and fitness experience embedded inside partner apps. Built on Flutter with native wrappers for iOS (Swift) and Android (Kotlin), the SDK manages its own UI, Bluetooth band communication, data syncing, and authentication lifecycle.
+The Rolla SDK provides a complete health and fitness experience embedded inside partner apps. Built on Flutter with native wrappers for iOS (Swift) and Android (Kotlin), and available to Flutter apps as the `rolla_sdk` package and to React Native apps through the `@rolla-health/react-native-sdk` wrapper, the SDK manages its own UI, Bluetooth band communication, data syncing, and authentication lifecycle.
 
 ### Integration Flow
 
 1. **Obtain your Partner ID** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` during onboarding
 2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI — or your app [sets it in advance](sdk-auth-api/03-profile.md) after login so the SDK's onboarding is skipped.
 3. **Log in** — your app calls `POST /api/login` with the user's email, password, and `Partner-ID` header to obtain an access token and refresh token
-4. **Present the SDK** — initialize with the tokens and call `show()` (Flutter: `RollaSDK.initializeWithToken`, then render `RollaSdkHome`) — the SDK handles everything from there
+4. **Present the SDK** — initialize with the tokens and present the SDK UI: on iOS and Android, create a `Rolla` with a `RollaConfiguration` and call `show()`; in Flutter, call `RollaSDK.initializeWithToken`, then render `RollaSdkHome`; in React Native, call `Rolla.show(configuration)` — the SDK handles everything from there
 
 See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full details on each endpoint.
 

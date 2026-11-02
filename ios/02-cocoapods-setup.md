@@ -23,6 +23,8 @@ target 'YourApp' do
 end
 ```
 
+> **Xcode 27:** a pod that still declares a deployment target older than 15.0 fails the build — RollaSDK's `ZIPFoundation` dependency declares iOS 12.0. Add the `post_install` hook from [Deployment target errors after an Xcode update](11-troubleshooting.md#deployment-target-errors-after-an-xcode-update) to the end of your Podfile.
+
 > Check the [iOS release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios) for the latest version.
 
 ## Set ENABLE_USER_SCRIPT_SANDBOXING to "No"

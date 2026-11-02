@@ -92,7 +92,7 @@ The screens your app can open directly — a deliberate whitelist. Lives in `com
 | `GOALS` | The goals editor |
 | `HOME` | The SDK Home screen — restores Home as the root |
 | `INSIGHTS` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
-| `NUTRITION` | The Nutrition tab, opened as the SDK root — requires the nutrition module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `NUTRITION` | The Nutrition screen, opened as the SDK root — requires the nutrition module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
 | `RESUME` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `OPENED` |
 
 Later versions may add values to `RollaScreen`, so keep an `else` branch when switching over it.
@@ -105,7 +105,7 @@ Every outcome is a typed status — the call never fails silently. Lives in `com
 |--------|---------|
 | `OPENED` | The SDK UI is on the requested screen |
 | `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` or `NUTRITION` with its module disabled) — nothing was opened |
-| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
+| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) or the access lock screen is in front of the user. If the engine is cold, the SDK opens on that screen; if it is warm and the SDK is hidden, it stays hidden |
 | `UI_UNAVAILABLE` | The SDK UI could not be shown — the `activity` is finishing, or the SDK never became ready to navigate |
 | `SUPERSEDED` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |
@@ -241,7 +241,9 @@ Twelve listener methods push SDK events to your app, so you never have to poll. 
 |-------|--------|-----------|
 | Activity&nbsp;started | <code>onActivityStarted(rolla,&nbsp;activity)</code> | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
 | Activity&nbsp;completed | <code>onActivityCompleted(rolla,&nbsp;activity)</code> | An activity reaches a lifecycle phase: `FINISHED` (saved in-SDK), then `UPLOADED` or `UPLOAD_FAILED` |
-| Activity&nbsp;removed | <code>onActivityRemoved(rolla,&nbsp;activity)</code> | An activity's record is removed without a kept result — `reason` is `CANCELED` (crash-recovery discard) or `DELETED` (user deleted it, backend-confirmed) |
+| Activity&nbsp;removed | <code>onActivityRemoved(rolla,&nbsp;activity)</code> | An activity's record is removed without a kept result — `reason` is `CANCELED` (the user discarded it: the incomplete-activity dialog when stopping, or the crash-recovery prompt; also a session that recorded no data) or `DELETED` (user deleted it, backend-confirmed) |
+
+An activity's `type` is `walk`, `run`, `cycling`, `cardio` or `other`: golf reports `walk`, and kayaking, skiing, snowboarding, horseback riding, roller skating and wheelchair workouts report `other` in `type` and `category`, where earlier versions reported `cycling`.
 
 **Lifecycle guarantees.** Every started activity terminates in a `FINISHED` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `onActivityStarted` with origin `CRASH_RECOVERY`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `UPLOADED`/`UPLOAD_FAILED` can re-fire across retries. Manually logged activities enter the lifecycle at `FINISHED` (no started event); pause/resume inside a session fires nothing.
 

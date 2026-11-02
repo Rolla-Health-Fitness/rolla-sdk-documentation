@@ -125,6 +125,8 @@ Add a `<queries>` block (or extend your existing one) at the `<manifest>` root:
 </queries>
 ```
 
+The Garmin Connect and Oura package queries, which the SDK uses to open those companion apps from its sync dialogs, come from the SDK's own manifest — there is nothing to add for them.
+
 ### `minSdk` requirement
 
 Health Connect requires `minSdk = 26`. Set this in your `app/build.gradle.kts`:
@@ -147,6 +149,26 @@ Before shipping a build with Health Connect enabled, update:
 - The **Data Safety** section of your Play Console listing to declare each data type as collected and what it is used for.
 
 Google's policy review compares the manifest entries above against these two surfaces. A mismatch is the most common reason for a Play rejection on a Health Connect-enabled build.
+
+## Garmin and Oura Sign-In Return (`oauthCallbackScheme`)
+
+Only needed if you set [`oauthCallbackScheme`](05-configuration.md#rollaconfiguration). The SDK then runs the Garmin and Oura sign-in in an in-app session through the `flutter_web_auth_2` plugin it bundles, and the provider's final redirect to your scheme must reach that plugin's `CallbackActivity`. Declare the activity inside the `<application>` element of your `AndroidManifest.xml`, with the same scheme you pass as `oauthCallbackScheme` — the `app_scheme` Rolla configures for your partner account:
+
+```xml
+<activity
+    android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
+    android:exported="true"
+    android:taskAffinity="">
+    <intent-filter android:label="flutter_web_auth_2">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="your-app-scheme" />
+    </intent-filter>
+</activity>
+```
+
+Keep `android:taskAffinity=""` on the activity, as `flutter_web_auth_2` recommends; on browsers without Auth Tab support, such as Samsung Internet or Firefox, the SDK then brings its own screen back to the front once sign-in completes. Setting `oauthCallbackScheme` without this entry leaves the redirect with nowhere to land, so add both together.
 
 ## Notification Channels
 

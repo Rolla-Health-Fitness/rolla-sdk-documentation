@@ -20,6 +20,7 @@ Everything you can shape about the SDK — branding, language, modules, data sou
 | `branding` | `RollaBranding?` | No | `nil` | Visual identity overrides — every field optional, per-field merge. See [Custom Branding](#custom-branding-optional) |
 | `showOptionsButton` | `Bool` | No | `true` | Render a three-dot options action at the trailing edge of the Home top app bar. Tapping it opens an "Options" bottom sheet with shortcuts into some of the SDK's features that you haven't disabled in your `RollaConfiguration`. Defaults to true because most partners need this entry point |
 | `showGoalsSection` | `Bool` | No | `false` | Show the user's goals at the bottom of the Home screen, with an edit action. See [Goals on Home](#goals-on-home) |
+| `oauthCallbackScheme` | `String?` | No | `nil` (browser flow) | Custom URL scheme that brings the user back to your app after a Garmin or Oura sign-in: the connect runs in an in-app sign-in session that closes itself when the provider is done. Must match the `app_scheme` Rolla configures for your partner account. iOS needs no scheme registration (Android apps register it in their manifest). `nil` keeps the existing flow in the external browser |
 
 For the identity and auth essentials (`token`, `partnerId`, `environment`) and a minimal setup example, see [Code Integration](04-code-integration.md).
 
@@ -130,7 +131,8 @@ let configuration = RollaConfiguration(
 | `.bloodPressure` | The Blood Pressure tracking and manual-logging module |
 | `.leaderboards` | The Leaderboards module (weekly/monthly competitive rankings) |
 | `.insights` | The Insights module (the insights feed, the Home screen's Insights entry, and its unread badge) |
-| `.nutrition` | The Nutrition module (the Nutrition tab, the Meal quick action, the Home screen's Nutrition entry, and `RollaScreen.nutrition`) |
+| `.nutrition` | The Nutrition module (the Nutrition screen, the Meal quick action, the Home screen's Nutrition entry, and `RollaScreen.nutrition`) |
+| `.groupActivities` | Indoor group sessions (creating or joining a group from the indoor activity setup, and following the participants live) |
 
 Leaderboards let users compare their Health Score or Active Points against other users in your tenant over weekly and monthly periods, with join/leave controls per challenge type. Disable the module to hide competitive rankings everywhere in the SDK UI.
 
@@ -138,11 +140,13 @@ Insights are short personalized reads generated from the user's own health data,
 
 The Home screen's Overview section shows one entry card, in the tab order: a Nutrition row, then an Insights row carrying the unread count. Each row opens its screen, and leaving the screen returns to Home. Disabling a module removes only its row; with both disabled, there is no card.
 
-Nutrition is on by default. It adds the Nutrition tab, a Meal entry in the quick-action (+) menu, its row in the Home entry card, and calls to the nutrition endpoints. It covers the daily calorie budget, meals, water, weight goals, meal plans and reusable day templates, all stored on the user's account. The budget needs the profile's gender, height and birthdate, a weight reading and a chosen weight goal; the tab asks for whatever is missing before it opens — see the [Profile guide](../sdk-auth-api/03-profile.md) for setting profile data in advance.
+Nutrition is on by default. It adds the Nutrition screen, reached from its row in the Home entry card, a Meal entry in the quick-action (+) menu, and calls to the nutrition endpoints. It covers the daily calorie budget, meals, water, weight goals, meal plans and reusable day templates, all stored on the user's account. The budget needs the profile's gender, height and birthdate, a weight reading and a chosen weight goal; the screen asks for whatever is missing before it opens — see the [Profile guide](../sdk-auth-api/03-profile.md) for setting profile data in advance.
 
-Apps updating from 0.1.15 or earlier gain the tab unless they pass `.nutrition` in `disabledModules`. That removes the tab, the quick action and the Home row, and opening `RollaScreen.nutrition` resolves as `.screenDisabled`. Both `RollaScreen` and `RollaDisabledModule` gain a `.nutrition` case, so a `switch` over either needs that case or `@unknown default`.
+Apps updating from 0.1.15 or earlier gain it unless they pass `.nutrition` in `disabledModules`. That removes the screen, the quick action and the Home row, and opening `RollaScreen.nutrition` resolves as `.screenDisabled`. Both `RollaScreen` and `RollaDisabledModule` gain a `.nutrition` case, and `RollaDisabledModule` also gains `.groupActivities` for indoor group sessions (below), so a `switch` over either needs the new cases or `@unknown default`.
 
 AI meal estimation turns a photo or a short typed description into a meal. The user can edit the estimate — rename it, change portions, remove items — and nothing is logged until they confirm; it is saved as one meal, with the foods as its ingredients. Rolla enables it per partner on the backend, so there is nothing to configure in the SDK; where it is off, the photo scan and the typed-description option simply don't appear. Where it is on, the user agrees before the camera opens for the first time and can withdraw that agreement in the Nutrition settings screen. Photos are cropped, turned upright and stripped of location and other hidden metadata on the phone, sent only when the user scans, and deleted once the estimate comes back. The photo scan needs a camera usage description in your `Info.plist` — see [Camera](03-permissions-and-entitlements.md#camera-required-for-the-nutrition-photo-scan).
+
+Indoor group sessions let users create or join a group from the indoor activity setup with a session code and follow the other participants live — heart rate, Active Points, paused and delayed states — while their own recording continues unchanged. First use asks for a dedicated sharing consent, which the user can review and withdraw in Privacy settings. Rolla's backend decides availability per tenant, so nothing appears where it is off; pass `.groupActivities` to hide group sessions regardless.
 
 Additional modules will become disable-able in future releases. If there is a module you need to hide that isn't listed yet, contact Rolla during onboarding and we will prioritize adding it to `RollaDisabledModule`.
 

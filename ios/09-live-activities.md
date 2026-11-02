@@ -30,7 +30,7 @@ When a user starts a workout (Walk, Run, Cycling, or Cardio), the SDK can displa
 
 - Workout name and elapsed time
 - Heart rate with HR zone bar
-- Secondary metric (distance or active points)
+- Secondary metric (distance, speed or active points)
 - Pause/resume state
 - Band disconnect warning
 
@@ -114,6 +114,8 @@ Create the following files in your `liveworkout` widget extension. The full sour
 **`LiveWorkoutAttributes.swift`** defines the data model the SDK uses to communicate workout state to the widget. It includes:
 - `ContentState` — live-updating fields: metrics, heart rate, pause state, band connection status, `isPhoneOnly` (whether the workout is being tracked from the phone alone) and the localized messages the widget shows
 - Static attributes — activity ID, workout name, SF Symbol, start date
+
+`secondaryMetricKind` tells the widget what `metrics[1]` holds: `"distance"`, `"speed"` (outdoor and e-bike cycling) or `"activePoints"`. For an activity with no meaningful second metric, such as Meditation, the field is absent and `metrics` holds the heart-rate entry alone, so read `metrics[1]` only when it is present, as the reference widget below does.
 
 > **The SDK ships this file — use it as-is.** The SDK compiles its own copy of `LiveWorkoutAttributes` inside `RollaSDK` and encodes every Live Activity with it; your widget extension decodes with the copy you compile, so taking the SDK's file unchanged from `Pods/RollaSDK/Sources/LiveActivities/LiveWorkoutAttributes.swift` keeps both sides in agreement with no effort on your part. The one thing to leave alone is the field list: a field added only in your copy is one the SDK never sends, so the widget could not decode it and the Live Activity would quietly stay hidden (a default value does not fill in a missing field). `isPhoneOnly` is `true` when a smartphone-only workout is tracked (no paired band), so your widget can hide band-specific UI such as the heart-rate row and the band-disconnected banner.
 
@@ -234,7 +236,7 @@ The Live Activity UI is defined entirely in `liveworkoutLiveActivity.swift`, whi
 - **Colors:** The default UI uses a dark gradient background (`#1F1F1F` to black). Change the `LinearGradient` stops in the Lock Screen view and the accent/tint colors in the Dynamic Island.
 - **Layout:** Rearrange, resize, or restyle the metric rows, heart rate zone bar, and timer display.
 - **Fonts:** Modify font weights, sizes, and styles on any text element.
-- **Metrics displayed:** The SDK provides heart rate, a secondary metric (distance or active points), elapsed time, and pause/connection state. You choose how and where to display them.
+- **Metrics displayed:** The SDK provides heart rate, a secondary metric (distance, speed or active points), elapsed time, and pause/connection state. You choose how and where to display them.
 - **Dynamic Island regions:** Customize what appears in the compact leading/trailing, expanded, and minimal views.
 
 The data contract (`LiveWorkoutAttributes` and `ContentState`) stays as the SDK ships it — the SDK fills these fields, and it already carries everything the widget can display. Everything else in the widget's SwiftUI code is yours to customize.
@@ -529,6 +531,7 @@ private struct HrAndApRow: View {
     private var secondaryIconSystemName: String {
         switch secondaryKind {
         case "distance": return "location.fill"
+        case "speed": return "speedometer"
         default: return "star.fill"
         }
     }
@@ -587,7 +590,11 @@ extension LiveWorkoutAttributes.ContentState {
     fileprivate var secondaryTitleForRow: String {
         let title = secondaryMetricForRow?.label.trimmingCharacters(in: .whitespacesAndNewlines)
         if title?.isEmpty == false { return title! }
-        return secondaryMetricKind == "distance" ? "Distance" : "AP"
+        switch secondaryMetricKind {
+        case "distance": return "Distance"
+        case "speed": return "Speed"
+        default: return "AP"
+        }
     }
 
     fileprivate var heartRateDisplayValueForRow: String {
