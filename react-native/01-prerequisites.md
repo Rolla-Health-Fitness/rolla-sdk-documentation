@@ -37,7 +37,7 @@ Overriding the Kotlin or Gradle plugin versions at the root `build.gradle` does 
   "dependencies": {
     "react": "19.1.0",                          // exact — NOT "^19.1.0"
     "react-native": "0.80.3",
-    "@rolla-health/react-native-sdk": "0.1.16"  // exact — see Versioning
+    "@rolla-health/react-native-sdk": "0.2.0"   // exact — see Versioning
   }
 }
 ```
@@ -46,17 +46,17 @@ A caret (`^19.1.0`) resolves to whatever is current on npm (`19.2.x` at the time
 
 ## Versioning
 
-The package is released in lockstep with the native SDK, and the package version names the native version it links — with one documented exception:
+The package is released in lockstep with the native SDK: every official SDK release ships an npm release carrying the same number, and that release links exactly that native version.
 
 | `@rolla-health/react-native-sdk` | Native SDK it links | Notes |
 |----------------------------------|---------------------|-------|
-| **`0.1.16`** (current) | **`0.1.15`** | A React Native-only release that completes the JavaScript surface of the 0.1.15 SDK (every host event, the headless methods, `openScreen`, notification taps). There is no native 0.1.16 |
+| **`0.2.0`** (current) | **`0.2.0`** | The complete JavaScript surface of the 0.2.0 SDK |
+| `0.1.16` | `0.1.15` | The one React Native-only release: it completed the JavaScript surface of the 0.1.15 SDK. There is no native 0.1.16 |
 | `0.1.15` | `0.1.15` | First lockstep release; presentation and token API only |
-| `0.2.0` and later | Equal to the package version | Every official SDK release ships an npm release carrying the same number |
 
-- **Pin the exact version** (`"0.1.16"`, not `"^0.1.16"`). The wrapper's podspec and `build.gradle` pin iOS pod `RollaSDK` and Android `com.rolla.sdk:android_release` exactly in turn — you do not declare these yourself. If your Podfile or Gradle files pin a conflicting version, the build fails fast; that is intentional.
+- **Pin the exact version** (`"0.2.0"`, not `"^0.2.0"`). The wrapper's podspec and `build.gradle` pin iOS pod `RollaSDK` and Android `com.rolla.sdk:android_release` exactly in turn — you do not declare these yourself. If your Podfile or Gradle files pin a conflicting version, the build fails fast; that is intentional.
 - **Upgrading is one number:** bump the package, run `cd ios && pod install` and `cd android && ./gradlew --refresh-dependencies` (see [Installation → Verify the integration](02-installation.md#7-verify-the-integration)), rebuild.
-- **`Rolla.getNativeSdkVersion()`** resolves with the linked native version — `'0.1.15'` for package `0.1.16`.
+- **`Rolla.getNativeSdkVersion()`** resolves with the linked native version — `'0.2.0'` for package `0.2.0`.
 - The native SDK's [iOS](../ios/README.md) and [Android](../android/README.md) guides apply to React Native hosts one-to-one for everything inside the native projects. This guide links to the exact native section rather than repeating it.
 
 ## SDK Binary Size

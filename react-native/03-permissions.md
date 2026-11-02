@@ -1,12 +1,12 @@
 # Permissions & Entitlements
 
-The Rolla SDK uses Bluetooth Low Energy, Core Location, Core Motion, HealthKit / Health Connect, Photos, and Mapbox. The wrapper does not change which permissions are required — they are declared in your `ios/` and `android/` projects exactly as in a native app. This page lists what a React Native template is missing and links to the native pages for the rationale and the exact wording.
+The Rolla SDK uses Bluetooth Low Energy, Core Location, Core Motion, HealthKit / Health Connect, the camera, Photos, and Mapbox. The wrapper does not change which permissions are required — they are declared in your `ios/` and `android/` projects exactly as in a native app. This page lists what a React Native template is missing and links to the native pages for the rationale and the exact wording.
 
 ## iOS
 
 ### Info.plist
 
-iOS calls `abort()` (SIGABRT) the moment the SDK touches Bluetooth, Location, Motion, HealthKit or Photos without a corresponding usage-description string in `Info.plist` — there is no JavaScript error to catch. A fresh React Native template ships only an empty `NSLocationWhenInUseUsageDescription`; every other key below must be added by hand.
+iOS calls `abort()` (SIGABRT) the moment the SDK touches Bluetooth, Location, Motion, HealthKit, the camera or Photos without a corresponding usage-description string in `Info.plist` — there is no JavaScript error to catch. A fresh React Native template ships only an empty `NSLocationWhenInUseUsageDescription`; every other key below must be added by hand.
 
 Also required: a `MBXAccessToken` (Mapbox public token) and a `UIBackgroundModes` array with `bluetooth-central` and `location`, so the band stays paired and outdoor tracking continues when the app is backgrounded.
 
@@ -21,6 +21,9 @@ Add the following inside the top-level `<dict>` of `ios/YourApp/Info.plist`. Cus
 
 <key>NSBluetoothPeripheralUsageDescription</key>
 <string>The app uses Bluetooth to connect to your fitness band and sync health data.</string>
+
+<key>NSCameraUsageDescription</key>
+<string>The app uses the camera to photograph a meal and estimate its nutrition. Photos are only sent when you choose to scan one, and nothing is logged until you confirm the estimate.</string>
 
 <key>NSHealthShareUsageDescription</key>
 <string>The app reads your health and fitness data to track workouts, monitor activity, and surface insights.</string>
@@ -53,9 +56,12 @@ Add the following inside the top-level `<dict>` of `ios/YourApp/Info.plist`. Cus
 | `NSLocationWhenInUseUsageDescription`, `NSLocationAlwaysAndWhenInUseUsageDescription` | Outdoor and background activity tracking | Crash at `CLLocationManager` request |
 | `NSMotionUsageDescription` | Smartphone-only workouts, activity detection | Crash at `CMMotionManager` start |
 | `NSHealthShareUsageDescription` | Apple Health read | Crash at HealthKit authorization |
+| `NSCameraUsageDescription` | Nutrition photo scan | Crash the first time the user opens the scan |
 | `NSPhotoLibraryUsageDescription`, `NSPhotoLibraryAddUsageDescription` | Profile picture, saving activity images | Crash at the photo picker |
 | `MBXAccessToken` | Route maps | Blank maps |
 | `UIBackgroundModes` (`location`, `bluetooth-central`) | Band connection and GPS while backgrounded | Tracking stops when the app leaves the foreground |
+
+Add `NSCameraUsageDescription` before updating to 0.2.0, even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. See [iOS Permissions & Entitlements → Camera](../ios/03-permissions-and-entitlements.md#camera-required-for-the-nutrition-photo-scan).
 
 You will receive the Mapbox token from Rolla along with your partner credentials. Use a **public** token (`pk.` prefix) — secret tokens are not valid client-side.
 
@@ -96,7 +102,7 @@ Without it the SDK runs, but every map stays blank — see [Android Permissions 
 
 ### AndroidManifest.xml
 
-The native `com.rolla.sdk:android_release` AAR declares the Bluetooth, location, activity-recognition, foreground-service, notification and boot permissions it needs, and the manifest merger pulls them into your app. Three things are still yours to declare, because Google reviews the **merged** manifest under your app's identity:
+The native `com.rolla.sdk:android_release` AAR declares the Bluetooth, location, activity-recognition, foreground-service, notification and boot permissions it needs, and the manifest merger pulls them into your app. A few things are still yours to declare, because Google reviews the **merged** manifest under your app's identity:
 
 **Health Connect.** The SDK's bundled manifest declares only part of the Health Connect read set. Declare the full set, the permissions-rationale intent-filter on the activity that hosts the SDK (your `MainActivity`), the `ViewPermissionUsageActivity` alias for Android 14, and the `<queries>` block that lets the SDK detect the Health Connect app:
 
@@ -152,13 +158,31 @@ The native `com.rolla.sdk:android_release` AAR declares the Bluetooth, location,
 
 Every entry is explained in [Android Permissions → Health Connect](../android/03-permissions.md#health-connect-android), including the privacy-policy and Data Safety updates a Health Connect build needs. The React Native demo's `android/app/src/main/AndroidManifest.xml` is the same set applied to a React Native template.
 
-**Optional permissions the SDK leaves to you.** `SCHEDULE_EXACT_ALARM` for on-time reminders and `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` for the OEM battery-manager exemption — see the [Permissions Rationale](../android/03-permissions.md#permissions-rationale) and [OEM Battery Optimization](../android/09-troubleshooting.md#oem-battery-optimization).
+**Nutrition photo scan.** The scan uses CameraX, whose manifest merges `RECORD_AUDIO` — never used, but shown as Microphone on your Play listing — and a required `android.hardware.camera.any` feature that hides your app from devices without a camera. Only your app manifest outranks a library's entries, so add these two overrides inside `<manifest>`, with the tools namespace declared on that element:
+
+```xml
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+    <uses-feature android:name="android.hardware.camera.any"
+        android:required="false"
+        tools:replace="android:required" />
+    …
+</manifest>
+```
+
+Apps that skip this still build and run. Marking the camera optional is safe: search, recents, manual entry and a typed description all log a meal without one — see [Android Permissions → Nutrition Photo Scan](../android/03-permissions.md#nutrition-photo-scan-camerax-manifest-overrides).
+
+**Garmin and Oura sign-in.** Only if you set `oauthCallbackScheme`: register the same scheme on the sign-in callback activity — see [Configuration → Garmin and Oura Sign-In](05-configuration.md#garmin-and-oura-sign-in).
+
+**Optional permissions the SDK leaves to you.** `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` for the OEM battery-manager exemption — see the [Permissions Rationale](../android/03-permissions.md#permissions-rationale) and [OEM Battery Optimization](../android/09-troubleshooting.md#oem-battery-optimization). `SCHEDULE_EXACT_ALARM` is not needed: the SDK's reminders arrive around their planned time without it, so if you declared it only for the SDK you can remove it — see [Engagement / Reminders](../android/03-permissions.md#engagement--reminders).
 
 **Your Play listing.** Declare the permissions you ship in the Data Safety form and your privacy policy; the rationale matrix on the Android permissions page is written to be lifted into both. Listing the SDK-merged permissions explicitly in your own manifest, as the demo does, keeps that declaration reviewable in one place.
 
 ### Launch mode
 
-The React Native template declares `MainActivity` with `android:launchMode="singleTask"`, and that is the right mode for a React Native host: the alternative, `singleTop`, would stack a second `MainActivity` — a second React root — over the SDK UI whenever the SDK is on top. With `singleTask`, a tap on a Rolla notification reaches the running `MainActivity` through `onNewIntent`, arrives in JavaScript as the `onNotificationTap` event, and your `openScreen()` call presents the SDK on the tapped screen — see [API Reference → Notification Taps](08-api-reference.md#notification-taps).
+The React Native template declares `MainActivity` with `android:launchMode="singleTask"`, and that is the right mode for a React Native host: the alternative, `singleTop`, would stack a second `MainActivity` — a second React root — over the SDK UI whenever the SDK is on top. With `singleTask`, a tap on a Rolla notification reaches the running `MainActivity` through `onNewIntent`, arrives in JavaScript as the `onNotificationTap` event, and your `openScreen()` call presents the SDK on the tapped screen — see [API Reference → Notification Taps](08-api-reference.md#notification-taps). The one tap that skips `MainActivity` is a workout notification tapped while the SDK UI is open: the SDK brings its own UI to the front, and no `onNotificationTap` arrives.
 
 ### Notification Channels
 
@@ -166,7 +190,7 @@ The SDK creates its notification channels itself, with brand-neutral names that 
 
 ## Runtime Prompts
 
-Runtime permission prompts — the Bluetooth, location, motion and Health Connect dialogs — are driven by the SDK from its own UI when the user reaches the feature that needs them. Your React Native code calls no permission API. The exception is the headless methods: because there is no SDK UI to prompt from, a missing permission makes them resolve with a typed reason (`bluetoothPermissionRequired`, `healthConnectPermissionRequired`, …) instead of prompting — see [API Reference → Headless Methods](08-api-reference.md#headless-methods).
+Runtime permission prompts — the Bluetooth, location, motion, camera and Health Connect dialogs — are driven by the SDK from its own UI when the user reaches the feature that needs them. Your React Native code calls no permission API. The exception is the headless methods: because there is no SDK UI to prompt from, a missing permission makes them resolve with a typed reason (`bluetoothPermissionRequired`, `healthConnectPermissionRequired`, …), or report a single sync stream as `permissionRequired`, instead of prompting — see [API Reference → Headless Methods](08-api-reference.md#headless-methods).
 
 ---
 

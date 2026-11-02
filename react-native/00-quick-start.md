@@ -17,9 +17,9 @@ Your app must register users and obtain access tokens from Rolla's authenticatio
 ## 1. Install the Wrapper
 
 ```sh
-npm install @rolla-health/react-native-sdk@0.1.16 --save-exact
+npm install @rolla-health/react-native-sdk@0.2.0 --save-exact
 # or
-yarn add -E @rolla-health/react-native-sdk@0.1.16
+yarn add -E @rolla-health/react-native-sdk@0.2.0
 ```
 
 > A fresh React Native 0.80 template needs `--legacy-peer-deps` with npm because its `react-test-renderer@18` conflicts with React 19 — see [Installation](02-installation.md#1-install-the-package).
@@ -28,7 +28,7 @@ The package pins the native iOS pod and Android artifact for you; you never decl
 
 ## 2. Configure iOS
 
-Edit `ios/Podfile` to add the Rolla CocoaPods source, enable static framework linkage, and apply the two `ZIPFoundation` hooks — the complete snippet is in [Installation → iOS](02-installation.md#2-ios--podfile). Then:
+Edit `ios/Podfile` to add the Rolla CocoaPods source, enable static framework linkage, and turn off user script sandboxing for the pods — the complete snippet is in [Installation → iOS](02-installation.md#2-ios--podfile). Then:
 
 ```sh
 cd ios && pod install
@@ -40,7 +40,7 @@ Add the usage-description keys, `MBXAccessToken` and `UIBackgroundModes` to `ios
 
 Register the three Maven repositories in `android/settings.gradle`, set the Kotlin version and SDK levels in `android/build.gradle`, and enable core-library desugaring in `android/app/build.gradle` — see [Installation → Android](02-installation.md#4-android--settingsgradle).
 
-Add the Mapbox token to `res/values/strings.xml` and the Health Connect entries to `AndroidManifest.xml` — see [Permissions & Entitlements → Android](03-permissions.md#android).
+Add the Mapbox token to `res/values/strings.xml`, and the Health Connect entries and the two camera overrides to `AndroidManifest.xml` — see [Permissions & Entitlements → Android](03-permissions.md#android).
 
 ## 4. Configure and Present
 

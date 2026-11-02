@@ -8,7 +8,7 @@ React Native-specific symptoms and remedies. For SDK runtime issues inside the n
 
 **Symptom:** the app crashes the moment the SDK opens. The device console shows only `App terminated due to signal 6.` — no JavaScript error, no red box, no backtrace.
 
-**Cause:** a missing `Info.plist` usage string. iOS calls `abort()` when the SDK touches `CBCentralManager`, `CLLocationManager` or `CMMotionManager` without the matching `NSBluetoothAlwaysUsageDescription`, `NSLocationWhenInUseUsageDescription` or `NSMotionUsageDescription`.
+**Cause:** a missing `Info.plist` usage string. iOS calls `abort()` when the SDK touches `CBCentralManager`, `CLLocationManager` or `CMMotionManager` without the matching `NSBluetoothAlwaysUsageDescription`, `NSLocationWhenInUseUsageDescription` or `NSMotionUsageDescription`. A missing `NSCameraUsageDescription` ends the app the same way, the first time the user opens the nutrition photo scan.
 
 **Fix:** add every key listed in [Permissions & Entitlements → iOS](03-permissions.md#ios).
 
@@ -51,21 +51,15 @@ npm install --legacy-peer-deps
 
 **Fix:** upgrade to React Native 0.80.3 or later — see [Prerequisites → React Native version floor](01-prerequisites.md#react-native-version-floor).
 
-### `dyld: Library not loaded: @rpath/ZIPFoundation.framework/ZIPFoundation` at launch
+### Upgrading from 0.1.16 or earlier: remove the `ZIPFoundation` Podfile hooks
 
-**Cause:** your Podfile is missing the `pre_install` hook that forces `ZIPFoundation` to a dynamic framework. Under static linkage it is linked into the app binary and not embedded in `Frameworks/`, while `NordicDFU.xcframework` (vendored by `RollaSDK`) was pre-built expecting it as a dynamic framework.
+Earlier versions needed two `ZIPFoundation` workarounds in the Podfile: a `pre_install` hook that made it a dynamic framework, and an `if target.name == 'ZIPFoundation'` branch in `post_install` that pinned it to iOS 14.0. From 0.2.0, `NordicDFU` 4.16.0 and `ZIPFoundation` 0.9.19 install from source and compile at your project's deployment target, and React Native's own `react_native_post_install` raises any pod below React Native's 15.1 floor to 15.1.
 
-**Fix:** add the `pre_install` block from [Installation → iOS](02-installation.md#2-ios--podfile).
-
-### `compiling for iOS 14.0, but module 'ZIPFoundation' has a minimum deployment target of iOS 15.1`
-
-**Cause:** the `post_install` hook that pins `ZIPFoundation`'s deployment target to 14.0 is missing.
-
-**Fix:** add the `post_install` block from [Installation → iOS](02-installation.md#2-ios--podfile), specifically the `if target.name == 'ZIPFoundation'` branch.
+**Fix:** delete the `pre_install` block and the `ZIPFoundation` branch, keep the rest of `post_install`, and run `cd ios && pod install`. The result is the Podfile in [Installation → iOS](02-installation.md#2-ios--podfile). Left in place, the 14.0 pin fails the build on Xcode 27, which no longer builds for iOS 14.
 
 ### Device install rejects with `parent bundle has the same identifier as sub-bundle`
 
-**Cause:** `PRODUCT_BUNDLE_IDENTIFIER=…` was passed as a global `xcodebuild` override. The override propagates to the Pods sub-frameworks (e.g. `ZIPFoundation`), and `devicectl` refuses to install.
+**Cause:** `PRODUCT_BUNDLE_IDENTIFIER=…` was passed as a global `xcodebuild` override. The override propagates to the bundles CocoaPods builds for your pods, and `devicectl` refuses to install.
 
 **Fix:** set the bundle ID in the app target's `project.pbxproj` (Xcode: **Targets → YourApp → General → Identity → Bundle Identifier**), never as a global `xcodebuild` argument.
 

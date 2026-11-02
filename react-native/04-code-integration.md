@@ -35,7 +35,7 @@ const configuration: RollaConfiguration = {
 };
 ```
 
-These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, `showOptionsButton` and `showGoalsSection` — see [Configuration](05-configuration.md) for the full reference.
+These are the identity and auth essentials. `RollaConfiguration` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `userId`, `showOptionsButton`, `showGoalsSection` and `oauthCallbackScheme` — see [Configuration](05-configuration.md) for the full reference.
 
 ### Environment Values
 

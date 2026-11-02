@@ -6,10 +6,10 @@ A complete, step-by-step guide to integrating the Rolla SDK into your React Nati
 
 The wrapper is a TurboModule over the **same** native iOS pod (`RollaSDK`) and Android Maven artifact (`com.rolla.sdk:android_release`) that the [iOS](../ios/README.md) and [Android](../android/README.md) guides document. The Flutter engine, Bluetooth and GPS handling, foreground services, and all SDK UI live inside those native artifacts — your React Native code never sees Flutter. Everything that happens inside your `ios/` and `android/` projects (entitlements, manifests, widget extensions) works exactly as in a native app, so this guide links to the native pages for that and documents the React Native surface itself.
 
-**Wrapper version this guide targets:** `@rolla-health/react-native-sdk@0.1.16`
-**Native SDK it links:** `0.1.15` (iOS pod `RollaSDK` and Android `com.rolla.sdk:android_release`) — pinned by the wrapper, never declared by you
+**Wrapper version this guide targets:** `@rolla-health/react-native-sdk@0.2.0`
+**Native SDK it links:** `0.2.0` (iOS pod `RollaSDK` and Android `com.rolla.sdk:android_release`) — pinned by the wrapper, never declared by you
 
-The package is released in lockstep with the native SDK; `0.1.16` is the one React Native-only release, and from `0.2.0` on the package version equals the native version. Pin the exact version. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
+The package is released in lockstep with the native SDK: its version is the native version it links. Pin the exact version. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
 
 ## Table of Contents
 
@@ -18,7 +18,7 @@ The package is released in lockstep with the native SDK; `0.1.16` is the one Rea
 2. **[Installation](02-installation.md)** — `npm install`, the Podfile, `settings.gradle` and `build.gradle` changes, verifying the integration
 3. **[Permissions & Entitlements](03-permissions.md)** — `Info.plist` keys, entitlements and Live Activities on iOS; Mapbox token and manifest entries on Android
 4. **[Code Integration](04-code-integration.md)** — Import, configure, present, subscribe to events, handle errors
-5. **[Configuration](05-configuration.md)** — Every `RollaConfiguration` field: branding, language, module disabling, data-source hiding, transitions
+5. **[Configuration](05-configuration.md)** — Every `RollaConfiguration` field: branding, language, module disabling, data-source hiding, Garmin and Oura sign-in, transitions
 6. **[Token Management](06-token-management.md)** — Token lifecycle, the token events, pushing new tokens, clearing sessions
 7. **[Engine Lifecycle](07-engine-lifecycle.md)** — Warm-up, dismissal, destroying the engine, applying a changed configuration
 8. **[API Reference](08-api-reference.md)** — Every `Rolla` method, host-driven navigation, notification taps, all 17 events, headless methods, errors, close reasons

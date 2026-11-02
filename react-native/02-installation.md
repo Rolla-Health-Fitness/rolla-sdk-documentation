@@ -5,9 +5,9 @@ Install the wrapper from npm, then apply the iOS Podfile and Android Gradle chan
 ## 1. Install the Package
 
 ```sh
-npm install @rolla-health/react-native-sdk@0.1.16 --save-exact
+npm install @rolla-health/react-native-sdk@0.2.0 --save-exact
 # or
-yarn add -E @rolla-health/react-native-sdk@0.1.16
+yarn add -E @rolla-health/react-native-sdk@0.2.0
 ```
 
 Both flags write the exact version — a caret here is the one thing the [Versioning](01-prerequisites.md#versioning) rules forbid. No authentication is required — the package is published to the public npm registry. Your `package.json` should end up with an exact pin for the wrapper and for React (see [Prerequisites → React version pin](01-prerequisites.md#react-version-pin)):
@@ -17,7 +17,7 @@ Both flags write the exact version — a caret here is the one thing the [Versio
   "dependencies": {
     "react": "19.1.0",
     "react-native": "0.80.3",
-    "@rolla-health/react-native-sdk": "0.1.16"
+    "@rolla-health/react-native-sdk": "0.2.0"
   }
 }
 ```
@@ -47,22 +47,6 @@ ENV['NO_FLIPPER'] = '1'
 target 'YourApp' do
   config = use_native_modules!
 
-  # Required: NordicDFU.xcframework (vendored by RollaSDK) was pre-built
-  # expecting ZIPFoundation as a *dynamic* framework. Under global static
-  # linkage, ZIPFoundation would otherwise be statically linked into the app
-  # binary and not embedded in Frameworks/, causing
-  # `dyld: Library not loaded: @rpath/ZIPFoundation.framework/ZIPFoundation`
-  # at app launch.
-  pre_install do |installer|
-    installer.pod_targets.each do |pod|
-      if pod.name == 'ZIPFoundation'
-        def pod.build_type
-          Pod::BuildType.dynamic_framework
-        end
-      end
-    end
-  end
-
   use_react_native!(
     :path => config[:reactNativePath],
     :app_path => "#{Pod::Config.instance.installation_root}/.."
@@ -76,16 +60,6 @@ target 'YourApp' do
         # Xcode 15+ ships User Script Sandboxing on by default. CocoaPods'
         # resource-copy scripts for vendored xcframeworks need it off.
         c.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
-
-        # NordicDFU.xcframework was pre-built targeting iOS 14.0. Its
-        # .swiftinterface imports ZIPFoundation; if ZIPFoundation is rebuilt
-        # at 15.1 the swiftinterface fails to compile with "compiling for
-        # iOS 14.0, but module 'ZIPFoundation' has a minimum deployment
-        # target of iOS 15.1". Pin ZIPFoundation to iOS 14.0; the host app
-        # deployment target stays at 15.1.
-        if target.name == 'ZIPFoundation'
-          c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
-        end
       end
     end
   end
@@ -98,15 +72,17 @@ Keep the `require` / `prepare_react_native_project!` lines your template already
 cd ios && pod install
 ```
 
-Open the `.xcworkspace`, not the `.xcodeproj`. For the underlying iOS build settings see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) — the `ENABLE_USER_SCRIPT_SANDBOXING` requirement documented there is what the `post_install` hook above applies for you.
+Open the `.xcworkspace`, not the `.xcodeproj`. For the underlying iOS build settings see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) — the `ENABLE_USER_SCRIPT_SANDBOXING` requirement documented there is what the `post_install` hook above applies for you. `react_native_post_install` also raises any pod below React Native's 15.1 floor to 15.1, so no pod needs a deployment-target hook of its own.
+
+> **Upgrading from 0.1.16 or earlier?** Delete the `ZIPFoundation` `pre_install` hook and the `ZIPFoundation` branch of `post_install` from your Podfile — see [Troubleshooting](09-troubleshooting.md#upgrading-from-0116-or-earlier-remove-the-zipfoundation-podfile-hooks).
 
 ### Transitive pod dependencies
 
-`RollaSDK` vendors or depends on `ZIPFoundation` (`~> 0.9`), `TOCropViewController`, `MapboxMaps` / `MapboxCommon` / `MapboxCoreMaps` / `Turf`, and `NordicDFU`. If your app declares any of these directly, align the versions.
+`RollaSDK` vendors `MapboxMaps` / `MapboxCommon` / `MapboxCoreMaps` / `Turf` and `TOCropViewController` as pre-built frameworks, and depends on `NordicDFU` 4.16.0, which `pod install` builds from source together with its `ZIPFoundation` 0.9.19, at your project's deployment target. If your app declares any of these directly, align the versions; an app that depends on `NordicDFU` or `ZIPFoundation` itself must allow these two.
 
 ## 3. iOS — Project Notes
 
-- **Bundle identifier:** do **not** pass `PRODUCT_BUNDLE_IDENTIFIER=…` as a global `xcodebuild` override. CocoaPods then assigns your app's bundle ID to its sub-frameworks (`ZIPFoundation`, for example) and `devicectl install` rejects the app with `parent bundle has the same identifier as sub-bundle`. Set the bundle ID in the app target's `project.pbxproj` instead.
+- **Bundle identifier:** do **not** pass `PRODUCT_BUNDLE_IDENTIFIER=…` as a global `xcodebuild` override. CocoaPods then assigns your app's bundle ID to the bundles it builds for your pods, and `devicectl install` rejects the app with `parent bundle has the same identifier as sub-bundle`. Set the bundle ID in the app target's `project.pbxproj` instead.
 - **`ios/.xcode.env.local`:** Xcode's script-phase shell does not source your interactive `PATH`. If the Hermes `replace-config` step fails with `: command not found`, put an absolute node path in the gitignored `ios/.xcode.env.local` (`export NODE_BINARY=/opt/homebrew/bin/node`, or your equivalent from `which node`). Do not edit the versioned `ios/.xcode.env`.
 - **Permissions:** the fresh template ships only an empty `NSLocationWhenInUseUsageDescription`. Every other key the SDK needs is added by hand — see [Permissions & Entitlements → iOS](03-permissions.md#ios).
 
@@ -185,7 +161,7 @@ Autolinking registers the `RollaWrapper` TurboModule — nothing to add to `getP
 Build on a physical device and call `Rolla.getNativeSdkVersion()` once on app load:
 
 ```ts
-const version = await Rolla.getNativeSdkVersion(); // '0.1.15' for package 0.1.16
+const version = await Rolla.getNativeSdkVersion(); // '0.2.0' for package 0.2.0
 ```
 
 Resolving proves the TurboModule is wired up. If you instead get `Invariant Violation: TurboModuleRegistry.getEnforcing('RollaWrapper') could not be found`, autolinking did not pick up the wrapper — see [Troubleshooting](09-troubleshooting.md#invariant-violation-turbomoduleregistrygetenforcingrollawrapper-could-not-be-found).
