@@ -53,9 +53,9 @@ npm install --legacy-peer-deps
 
 ### Upgrading from 0.1.16 or earlier: remove the `ZIPFoundation` Podfile hooks
 
-Earlier versions needed two `ZIPFoundation` workarounds in the Podfile: a `pre_install` hook that made it a dynamic framework, and an `if target.name == 'ZIPFoundation'` branch in `post_install` that pinned it to iOS 14.0. From 0.2.0, `NordicDFU` 4.16.0 and `ZIPFoundation` 0.9.19 install from source and compile at your project's deployment target, and React Native's own `react_native_post_install` raises any pod below React Native's 15.1 floor to 15.1.
+Earlier versions needed two `ZIPFoundation` workarounds in the Podfile: a `pre_install` hook that made it a dynamic framework, and an `if target.name == 'ZIPFoundation'` branch in `post_install` that pinned it to iOS 14.0. From 0.2.0, `NordicDFU` 4.16.0 and `ZIPFoundation` 0.9.19 install from source and compile at your project's deployment target. On Xcode 27 keep a `post_install` loop that raises every target below 15.1 to 15.1: React Native's own `react_native_post_install` raises the pods but not their resource bundles, and the privacy bundles of ZIPFoundation and NordicDFU declare iOS 12.0.
 
-**Fix:** delete the `pre_install` block and the `ZIPFoundation` branch, keep the rest of `post_install`, and run `cd ios && pod install`. The result is the Podfile in [Installation → iOS](02-installation.md#2-ios--podfile). Left in place, the 14.0 pin fails the build on Xcode 27, which no longer builds for iOS 14.
+**Fix:** delete the `pre_install` block and the `ZIPFoundation` branch, keep the rest of `post_install` with the raise-to-15.1 loop, and run `cd ios && pod install`. The result is the Podfile in [Installation → iOS](02-installation.md#2-ios--podfile). Left in place, the 14.0 pin fails the build on Xcode 27, which no longer builds for iOS 14.
 
 ### Device install rejects with `parent bundle has the same identifier as sub-bundle`
 

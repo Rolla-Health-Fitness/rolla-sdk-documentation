@@ -60,6 +60,13 @@ target 'YourApp' do
         # Xcode 15+ ships User Script Sandboxing on by default. CocoaPods'
         # resource-copy scripts for vendored xcframeworks need it off.
         c.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+
+        # Xcode 27 builds nothing below iOS 15.0. react_native_post_install
+        # raises the pods but not their resource bundles, and the privacy
+        # bundles of ZIPFoundation and NordicDFU declare iOS 12.0.
+        if c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.1
+          c.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+        end
       end
     end
   end
@@ -72,7 +79,7 @@ Keep the `require` / `prepare_react_native_project!` lines your template already
 cd ios && pod install
 ```
 
-Open the `.xcworkspace`, not the `.xcodeproj`. For the underlying iOS build settings see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) — the `ENABLE_USER_SCRIPT_SANDBOXING` requirement documented there is what the `post_install` hook above applies for you. `react_native_post_install` also raises any pod below React Native's 15.1 floor to 15.1, so no pod needs a deployment-target hook of its own.
+Open the `.xcworkspace`, not the `.xcodeproj`. For the underlying iOS build settings see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) — the `ENABLE_USER_SCRIPT_SANDBOXING` requirement documented there is what the `post_install` hook above applies for you. `react_native_post_install` raises the pods themselves to React Native's 15.1 floor but not their resource bundles, so on Xcode 27 the loop above raises every remaining target below 15.1, including the ZIPFoundation and NordicDFU privacy bundles that declare iOS 12.0.
 
 > **Upgrading from 0.1.16 or earlier?** Delete the `ZIPFoundation` `pre_install` hook and the `ZIPFoundation` branch of `post_install` from your Podfile — see [Troubleshooting](09-troubleshooting.md#upgrading-from-0116-or-earlier-remove-the-zipfoundation-podfile-hooks).
 
