@@ -1,8 +1,9 @@
 # Rolla SDK Integration Guide
 
-Documentation for embedding the Rolla SDK into partner iOS and Android apps.
+Documentation for embedding the Rolla SDK into partner iOS, Android, and Flutter apps.
 
 **Latest SDK Version:** 0.1.15
+**Latest Flutter package:** [`rolla_sdk@0.1.15+1`](flutter/README.md)
 
 ---
 
@@ -46,6 +47,28 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ---
 
+## Flutter Integration
+
+[**Go to Flutter Guide →**](flutter/README.md)
+
+The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embeds the same SDK directly in your Flutter app, running on your app's own Flutter engine. It documents the Dart surface and links to the iOS / Android guides for everything inside the native projects.
+
+| # | Section | Description |
+|---|---------|-------------|
+| 0 | [Quick Start](flutter/00-quick-start.md) | Minimal integration in under 10 minutes |
+| 1 | [Prerequisites](flutter/01-prerequisites.md) | Flutter/Dart floor, native platform floors, versioning, partner credentials |
+| 2 | [Installation](flutter/02-installation.md) | `flutter pub add rolla_sdk`, iOS deployment target, Gradle deltas + desugaring |
+| 3 | [Permissions & Entitlements](flutter/03-permissions.md) | Info.plist keys, entitlements, notification delegate; Mapbox token and manifest entries |
+| 4 | [Code Integration](flutter/04-code-integration.md) | `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal, logout |
+| 5 | [Configuration](flutter/05-configuration.md) | Branding, language, modules, data sources, UI chrome |
+| 6 | [Token Management](flutter/06-token-management.md) | Auth lifecycle, `onTokenExpired`, `onSessionExpired`, refresh, logout |
+| 7 | [API Reference](flutter/07-api-reference.md) | `RollaSDK`, `RollaSdkHome`, host-driven navigation, headless calls, types |
+| 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific issues & support |
+
+> **Versions:** `rolla_sdk@0.1.15+1` contains SDK `0.1.15` (the `+1` is a page-only republish of `0.1.15`, same code); from 0.1.15 on, the package version equals the SDK version. Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
+
+---
+
 ## Auth API — SDK Authentication
 
 [**Go to Auth API Guide →**](sdk-auth-api/README.md)
@@ -63,7 +86,7 @@ Documentation for embedding the Rolla SDK into partner iOS and Android apps.
 
 ## Platform Capabilities
 
-Feature support comparison between iOS and Android.
+Feature support comparison between iOS and Android. The Flutter package embeds the same SDK, so the features apply to a Flutter host on the respective platform; the Dart surface differs where the Flutter guide says so — no host event callbacks, no `notificationTarget`, no `warmUpEngine` / engine lifecycle, no `RollaTransition`, and branding is the `Branding` class, which replaces the defaults as a whole rather than merging per field. See [Flutter API Reference → Not Available in Flutter](flutter/07-api-reference.md#not-available-in-flutter).
 
 | Feature | iOS | Android | Notes |
 |---------|:---:|:-------:|-------|
@@ -126,7 +149,7 @@ The Rolla SDK provides a complete health and fitness experience embedded inside 
 1. **Obtain your Partner ID** — contact [support@rolla.app](mailto:support@rolla.app) to receive your `partner_id` during onboarding
 2. **Register the user** — your app calls `POST /api/register` with the user's email and password. Profile data (name, DOB, weight, height, gender, timezone) is collected within the SDK UI — or your app [sets it in advance](sdk-auth-api/03-profile.md) after login so the SDK's onboarding is skipped.
 3. **Log in** — your app calls `POST /api/login` with the user's email, password, and `Partner-ID` header to obtain an access token and refresh token
-4. **Present the SDK** — initialize with the tokens and call `show()` — the SDK handles everything from there
+4. **Present the SDK** — initialize with the tokens and call `show()` (Flutter: `RollaSDK.initializeWithToken`, then render `RollaSdkHome`) — the SDK handles everything from there
 
 See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full details on each endpoint.
 
@@ -137,7 +160,7 @@ See [Auth API — Authentication](sdk-auth-api/02-authentication.md) for full de
 | Production | `"production"` | Release builds |
 | Research and Development | `"rnd"` | Development and QA |
 
-If omitted, defaults to `"rnd"`.
+If omitted, the native SDKs default to `"rnd"`; the Flutter package defaults to `RollaEnvironment.production`, so set `.rnd` explicitly while integrating.
 
 ---
 
