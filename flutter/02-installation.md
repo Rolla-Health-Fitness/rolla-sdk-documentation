@@ -7,14 +7,14 @@ Add the `rolla_sdk` package from pub.dev, then apply the iOS and Android changes
 ## 1. Add the Package
 
 ```sh
-flutter pub add rolla_sdk:0.1.15+1
+flutter pub add rolla_sdk:0.2.0
 ```
 
-This pins the current release in `pubspec.yaml` — an exact version, not a caret, because 0.1.x releases can carry breaking changes (see [Prerequisites → Versioning](01-prerequisites.md#versioning)):
+This pins the current release in `pubspec.yaml` — an exact version, not a caret, because 0.x releases can carry breaking changes (see [Prerequisites → Versioning](01-prerequisites.md#versioning)):
 
 ```yaml
 dependencies:
-  rolla_sdk: 0.1.15+1
+  rolla_sdk: 0.2.0
 ```
 
 No authentication is required — the package is published to the public pub.dev registry. Requires **Flutter 3.35.6 / Dart 3.9.2** or newer, see [Prerequisites](01-prerequisites.md).
@@ -29,6 +29,21 @@ Set the deployment target to **15.0** in `ios/Podfile`:
 platform :ios, '15.0'
 ```
 
+Xcode 27 refuses to build any pod whose deployment target is below iOS 15.0, and the SDK's `ZIPFoundation` dependency declares iOS 12.0. Raise such pods to 15.0 in the `post_install` hook your Flutter `Podfile` already has:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      end
+    end
+  end
+end
+```
+
 Then install the pods:
 
 ```sh
@@ -36,9 +51,9 @@ flutter pub get
 cd ios && pod install
 ```
 
-Open the generated `Runner.xcworkspace`, not `Runner.xcodeproj`. If you bump the deployment target after a first build, run `pod install` again.
+Open the generated `Runner.xcworkspace`, not `Runner.xcodeproj`. If you bump the deployment target after a first build, run `pod install` again. Xcode 27 builds also need a scene manifest in `Info.plist` — see [Permissions → Scene Manifest](03-permissions.md#scene-manifest-xcode-27).
 
-For the underlying native build settings, see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md).
+For the underlying native build settings, see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) and [iOS Troubleshooting → Deployment target errors](../ios/11-troubleshooting.md#deployment-target-errors-after-an-xcode-update).
 
 ## 3. Android — Gradle
 

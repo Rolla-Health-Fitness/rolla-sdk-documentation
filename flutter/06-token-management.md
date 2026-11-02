@@ -9,7 +9,7 @@ The SDK manages the token lifecycle by itself. However, the refresh tokens issue
 3. **Expired session (SDK cannot refresh):** If the internal refresh fails (typically because the refresh token was consumed outside the SDK, or has expired), the SDK awaits your `onTokenExpired` callback. Return a fresh pair from your backend and the SDK persists it and retries the failed request — the user sees no error. Return `null` (or throw) and the SDK re-reads its storage once more; if nothing newer is there either, it calls `onSessionExpired`: the session is dead, and screens that request backend data show an error state until a new session is established.
 
    > **Avoiding this state:** pass the refresh token to the SDK, but never spend it yourself — let the SDK do all refreshing.
-4. **Logout:** Call `RollaSDK.logout()` when the user logs out of your app. It removes all SDK-persisted tokens and session data and disposes the SDK instance.
+4. **Logout:** Call `RollaSDK.logout()` when the user logs out of your app. It removes the SDK's tokens and the previous user's SDK data, leaves your app's own storage alone, and disposes the SDK instance — see [Logging Out](#logging-out).
 
 ## Token Facts
 
@@ -82,9 +82,15 @@ It returns `true` when the pair is now the SDK's current one, and `false` when t
 await RollaSDK.logout();
 ```
 
-This clears all SDK-persisted tokens and disposes the SDK instance. The next `initializeWithToken(...)` starts a fresh session with whatever credentials you pass.
+This signs the user out of the SDK the way its own sign-out does: it removes the tokens, the cached profile, the per-user caches and the SDK's other entries in secure storage and `SharedPreferences`, then disposes the SDK instance. It also works on a cold start, before `initializeWithToken` has run in the current launch, so a host-driven logout leaves nothing of the previous user behind. The next `initializeWithToken(...)` starts a fresh session with whatever credentials you pass.
 
 When logout is initiated *inside* the SDK, the order is reversed: the SDK clears its own session first, then calls your `onLogout`. Use the callback to update your auth state and navigate — don't call SDK-authenticated endpoints from it; the session is already gone.
+
+**Your app's own storage is left alone.** The SDK keeps its data in `flutter_secure_storage` and `SharedPreferences`, the same stores your app uses, and both logout paths remove only the SDK's own keys. Entries your app keeps under its own key names survive; avoid the SDK's generic names, such as `access_token` and `refresh_token`, for your own entries in these stores. If your app clears secure storage itself on logout, leave the keys in `rollaInstallationStorageKeys` in place: they identify this installation to indoor group sessions and hold no account data.
+
+### Account Deletion
+
+If your app deletes the user's account itself, call `RollaSDK.clearDeletedAccountGroupData()` once the deletion is confirmed, while the SDK is still initialized — before `RollaSDK.logout()`. It erases that account's indoor group-session data on the device, which an ordinary logout keeps so an unfinished group leave can still complete after the user signs back in. A deletion made through the SDK's own account settings does this itself.
 
 ---
 

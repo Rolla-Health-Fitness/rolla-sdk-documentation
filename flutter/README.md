@@ -6,15 +6,15 @@ A complete, step-by-step guide to integrating the Rolla SDK into your Flutter ap
 
 `rolla_sdk` embeds the **same** SDK that the [iOS](../ios/README.md) and [Android](../android/README.md) guides document, as a package that runs inside your app's own Flutter engine. There is no separate engine to manage and no native wrapper: your app calls the static `RollaSDK` API and renders one widget, `RollaSdkHome`. Everything that happens inside your `ios/` and `android/` projects (usage strings, entitlements, manifest entries, the Live Activity extension) works exactly as in a native app, so this guide links to the native pages for that and documents the Dart surface itself.
 
-**Package version this guide targets:** `rolla_sdk` **0.1.15+1** (pub.dev; the `+1` is a page-only republish of 0.1.15, same code)
-**SDK version it contains:** `0.1.15` — the package is released in lockstep with the native SDK and carries the same number. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
+**Package version this guide targets:** `rolla_sdk` **0.2.0** (pub.dev)
+**SDK version it contains:** `0.2.0` — the package is released in lockstep with the native SDK and carries the same number. See [Prerequisites → Versioning](01-prerequisites.md#versioning).
 
 ## Table of Contents
 
 0. **[Quick Start](00-quick-start.md)** — Minimal integration in under 10 minutes
 1. **[Prerequisites](01-prerequisites.md)** — Flutter and Dart floor, native platform floors, versioning, partner credentials
-2. **[Installation](02-installation.md)** — `flutter pub add rolla_sdk`, the iOS deployment target, the Gradle changes, verifying the build
-3. **[Permissions & Entitlements](03-permissions.md)** — `Info.plist` keys, entitlements and the notification delegate on iOS; Mapbox token and manifest entries on Android
+2. **[Installation](02-installation.md)** — `flutter pub add rolla_sdk`, the iOS deployment target and Podfile hook, the Gradle changes, verifying the build
+3. **[Permissions & Entitlements](03-permissions.md)** — `Info.plist` keys, the scene manifest, entitlements, the notification delegate and Live Activities on iOS; Mapbox token and manifest entries on Android
 4. **[Code Integration](04-code-integration.md)** — `RollaSDK.initializeWithToken(...)`, placing `RollaSdkHome`, host dismissal, logout
 5. **[Configuration](05-configuration.md)** — Every `initializeWithToken` option: branding, language, module disabling, data-source hiding, UI chrome
 6. **[Token Management](06-token-management.md)** — Token lifecycle, `onTokenExpired`, `onSessionExpired`, pushing new tokens, logging out

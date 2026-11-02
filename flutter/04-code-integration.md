@@ -45,7 +45,7 @@ await RollaSDK.initializeWithToken(
 );
 ```
 
-These are the identity and auth essentials. `initializeWithToken` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `showOptionsButton`, `showGoalsSection`, `removeRollaBandReferences`, `isProfileComplete` and the UI chrome flags — see [Configuration](05-configuration.md) for the full reference.
+These are the identity and auth essentials. `initializeWithToken` also takes `branding`, `language`, `disabledModules`, `disabledDataSources`, `showOptionsButton`, `showGoalsSection`, `removeRollaBandReferences`, `isProfileComplete`, `oauthCallbackScheme` and the UI chrome flags — see [Configuration](05-configuration.md) for the full reference.
 
 For `userId`, pass the Rolla user ID — the `sub` claim of the login JWT, which `JwtDecoder.extractUserId` reads for you — or a stable identifier of your own. It namespaces the SDK's persisted data per user on shared devices and is never sent to the backend. Always pass a non-empty id, and the same one to `RollaSdkHome`: only `initializeWithToken` falls back to the JWT `sub` claim for an empty string, and it throws an `ArgumentError` when neither resolves.
 
@@ -163,7 +163,7 @@ onLogout: () {
 },
 ```
 
-`onLogout` fires after the SDK has already cleared its own tokens and session. To clear the SDK from your side (e.g. when the user logs out of *your* app), call `RollaSDK.logout()`.
+`onLogout` fires after the SDK has already cleared its own tokens and session. To clear the SDK from your side (e.g. when the user logs out of *your* app), call `RollaSDK.logout()` — it also works before `initializeWithToken` has run in the current launch. Both remove only the SDK's own storage keys; see [Token Management → Logging Out](06-token-management.md#logging-out).
 
 `onSessionExpired` is the other way a session ends: the SDK received a `401`, could not refresh on its own, got nothing usable from `onTokenExpired`, and found nothing newer in storage — or a request still failed with `401` right after a successful refresh — typically because the session was revoked server-side. Treat it like a logout you did not initiate: clear your session and show your login. It can fire again for every later failing request, so make the handler idempotent (the `mounted` guard in the examples does that). It never fires during a deliberate `RollaSDK.logout()`.
 
@@ -174,7 +174,7 @@ onLogout: () {
 | Flag | Default | Effect when changed |
 | --- | --- | --- |
 | `showBackButton` | `false` | `true` renders a back button in the SDK top bar (pair with `onRequestDismiss`, above). |
-| `hideBottomNavigation` | `false` | `true` hides the Home / Profile tabs, leaving only the activity (＋) button — a minimal embed where your app provides the surrounding navigation. |
+| `hideBottomNavigation` | `false` | `true` hides the bottom navigation, leaving only the activity (＋) button — a minimal embed where your app provides the surrounding navigation. Home then shows an entry card with a Nutrition row and an Insights row, each while its module is enabled, so both stay reachable; back from either returns to Home. |
 | `showOptionsButton` | `true` | `false` hides the three-dot options action on the Home app bar (its sheet links to Data Sources, Goals, Leaderboards and the FAQ) — use it if you surface those elsewhere. |
 | `showGoalsSection` | `false` | `true` shows the user's goals with an edit action at the bottom of Home. |
 | `showAccountSettings` | `false` | `true` exposes credential-management screens (change/reset password, change email, delete account). |

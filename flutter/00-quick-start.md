@@ -15,21 +15,21 @@ Get the Rolla SDK running in your Flutter app in under 10 minutes.
 ## 1. Add the Package
 
 ```sh
-flutter pub add rolla_sdk:0.1.15+1
+flutter pub add rolla_sdk:0.2.0
 ```
 
 This pins the current release in your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  rolla_sdk: 0.1.15+1
+  rolla_sdk: 0.2.0
 ```
 
-Pin the exact version: 0.1.x releases can carry breaking changes, so upgrade deliberately (see [Prerequisites → Versioning](01-prerequisites.md#versioning)). Then apply the platform floors (iOS deployment target, Android `minSdk` and desugaring) from [Installation](02-installation.md).
+Pin the exact version: 0.x releases can carry breaking changes, so upgrade deliberately (see [Prerequisites → Versioning](01-prerequisites.md#versioning)). Then apply the platform floors (iOS deployment target and Podfile hook, Android `minSdk` and desugaring) from [Installation](02-installation.md).
 
 ## 2. Declare the Platform Permissions
 
-A fresh `flutter create` scaffold has none of the declarations the SDK needs. Add the usage-description keys, `MBXAccessToken` and `UIBackgroundModes` to `ios/Runner/Info.plist` and the HealthKit capability to the Runner target; add the Mapbox token to `strings.xml` and the Health Connect entries to `AndroidManifest.xml`. Without the iOS usage strings the app aborts with SIGABRT the moment the SDK starts — there is no Dart error to catch. The complete lists are in [Permissions & Entitlements](03-permissions.md).
+A fresh `flutter create` scaffold has none of the declarations the SDK needs. Add the usage-description keys (`NSCameraUsageDescription` for the nutrition photo scan among them), `MBXAccessToken`, `UIBackgroundModes` and, for Xcode 27 builds, the scene manifest to `ios/Runner/Info.plist`, and the HealthKit capability to the Runner target; add the Mapbox token to `strings.xml`, and the Health Connect entries and the two CameraX overrides to `AndroidManifest.xml`. Without the iOS usage strings the app aborts with SIGABRT the moment the SDK starts — there is no Dart error to catch. The complete lists are in [Permissions & Entitlements](03-permissions.md).
 
 ## 3. Get a Token
 
@@ -161,7 +161,7 @@ When the user logs out of your app, clear the SDK session so the next user canno
 await RollaSDK.logout();
 ```
 
-See [Token Management → Logging Out](06-token-management.md#logging-out).
+It removes only the SDK's own storage keys, so your app's entries are left alone, and it works on a cold start too. See [Token Management → Logging Out](06-token-management.md#logging-out).
 
 ## Next Steps
 

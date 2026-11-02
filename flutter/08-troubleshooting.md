@@ -6,7 +6,7 @@ Flutter-specific symptoms and remedies. For SDK runtime issues inside the native
 
 ### App Aborts on Launch or on the First SDK Screen (iOS SIGABRT)
 
-**Symptom:** the app crashes the moment you push `RollaSdkHome`, or as soon as the SDK touches Bluetooth, Location or Motion:
+**Symptom:** the app crashes the moment you push `RollaSdkHome`, or as soon as the SDK touches Bluetooth, Location, Motion or the camera:
 
 ```
 * thread #1, ... stop reason = signal SIGABRT
@@ -31,29 +31,7 @@ Application failed to launch: UIScene life cycle is required for apps built with
 
 **Cause:** Xcode 27 builds require the UIScene life cycle, and `ios/Runner/Info.plist` has no scene manifest. Projects created before Flutter 3.41 have none.
 
-**Fix:** add the following inside the top-level `<dict>` of `ios/Runner/Info.plist`. Keep `UIMainStoryboardFile`, and leave `AppDelegate.swift` as it is:
-
-```xml
-<key>UIApplicationSceneManifest</key>
-<dict>
-  <key>UIApplicationSupportsMultipleScenes</key>
-  <false/>
-  <key>UISceneConfigurations</key>
-  <dict>
-    <key>UIWindowSceneSessionRoleApplication</key>
-    <array>
-      <dict>
-        <key>UISceneConfigurationName</key>
-        <string>flutter</string>
-        <key>UISceneDelegateClassName</key>
-        <string>FlutterSceneDelegate</string>
-        <key>UISceneStoryboardFile</key>
-        <string>Main</string>
-      </dict>
-    </array>
-  </dict>
-</dict>
-```
+**Fix:** add the scene manifest from [Permissions & Entitlements → Scene Manifest](03-permissions.md#scene-manifest-xcode-27) inside the top-level `<dict>` of `ios/Runner/Info.plist`. Keep `UIMainStoryboardFile`, and leave `AppDelegate.swift` as it is.
 
 ### The SDK's Back Button Does Nothing
 
@@ -77,7 +55,7 @@ See [Code Integration → Host dismissal](04-code-integration.md#host-dismissal-
 
 ### `openScreen` Resolves `uiUnavailable`
 
-**Cause:** `RollaSdkHome` was not on screen within 15 seconds of the call. The router lives inside the widget, so a request can only be served once it has mounted and its startup gates have settled.
+**Cause:** `RollaSdkHome` was not on screen within 27 seconds of the call. The router lives inside the widget, so a request can only be served once it has mounted and its startup gates have settled.
 
 **Fix:** push the route that renders `RollaSdkHome` right after calling `openScreen`, or keep the widget as your authenticated root. See [API Reference → Host-Driven Navigation](07-api-reference.md#host-driven-navigation).
 
@@ -117,7 +95,7 @@ D8: Default interface methods are only supported starting with Android N (--min-
 **Symptom:**
 
 ```
-Because rolla_sdk >=0.1.15 requires Flutter SDK version >=3.35.6,
+Because rolla_sdk >=0.2.0 requires Flutter SDK version >=3.35.6,
 version solving failed.
 ```
 

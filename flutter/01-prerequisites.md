@@ -25,14 +25,17 @@ The package is released in lockstep with the native SDK, and the package version
 
 | pub.dev `rolla_sdk` | SDK version | Notes |
 |---------------------|-------------|-------|
-| **`0.1.15+1`** (current) | `0.1.15` | The 0.1.15 configuration options as `initializeWithToken` parameters, plus `openScreen` and the headless calls; see [API Reference → Not Available in Flutter](07-api-reference.md#not-available-in-flutter) for the exceptions |
-| `0.1.15` | `0.1.15` | Same code as `0.1.15+1`; its pub.dev page listed a non-existent iOS entitlement, so pin `0.1.15+1` instead. |
+| **`0.2.0`** (current) | `0.2.0` | The 0.2.0 configuration options as `initializeWithToken` parameters, plus `openScreen` and the headless calls; see [API Reference → Not Available in Flutter](07-api-reference.md#not-available-in-flutter) for the exceptions |
+| `0.1.15+1` | `0.1.15` | Page-only republish of 0.1.15 |
+| `0.1.15` | `0.1.15` | Same code as `0.1.15+1`; its pub.dev page listed a non-existent iOS entitlement |
 | `0.1.12`, `0.1.11` | pre-release snapshots (June 2026) | Superseded; no longer supported |
-| `0.2.0` and later | Equal to the package version | Every official SDK release ships a pub.dev release carrying the same number |
 
-- **Pin the exact version:** `flutter pub add rolla_sdk:0.1.15+1` writes `rolla_sdk: 0.1.15+1` to your `pubspec.yaml`. A caret (`^0.1.15`) would let `flutter pub upgrade` pick up any later 0.1.x release, and 0.1.x releases can carry `[breaking]` changes — upgrade deliberately.
+Every official SDK release ships a pub.dev release with the same number on the same day. A page-only republish keeps the version and adds a build number, such as `0.2.0+1`.
+
+- **Pin the exact version:** `flutter pub add rolla_sdk:0.2.0` writes `rolla_sdk: 0.2.0` to your `pubspec.yaml`. A caret (`^0.2.0`) would let `flutter pub upgrade` pick up any later 0.2.x release, and 0.x releases can carry `[breaking]` changes — upgrade deliberately.
 - **Upgrading is one number:** bump the package, run `cd ios && pod install` and `cd android && ./gradlew --refresh-dependencies` (see [Installation → Verify the build](02-installation.md#4-verify-the-build)), rebuild.
-- **The changelog is the SDK changelog.** Every "Both platforms" entry applies to a Flutter host and the iOS / Android sections apply on the respective platform. Entries name the native wrapper surface (`RollaConfiguration`, `RollaDelegate` / `RollaListener`); in Flutter the same options are parameters of `RollaSDK.initializeWithToken` and the callbacks you pass to it — the mapping is in [Configuration](05-configuration.md).
+- **Upgrading from 0.1.15:** iOS hosts add `NSCameraUsageDescription` to `Info.plist` and Android hosts add two CameraX overrides to their manifest, for the nutrition photo scan (see [Permissions & Entitlements](03-permissions.md)). In Dart, `RollaScreen` gains `nutrition`, `RollaDisabledModule` gains `groupActivities` and `nutrition`, `RollaSyncSkipReason` gains `accessRequired`, and `ActivityType` and `ActivityCategory` gain `other`, so an exhaustive `switch` over any of them needs the new cases; `WorkoutController.startLocationTracking` now takes a `GpsFilter`. A sync where a stream failed but new data still reached the server now returns `partial` instead of `success` — see [`syncHealthData`](07-api-reference.md#synchealthdata).
+- **The changelog is the SDK changelog.** Every "All platforms" entry applies to a Flutter host, the iOS / Android sections apply on the respective platform, and the "Flutter" section covers the Dart package itself. Entries name the native wrapper surface (`RollaConfiguration`, `RollaDelegate` / `RollaListener`); in Flutter the same options are parameters of `RollaSDK.initializeWithToken` and the callbacks you pass to it — the mapping is in [Configuration](05-configuration.md).
 - The native SDK's [iOS](../ios/README.md) and [Android](../android/README.md) guides apply to Flutter hosts one-to-one for everything inside the native projects. This guide links to the exact native section rather than repeating it.
 
 ## SDK Binary Size
