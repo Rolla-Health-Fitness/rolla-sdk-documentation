@@ -2,9 +2,9 @@
 
 Documentation for embedding the Rolla SDK into partner iOS, Android, Flutter and React Native apps.
 
-**Latest SDK Version:** 0.1.15
-**Latest Flutter package:** [`rolla_sdk@0.1.15+1`](flutter/README.md)
-**Latest React Native wrapper:** [`@rolla-health/react-native-sdk@0.1.16`](react-native/README.md)
+**Latest SDK Version:** 0.2.0
+**Latest Flutter package:** [`rolla_sdk@0.2.0`](flutter/README.md)
+**Latest React Native wrapper:** [`@rolla-health/react-native-sdk@0.2.0`](react-native/README.md)
 
 ---
 
@@ -66,7 +66,7 @@ The official Dart package [`rolla_sdk`](https://pub.dev/packages/rolla_sdk) embe
 | 7 | [API Reference](flutter/07-api-reference.md) | `RollaSDK`, `RollaSdkHome`, host-driven navigation, headless calls, types |
 | 8 | [Troubleshooting](flutter/08-troubleshooting.md) | Flutter-specific issues & support |
 
-> **Versions:** `rolla_sdk@0.1.15+1` contains SDK `0.1.15` (the `+1` is a page-only republish of `0.1.15`, same code); from 0.1.15 on, the package version equals the SDK version. Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
+> **Versions:** `rolla_sdk@0.2.0` contains SDK `0.2.0`; from 0.1.15 on, the package version equals the SDK version (a `+N` suffix, as in `0.1.15+1`, marks a page-only republish of the same code). Pin it exactly. See [Flutter Prerequisites → Versioning](flutter/01-prerequisites.md#versioning).
 
 ---
 
@@ -89,7 +89,7 @@ The official wrapper [`@rolla-health/react-native-sdk`](https://www.npmjs.com/pa
 | 8 | [API Reference](react-native/08-api-reference.md) | `Rolla` methods, host-driven navigation, notification taps, 17 events, headless methods, errors |
 | 9 | [Troubleshooting](react-native/09-troubleshooting.md) | React Native-specific issues & support |
 
-> **Versions:** `@rolla-health/react-native-sdk@0.1.16` links native SDK `0.1.15`; from `0.2.0` on the package version equals the native version. See [React Native Prerequisites → Versioning](react-native/01-prerequisites.md#versioning).
+> **Versions:** `@rolla-health/react-native-sdk@0.2.0` links native SDK `0.2.0`; from `0.2.0` on the package version equals the native version (the one exception, `0.1.16`, linked native `0.1.15`). See [React Native Prerequisites → Versioning](react-native/01-prerequisites.md#versioning).
 
 ---
 
