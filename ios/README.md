@@ -9,7 +9,7 @@ A complete, step-by-step guide to integrating the Rolla SDK into your iOS applic
 0. **[Quick Start](00-quick-start.md)** — Minimal integration in under 10 minutes
 1. **[Prerequisites](01-prerequisites.md)** — iOS version requirements, CocoaPods, Xcode, and partner credentials
 2. **[CocoaPods Setup](02-cocoapods-setup.md)** — Add the SDK via CocoaPods, configure build settings, install dependencies
-3. **[Permissions & Entitlements](03-permissions-and-entitlements.md)** — Configure Info.plist and .entitlements files for permissions, Bluetooth, location, Mapbox, and HealthKit
+3. **[Permissions & Entitlements](03-permissions-and-entitlements.md)** — Configure Info.plist and .entitlements files for permissions, Bluetooth, location, camera, Mapbox, and HealthKit
 4. **[Code Integration](04-code-integration.md)** — Import the SDK, create configuration, initialize, present, and implement delegate callbacks
 5. **[Configuration](05-configuration.md)** — Every `RollaConfiguration` option: branding, language, module disabling, data-source hiding
 6. **[Apple Health Integration](06-apple-health.md)** — Set up Apple Health, supported data types (14 types), availability, and platform notes

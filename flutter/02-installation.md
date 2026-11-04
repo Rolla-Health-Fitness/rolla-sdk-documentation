@@ -1,0 +1,114 @@
+# Installation
+
+Add the `rolla_sdk` package from pub.dev, then apply the iOS and Android changes its bundled plugins require. Everything below is a one-time change to your project.
+
+> A Flutter host depends on the **Dart package** — there are no extra Maven repositories or Podfile sources to add. Flutter's tooling resolves the SDK's native dependencies for you; you only apply the platform floors below and the [Permissions](03-permissions.md) in the next step.
+
+## 1. Add the Package
+
+```sh
+flutter pub add rolla_sdk:0.2.0
+```
+
+This pins the current release in `pubspec.yaml` — an exact version, not a caret, because 0.x releases can carry breaking changes (see [Prerequisites → Versioning](01-prerequisites.md#versioning)):
+
+```yaml
+dependencies:
+  rolla_sdk: 0.2.0
+```
+
+No authentication is required — the package is published to the public pub.dev registry. Requires **Flutter 3.35.6 / Dart 3.9.2** or newer, see [Prerequisites](01-prerequisites.md).
+
+> `rolla_sdk` pins three plugins to exact versions on purpose — `mapbox_maps_flutter 2.22.0`, `health 13.3.1`, `device_info_plus 12.3.0` — because the SDK's native code is built against them. If your app depends on one of these directly, align your constraint with the pinned version or `flutter pub get` fails to solve. It also constrains other common packages to a major version (`go_router ^14`, `flutter_bloc ^8`, `get_it ^8`, `flutter_local_notifications ^17`, `geolocator ^10`, `share_plus ^10`); if `flutter pub get` reports a conflict on one of these, align your constraint.
+
+## 2. iOS — Deployment Target and Pods
+
+Set the deployment target to **15.0** in `ios/Podfile`:
+
+```ruby
+platform :ios, '15.0'
+```
+
+Xcode 27 refuses to build any pod whose deployment target is below iOS 15.0, and the SDK's `ZIPFoundation` dependency declares iOS 12.0. Raise such pods to 15.0 in the `post_install` hook your Flutter `Podfile` already has:
+
+```ruby
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < 15.0
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.0'
+      end
+    end
+  end
+end
+```
+
+Then install the pods:
+
+```sh
+flutter pub get
+cd ios && pod install
+```
+
+Open the generated `Runner.xcworkspace`, not `Runner.xcodeproj`. If you bump the deployment target after a first build, run `pod install` again. Xcode 27 builds also need a scene manifest in `Info.plist` — see [Permissions → Scene Manifest](03-permissions.md#scene-manifest-xcode-27).
+
+For the underlying native build settings, see [iOS CocoaPods Setup](../ios/02-cocoapods-setup.md) and [iOS Troubleshooting → Deployment target errors](../ios/11-troubleshooting.md#deployment-target-errors-after-an-xcode-update).
+
+## 3. Android — Gradle
+
+In `android/settings.gradle.kts`, use Kotlin **2.2.0 or newer** — a fresh Flutter scaffold ships an older one — and build with **JDK 17**:
+
+```kotlin
+plugins {
+    id("dev.flutter.flutter-plugin-loader") version "1.0.0"
+    id("com.android.application") version "8.9.1" apply false
+    id("org.jetbrains.kotlin.android") version "2.2.0" apply false
+}
+```
+
+In `android/app/build.gradle.kts`, set `minSdk = 26` and enable core library desugaring:
+
+```kotlin
+android {
+    compileOptions {
+        isCoreLibraryDesugaringEnabled = true
+    }
+
+    defaultConfig {
+        minSdk = 26
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+}
+```
+
+`compileSdk` and `targetSdk` stay on Flutter's defaults (`flutter.compileSdkVersion`, API 36 with Flutter 3.35). Your app's `sourceCompatibility` / `targetCompatibility` can stay as the scaffold set them; the JDK 17 requirement is for the build itself.
+
+For the rationale behind each floor, see [Android Gradle Setup](../android/02-gradle-setup.md) and [Android Prerequisites](../android/01-prerequisites.md).
+
+**ProGuard / R8:** the package's Android half bundles consumer rules, so minified release builds need no manual configuration. Verify a minified release build (`flutter build apk --release` runs R8 by default; `isMinifyEnabled = true` if you configure it explicitly) through the full flow once — see [Android Gradle Setup → ProGuard / R8](../android/02-gradle-setup.md#proguard--r8).
+
+## 4. Verify the Build
+
+Build for each platform to confirm the floors resolve before writing integration code:
+
+```sh
+flutter run                       # debug on a connected device
+flutter build apk                 # Android release sanity check
+flutter build ios --no-codesign   # iOS build sanity check
+```
+
+> **Whenever you bump `rolla_sdk`, run:**
+>
+> ```sh
+> cd android && ./gradlew --refresh-dependencies
+> ```
+>
+> Gradle caches transitive metadata (notably for Mapbox) per coordinate, and stale metadata produces confusing resolution errors. This cannot be fixed on Rolla's side; the refresh must happen on your machine. See [Android Troubleshooting → Stale transitive dependencies](../android/09-troubleshooting.md#stale-transitive-dependencies-after-bumping-the-sdk-version).
+
+---
+
+**Previous:** [Prerequisites](01-prerequisites.md) | **Next:** [Permissions & Entitlements](03-permissions.md) | **Home:** [README](README.md)

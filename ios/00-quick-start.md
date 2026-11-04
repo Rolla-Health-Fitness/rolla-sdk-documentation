@@ -6,8 +6,8 @@ Get the Rolla SDK running in your iOS app in under 10 minutes.
 
 ## Prerequisites
 
-- **iOS 14.0+** deployment target
-- **Xcode 14.0+**
+- **iOS 15.0+** deployment target
+- **Xcode 26.0+**
 - **CocoaPods** installed (`sudo gem install cocoapods`)
 - **Partner ID** from Rolla (contact [support@rolla.app](mailto:support@rolla.app))
 - **Supported runtime configurations**
@@ -23,14 +23,14 @@ Your app must register users and obtain access tokens from Rolla's authenticatio
 Add to your `Podfile`:
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 source 'https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios.git'
 source 'https://cdn.cocoapods.org/'
 
 target 'YourApp' do
   use_frameworks!
-  pod 'RollaSDK', '0.1.15'
+  pod 'RollaSDK', '0.2.0'
 end
 ```
 

@@ -92,7 +92,10 @@ The screens your app can open directly — a deliberate whitelist. Lives in `com
 | `GOALS` | The goals editor |
 | `HOME` | The SDK Home screen — restores Home as the root |
 | `INSIGHTS` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `NUTRITION` | The Nutrition screen, opened as the SDK root — requires the nutrition module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
 | `RESUME` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `OPENED` |
+
+Later versions may add values to `RollaScreen`, so keep an `else` branch when switching over it.
 
 ### RollaOpenScreenStatus
 
@@ -101,8 +104,8 @@ Every outcome is a typed status — the call never fails silently. Lives in `com
 | Status | Meaning |
 |--------|---------|
 | `OPENED` | The SDK UI is on the requested screen |
-| `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` with the insights module disabled) — nothing was opened |
-| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
+| `SCREEN_DISABLED` | The screen's module is in `disabledModules` (e.g. `INSIGHTS` or `NUTRITION` with its module disabled) — nothing was opened |
+| `BLOCKED_BY_GATE` | A mandatory startup step (onboarding, consent, permissions, data-source connection) or the access lock screen is in front of the user. If the engine is cold, the SDK opens on that screen; if it is warm and the SDK is hidden, it stays hidden |
 | `UI_UNAVAILABLE` | The SDK UI could not be shown — the `activity` is finishing, or the SDK never became ready to navigate |
 | `SUPERSEDED` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `NOT_INITIALIZED` / `UNKNOWN_ERROR` | Internal problems; neither is an expected runtime condition |
@@ -116,7 +119,7 @@ Presentation failures additionally fire `onRollaError(rolla, error)` exactly as 
 fun notificationTarget(intent: Intent): RollaNotificationTarget?
 ```
 
-Every notification the SDK posts opens your **launcher activity** when tapped — the activity carrying your `MAIN`/`LAUNCHER` intent filter, whether or not it is the one you present the SDK from — and carries a payload that names its destination. `notificationTarget` reads that payload off the delivering intent. `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own); otherwise you get a typed destination to act on, typically by calling [`openScreen`](#openscreen). The payload itself is the `payload` string extra on that intent, if you ever need it.
+Every notification the SDK posts opens your **launcher activity** when tapped — the activity carrying your `MAIN`/`LAUNCHER` intent filter, whether or not it is the one you present the SDK from — and carries a payload that names its destination. The one case that never reaches you is a workout notification tapped while the SDK UI is already open: the SDK brings its own UI to the front and your activity stays out of it. `notificationTarget` reads that payload off the delivering intent. `null` means the intent is not a Rolla notification tap (a plain launch, or a notification of your own); otherwise you get a typed destination to act on, typically by calling [`openScreen`](#openscreen). The payload itself is the `payload` string extra on that intent, if you ever need it.
 
 These are the notifications the SDK posts and where a tap leads (English copy shown; the reminders and the warning follow the SDK language):
 
@@ -125,7 +128,7 @@ These are the notifications the SDK posts and where a tap leads (English copy sh
 | **Background tracking disabled** | The SDK UI leaves the foreground mid-workout — the app goes to the background, or one of your screens covers it — and *Always* location is missing; on Android 12+ only during a GPS workout | `AppSettings` — the fix is a permission, so the OS app-settings page is the destination |
 | **Stay on track** (inactivity reminder) | Two calendar days after the SDK was last opened, at 10:00 — every open of the SDK re-arms it | `Screen(INSIGHTS)`, or `Screen(HOME)` when the insights module was disabled at the time the reminder was scheduled |
 | **Battery low** (band battery warning) | At most once a day, when a battery reading before 18:00 shows the band at 20% or heading there before midnight — right away if it is already there, otherwise at 18:00 | `Screen(HOME)` |
-| **Workout in progress** / **Location Tracking** (the ongoing workout notifications) | For the whole of a Bluetooth or GPS workout | `Screen(RESUME)` — the live workout, exactly as the user left it |
+| **Workout in progress** / **Location Tracking** (the ongoing workout notifications) | For the whole of a Bluetooth or GPS workout | `Screen(RESUME)` — the live workout, exactly as the user left it. With the SDK UI already open, the tap brings it to the front by itself and your activity receives nothing |
 
 All of them resolve through the same call, so your code never needs to tell them apart — pass whatever screen you receive straight to `openScreen`, or handle the tap however suits your app best. The destination is our recommendation, not an obligation.
 
@@ -179,13 +182,13 @@ private fun handleNotificationTap(intent: Intent, tapCreatedThisInstance: Boolea
 
 - `singleTop`, with your launcher already the top activity: the tap comes through `onNewIntent` on the live instance.
 - Otherwise — a `standard` launcher, or a `singleTop` one with the SDK UI or another of your activities on top: Android stacks a new instance on the task and the tap comes through its `onCreate`.
-- Avoid `singleTask` and `singleInstance`: a `singleTask` launcher takes the tap by destroying every activity above it, an open SDK UI included, and a `singleInstance` launcher lives alone in its task, so the tap brings that task forward and leaves the SDK UI behind.
+- Avoid `singleTask` and `singleInstance`: a `singleTask` launcher takes a reminder or warning tap by destroying every activity above it, an open SDK UI included (the workout notifications are spared — with the SDK UI open they bring it to the front without going through your activity), and a `singleInstance` launcher lives alone in its task, so the tap brings that task forward and leaves the SDK UI behind.
 
 `notificationTarget` also returns `null` for the copy of a tap intent that Android re-delivers when the user relaunches the app from Recents, so an old tap never replays.
 
 **Why the `finish()`.** A tap on a running app usually stacks a *new* launcher instance over whatever the user had open. That instance only exists to route the tap; left alive, it is a stale copy of your launch screen the user comes back to after Settings or the SDK. So it finishes itself once its job is done, with `isPresenting` as the test: it is `true` whenever the SDK UI ended up on screen — the requested screen opened, the SDK was already open underneath the tap, or a cold engine presented Home while resolving a request that then failed. If the SDK stayed hidden (a warm engine's non-`OPENED` status, or a launch failure), the instance stays as the screen the user sees. Decide `tapCreatedThisInstance` in `onCreate` only: a fresh instance that is not the task root was stacked over a running app, while a cold start *is* the root and stays. Never finish from `onNewIntent`, where the tap reached the user's real screen. And call `finish()` only from inside the callback — `openScreen` is asynchronous, and a finishing activity cannot present (`UI_UNAVAILABLE`).
 
-**Where `rolla` lives.** The SDK delivers `onRollaClosed`, the error and token callbacks and the host events to the `Rolla` object whose call presented the UI, and keeps that object alive itself — in the example, the call comes from a launcher instance that finishes moments later. So the listener must not depend on this activity: give it the application context and let it talk to your session state rather than to the activity's views, view model or `lifecycleScope`. Leave `rolla` `null` until the user is signed in: a tap that arrives earlier keeps `target.screen` aside for your first signed-in screen to open, and that activity stays up — by the time it routes, it is the screen the user is using.
+**Where `rolla` lives.** The SDK delivers `onRollaClosed`, the error callbacks and the host events to the `Rolla` object whose call presented the UI, along with the token callbacks for as long as the UI is shown (see [Listener Callbacks](06-token-management.md#listener-callbacks)), and keeps that object alive itself — in the example, the call comes from a launcher instance that finishes moments later. So the listener must not depend on this activity: give it the application context and let it talk to your session state rather than to the activity's views, view model or `lifecycleScope`. Leave `rolla` `null` until the user is signed in: a tap that arrives earlier keeps `target.screen` aside for your first signed-in screen to open, and that activity stays up — by the time it routes, it is the screen the user is using.
 
 Resolve the tap first thing in `onCreate` and build your UI as usual. `openScreen` does the rest — presenting the SDK, navigating it in place, or bringing it back in front of your activities — so your launcher is visible only for a moment: until the SDK UI appears on a warm engine, or until the SDK's loader appears on a cold one.
 
@@ -218,7 +221,7 @@ All sixteen methods have default empty implementations — override only the one
 
 Twelve listener methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show()`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery, presenter-first.** Events are armed by any of `show()`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. While the SDK UI is presented (or being opened) they stay with the `Rolla` instance that presented it: a headless call from another instance in that time does not take them over, so a throwaway instance without a listener cannot swallow the open UI's events (if that open never presents, the turned-away caller takes them when it ends). With nothing presented, the instance that most recently called the SDK receives them. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
 
 ### Sync Events
@@ -228,7 +231,9 @@ Twelve listener methods push SDK events to your app, so you never have to poll. 
 | Headless&nbsp;sync&nbsp;completed | <code>onSyncHealthDataCompleted(rolla,&nbsp;result)</code> | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the callback receives |
 | UI&nbsp;sync&nbsp;completed | <code>onUiSyncCompleted(rolla,&nbsp;result)</code> | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
 
-**`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `null` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+**`syncedData` on UI syncs.** On a successful or partial band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `null` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+**Outcomes on UI syncs.** `outcome` and `streamResults` follow the same rules as the headless result, so a UI sync where a stream failed reports `PARTIAL` when new data still reached the server and `FAILURE` when none did, even while the SDK UI itself shows the sync as complete.
 
 ### Activity Events
 
@@ -236,7 +241,9 @@ Twelve listener methods push SDK events to your app, so you never have to poll. 
 |-------|--------|-----------|
 | Activity&nbsp;started | <code>onActivityStarted(rolla,&nbsp;activity)</code> | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
 | Activity&nbsp;completed | <code>onActivityCompleted(rolla,&nbsp;activity)</code> | An activity reaches a lifecycle phase: `FINISHED` (saved in-SDK), then `UPLOADED` or `UPLOAD_FAILED` |
-| Activity&nbsp;removed | <code>onActivityRemoved(rolla,&nbsp;activity)</code> | An activity's record is removed without a kept result — `reason` is `CANCELED` (crash-recovery discard) or `DELETED` (user deleted it, backend-confirmed) |
+| Activity&nbsp;removed | <code>onActivityRemoved(rolla,&nbsp;activity)</code> | An activity's record is removed without a kept result — `reason` is `CANCELED` (the user discarded it: the incomplete-activity dialog when stopping, or the crash-recovery prompt; also a session that recorded no data) or `DELETED` (user deleted it, backend-confirmed) |
+
+An activity's `type` is `walk`, `run`, `cycling`, `cardio` or `other`: golf reports `walk`, and kayaking, skiing, snowboarding, horseback riding, roller skating and wheelchair workouts report `other` in `type` and `category`, where earlier versions reported `cycling`.
 
 **Lifecycle guarantees.** Every started activity terminates in a `FINISHED` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `onActivityStarted` with origin `CRASH_RECOVERY`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `UPLOADED`/`UPLOAD_FAILED` can re-fire across retries. Manually logged activities enter the lifecycle at `FINISHED` (no started event); pause/resume inside a session fires nothing.
 
@@ -277,16 +284,31 @@ Starts and configures the engine ahead of time so the headless calls — and the
 fun syncHealthData(context: Context, includeSamples: Boolean = false, callback: (Result<RollaSyncResult>) -> Unit)
 ```
 
-Runs a full sync of the user's primary data source (band over BLE, or Health Connect) and resolves to a typed `RollaSyncResult` — the call never throws, and the same result is also delivered to `onSyncHealthDataCompleted(rolla, result)`:
+Runs a full sync of the user's primary data source (band over BLE, or Health Connect) and resolves to a typed `RollaSyncResult` — the call never throws, and the same result is also delivered to `onSyncHealthDataCompleted(rolla, result)`. The result types live in `com.rolla.sdk.wrapper.features.sync`:
 
 | Field | Meaning |
 |-------|---------|
-| `outcome` | `SUCCESS`, `SKIPPED` (expectedly did nothing — see `skipReason`), or `FAILURE` (see `error`) |
-| `hasNewData` | Whether anything new was uploaded (success only) |
+| `outcome` | `SUCCESS`, `PARTIAL` (at least one stream failed, but new data still reached the server — see `streamResults`), `SKIPPED` (expectedly did nothing — see `skipReason`), or `FAILURE` (see `error` — also when streams failed and no new data reached the server) |
+| `didRun` | Whether the sync ran — `true` on `SUCCESS` and `PARTIAL` |
+| `hasNewData` | Whether anything new was uploaded (`SUCCESS`; always `true` on `PARTIAL`) |
 | `source` | `BAND`, `APPLE_HEALTH`, `HEALTH_CONNECT`, `GARMIN`, `OURA` |
-| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on success |
-| `skipReason` | `NO_BAND_PAIRED` (no band on the account), `BAND_NOT_CONNECTED` (a band is paired but couldn't be reached right now), `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE` |
-| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `null` for `SKIPPED` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on `SUCCESS` and `PARTIAL` |
+| `skipReason` | `NO_BAND_PAIRED` (no band on the account), `BAND_NOT_CONNECTED` (a band is paired but couldn't be reached right now), `ALREADY_IN_PROGRESS`, `SERVER_SIDE_SOURCE` (Garmin/Oura sync server-side), `BLUETOOTH_PERMISSION_REQUIRED`, `BLUETOOTH_UNAVAILABLE`, `APPLE_HEALTH_PERMISSION_REQUIRED`, `HEALTH_CONNECT_PERMISSION_REQUIRED`, `NOT_INITIALIZED`, `OFFLINE`, `ACCESS_REQUIRED` (the user is locked out by access codes, an optional per-partner backend setting; your app never receives this value unless you asked Rolla to enable access codes for your users, so adding an empty `case` to an exhaustive `switch` or `when` statement is enough) |
+| `error` | Set on `FAILURE` and `PARTIAL`. When streams failed, it is the first failed stream's error; each failed stream's own error is in `streamResults` |
+| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples = true` to also receive raw sample arrays. `null` on `SKIPPED` and `FAILURE`, so a band sync where every stream failed reports no battery level — use [`getBandBatteryLevel`](#getbandbatterylevel) |
+| `streamResults` | One `RollaSyncStreamResult` per stream the sync attempted, in upload order. `stream`: `HEART_RATE`, `HRV`, `STEPS`, `SLEEP`, then `WEIGHT`, `BLOOD_PRESSURE`, `WORKOUTS` for Health Connect. `status`: `UPLOADED` (new data reached the server), `NO_NEW_DATA` (nothing new to upload), `FAILED` (reading or uploading failed), `PERMISSION_REQUIRED` (needs a permission your app has not granted). `error`, on `FAILED` and `PERMISSION_REQUIRED`, says what failed or which permission is missing. Empty when no stream ran — `SKIPPED`, a failure before any stream started, Garmin/Oura refreshes |
+
+**Reading `streamResults`.** A `PERMISSION_REQUIRED` stream does not change the outcome: a sync whose other streams uploaded or had no new data is still `SUCCESS`. The SDK cannot prompt during a sync, so request the permission from your app and the stream syncs from then on — Health Connect workouts need Activity Recognition, Location and Health Connect's past-data permission (`READ_HEALTH_DATA_HISTORY`). A `FAILED` stream is retried on every sync — one that fails for the same reason each time stays `FAILED` until the cause is fixed — and can still have uploaded part of its data: Health Connect steps upload day by day and workouts one at a time, and the accepted part is in `syncedData`. `error` is diagnostic text, not stable — don't parse it. Later versions may add values to `RollaSyncStream` and `RollaSyncStreamStatus`, so keep an `else` branch when switching over them.
+
+```kotlin
+rolla.syncHealthData(context) { result ->
+    result.onSuccess { sync ->
+        if (sync.didRun) println("Synced, new data: ${sync.hasNewData}") // SUCCESS or PARTIAL
+        sync.streamResults.filter { it.status == RollaSyncStreamStatus.FAILED }
+            .forEach { println("${it.stream} failed: ${it.error}") }
+    }
+}
+```
 
 ### getBandBatteryLevel
 

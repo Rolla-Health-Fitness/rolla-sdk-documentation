@@ -67,16 +67,20 @@ Smartphone-only workout tracking lets workouts be started and tracked with no pa
 
 > **Breaking — add this key or the app will crash.** iOS terminates any app that calls `CMPedometer.startUpdates` without an `NSMotionUsageDescription` string declared in its `Info.plist`. If you omit the key, the app will `SIGABRT` the first time a user starts a smartphone-only workout. Add the key with a user-facing rationale (the string above is a suggestion — adjust the wording to match your app's voice).
 
-## Configure Entitlements
+### Camera (Required for the nutrition photo scan)
 
-### Bluetooth Central
-
-Add the Bluetooth Central entitlement to your `.entitlements` file:
+AI meal estimation in the nutrition module can start from a photo of the meal, taken with the camera inside the SDK. Opening the camera requires a camera usage description:
 
 ```xml
-<key>com.apple.developer.bluetooth-central</key>
-<true/>
+<key>NSCameraUsageDescription</key>
+<string>The app uses the camera to photograph a meal and estimate its nutrition. Photos are only sent when you choose to scan one, and nothing is logged until you confirm the estimate.</string>
 ```
+
+> **Breaking — add this key or the app will close.** iOS terminates any app that asks for the camera without an `NSCameraUsageDescription` string declared in its `Info.plist`, so add the key before updating to 0.2.0. Add it even if AI meal estimation is not enabled for your app yet — Rolla can enable it later without an SDK update. No Podfile change is needed. The string above is a suggestion — adjust the wording to match your app's voice.
+
+## Configure Entitlements
+
+Bluetooth needs no entitlement: the `bluetooth-central` entry in `UIBackgroundModes` (see [Background Modes](#background-modes)) is what keeps the band connected in the background.
 
 ### HealthKit (Required for Apple Health)
 
@@ -117,7 +121,6 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `NSBluetoothAlwaysUsageDescription` | Required for any band-paired feature | The SDK initializes a `CBCentralManager` to scan for and connect to Rolla fitness bands. iOS 13+ shows the system Bluetooth prompt the moment `CBCentralManager` is allocated. |
 | `NSBluetoothPeripheralUsageDescription` | Optional | Legacy iOS-12-and-below companion key. The SDK does not act as a peripheral (no `CBPeripheralManager` allocations), but Apple's static analyzer will warn if only one of the two Bluetooth keys is present, so we recommend declaring it for compatibility with older deployment targets and to silence the warning. |
-| Bluetooth Central Entitlement | Required (build-time) | App Store capability required for the SDK's BLE central role (band scanning and connection). Configured in `.entitlements`, not `Info.plist`. |
 
 ### Apple Health
 
@@ -133,6 +136,12 @@ This section is the partner-facing justification for every permission the SDK re
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
 | `NSMotionUsageDescription` | Required if smartphone-only workouts are reachable | The SDK uses `CMPedometer` to count steps and measure cadence when a workout is tracked from the phone alone (no paired band). iOS shows the system Motion & Fitness prompt the first time `CMPedometer` is started, and **hard-terminates the app (`SIGABRT`) if the key is absent** — so the key must be present in any build where a user can start a phone-only workout, even if the user later denies the prompt. With the permission denied the workout still records via GPS, but step- and cadence-based metrics are unavailable. |
+
+### Camera
+
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `NSCameraUsageDescription` | Required | The SDK opens the camera so the user can photograph a meal for an AI nutrition estimate. iOS shows the system camera prompt the first time the camera opens, and **terminates the app if the key is absent** — so the key must be present in every build, even before AI meal estimation is enabled for your app. Photos are cropped, turned upright and stripped of location and other hidden metadata on the phone, sent only when the user scans, and deleted once the estimate comes back. |
 
 ### Background Modes
 

@@ -7,7 +7,7 @@ This section provides solutions to common issues encountered when integrating an
 ### SDK fails to start
 
 - Ensure all Info.plist permissions are configured
-- Verify Bluetooth Central capability is enabled
+- Verify `bluetooth-central` is listed under `UIBackgroundModes` in `Info.plist`
 - Check that the token is valid and not expired
 - Verify HealthKit capability is enabled (if using Apple Health)
 
@@ -23,6 +23,31 @@ This section provides solutions to common issues encountered when integrating an
 - Delete Pods folder and Podfile.lock
 - Run `pod install` again
 - Ensure you're opening `.xcworkspace`, not `.xcodeproj`
+
+### Deployment target errors after an Xcode update
+
+Each major Xcode release raises the oldest iOS version it can build for. Any pod in your project that still declares an older deployment target then fails the build, for example:
+
+```
+The iOS Simulator deployment target 'IPHONEOS_DEPLOYMENT_TARGET' is set to 12.0, but the range of supported deployment target versions is 15.0 to 27.1.x.
+```
+
+RollaSDK's dependencies can trigger this too: `ZIPFoundation`, for example, can still declare an older deployment target such as iOS 12.0. Raise every pod below the RollaSDK minimum iOS version (see [Prerequisites](01-prerequisites.md)) to that minimum, at the end of your Podfile:
+
+```ruby
+# RollaSDK's minimum iOS version, from Prerequisites.
+rolla_minimum_ios = '15.0'
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      if config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'].to_f < rolla_minimum_ios.to_f
+        config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = rolla_minimum_ios
+      end
+    end
+  end
+end
+```
 
 ### Calling `show()` while the SDK is already presenting
 

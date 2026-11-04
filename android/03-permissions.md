@@ -32,6 +32,26 @@ You can add this permission yourself, or let the manifest merger pull it in from
 
 `ACTIVITY_RECOGNITION` is a runtime ("dangerous") permission, so the SDK requests it at runtime before starting a phone-tracked workout. Make sure your **Play Console** listing and privacy policy cover the activity-recognition rationale (see the [Permissions Rationale](#permissions-rationale) matrix below).
 
+## Nutrition Photo Scan (CameraX manifest overrides)
+
+AI meal estimation in the nutrition module can start from a photo of the meal, taken with CameraX inside the SDK. CameraX's library manifest merges four entries into your app:
+
+- `CAMERA` — the scan needs it; keep it.
+- `RECORD_AUDIO` — never used; it shows as Microphone on your Play listing.
+- `WRITE_EXTERNAL_STORAGE`, capped at API 28 — it implies an uncapped `READ_EXTERNAL_STORAGE`; nothing to override, but expect both in your merged manifest.
+- A **required** `android.hardware.camera.any` feature — it hides your app from devices without a camera.
+
+The SDK cannot override a sibling library's manifest entries; only your app manifest outranks them. Add these two overrides inside the `<manifest>` element of your `AndroidManifest.xml`, and declare the tools namespace on that element (`xmlns:tools="http://schemas.android.com/tools"`) if it isn't there yet:
+
+```xml
+<uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove" />
+<uses-feature android:name="android.hardware.camera.any"
+    android:required="false"
+    tools:replace="android:required" />
+```
+
+Apps that skip this still build and run, but they advertise a microphone permission they never use and lose camera-less devices from their store listing. Marking the camera optional is safe: the photo scan is one way to log a meal among several — search, recents, manual entry and a typed description all work without a camera.
+
 ## Health Connect (Android)
 
 The SDK supports Google Health Connect. The SDK's bundled manifest declares only part of the Health Connect read set — the rest must come from your app, and Google's policy review evaluates the **merged** manifest under your app's identity. Declare the full set below in your `AndroidManifest.xml` (the manifest merger deduplicates the entries the SDK already carries), so your Play listing and Data Safety declarations match exactly what the app can request.
@@ -105,6 +125,8 @@ Add a `<queries>` block (or extend your existing one) at the `<manifest>` root:
 </queries>
 ```
 
+The Garmin Connect and Oura package queries, which the SDK uses to open those companion apps from its sync dialogs, come from the SDK's own manifest — there is nothing to add for them.
+
 ### `minSdk` requirement
 
 Health Connect requires `minSdk = 26`. Set this in your `app/build.gradle.kts`:
@@ -127,6 +149,26 @@ Before shipping a build with Health Connect enabled, update:
 - The **Data Safety** section of your Play Console listing to declare each data type as collected and what it is used for.
 
 Google's policy review compares the manifest entries above against these two surfaces. A mismatch is the most common reason for a Play rejection on a Health Connect-enabled build.
+
+## Garmin and Oura Sign-In Return (`oauthCallbackScheme`)
+
+Only needed if you set [`oauthCallbackScheme`](05-configuration.md#rollaconfiguration). The SDK then runs the Garmin and Oura sign-in in an in-app session through the `flutter_web_auth_2` plugin it bundles, and the provider's final redirect to your scheme must reach that plugin's `CallbackActivity`. Declare the activity inside the `<application>` element of your `AndroidManifest.xml`, with the same scheme you pass as `oauthCallbackScheme` — the `app_scheme` Rolla configures for your partner account:
+
+```xml
+<activity
+    android:name="com.linusu.flutter_web_auth_2.CallbackActivity"
+    android:exported="true"
+    android:taskAffinity="">
+    <intent-filter android:label="flutter_web_auth_2">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="your-app-scheme" />
+    </intent-filter>
+</activity>
+```
+
+Keep `android:taskAffinity=""` on the activity, as `flutter_web_auth_2` recommends; on browsers without Auth Tab support, such as Samsung Internet or Firefox, the SDK then brings its own screen back to the front once sign-in completes. Setting `oauthCallbackScheme` without this entry leaves the redirect with nowhere to land, so add both together.
 
 ## Notification Channels
 
@@ -187,6 +229,13 @@ This section is the partner-facing justification for every permission the SDK re
 |------------|---------------------|-----------|
 | `ACTIVITY_RECOGNITION` | Required for smartphone-only workouts | On Android 10+ (API 29+) the system gates the on-device step counter and cadence sensor behind this runtime permission. The SDK reads the phone's step counter to track workouts started with no paired wearable, and requests the permission at runtime before the first such workout. Its bundled manifest already declares the permission, so you don't need to add it yourself. |
 
+### Camera
+
+| Permission | Required / Optional | Rationale |
+|------------|---------------------|-----------|
+| `CAMERA` | Required for the nutrition photo scan | The SDK opens the camera so the user can photograph a meal for an AI nutrition estimate. Photos are cropped, turned upright and stripped of location and other hidden metadata on the phone, sent only when the user scans, and deleted once the estimate comes back. CameraX's manifest already declares the permission, so you don't need to add it yourself. |
+| `RECORD_AUDIO` | Not needed — remove it | Merged in by CameraX and never used by the SDK. It shows as Microphone on your Play listing unless you remove it with `tools:node="remove"` — see [Nutrition Photo Scan](#nutrition-photo-scan-camerax-manifest-overrides). |
+
 ### Foreground Service
 
 | Permission | Required / Optional | Rationale |
@@ -206,7 +255,7 @@ This section is the partner-facing justification for every permission the SDK re
 
 | Permission | Required / Optional | Rationale |
 |------------|---------------------|-----------|
-| `SCHEDULE_EXACT_ALARM` (Android 12+) | Optional | The SDK schedules its reminders (the inactivity reminder and the evening battery warning) as exact, Doze-tolerant alarms (`AlarmManager.setExactAndAllowWhileIdle`) so they fire on time. Declaring the permission is your call: with it in your manifest, exact timing applies once the app may schedule exact alarms — granted on install through Android 13, and on Android 14+ once the user enables *Alarms & reminders* for your app in system settings (the SDK leaves that prompt to you). Otherwise the SDK falls back to an inexact alarm instead of dropping the reminder; it may then arrive somewhat later than scheduled. |
+| `SCHEDULE_EXACT_ALARM` (Android 12+) | Not needed | The SDK schedules its reminders (the inactivity reminder and the evening battery warning) as inexact, Doze-tolerant alarms (`AlarmManager.setAndAllowWhileIdle`), which need no permission: a reminder arrives around its planned time, possibly somewhat later while the device is idle. Declaring this permission has no effect on SDK reminders, so if you declared it only for the SDK you can remove it. Removing a permission the user had granted makes Android cancel any pending exact alarm once; the SDK re-schedules its reminders the next time the app is opened. |
 | `RECEIVE_BOOT_COMPLETED` | Required for scheduled reminders | Scheduled reminders are alarm-based; without this permission every pending reminder is lost when the device reboots. The SDK declares it itself, so it appears in your merged manifest automatically. |
 | `REQUEST_IGNORE_BATTERY_OPTIMIZATIONS` | Optional, strongly recommended | The SDK opens the system battery-optimization exemption screen so the user can whitelist the app. Without the exemption, OEM battery managers (Xiaomi, Huawei, Samsung "deep sleep") can suspend the foreground service mid-workout, dropping the polyline and disconnecting the band. |
 

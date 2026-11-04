@@ -91,7 +91,10 @@ The screens your app can open directly — a deliberate whitelist:
 | `.goals` | The goals editor |
 | `.home` | The SDK Home screen — restores Home as the root |
 | `.insights` | The insights feed — requires the insights module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
+| `.nutrition` | The Nutrition screen, opened as the SDK root — requires the nutrition module to be enabled (see [RollaDisabledModule](05-configuration.md#rolladisabledmodule)) |
 | `.resume` | No navigation at all: the SDK exactly as the user left it — the last opened screen while the engine stays alive, or Home on a fresh engine. Always resolves as `.opened` |
+
+Later versions may add cases to `RollaScreen`, so end a `switch` over it with `@unknown default`.
 
 ### RollaOpenScreenStatus
 
@@ -100,8 +103,8 @@ Every outcome is a typed status — the call never fails silently:
 | Status | Meaning |
 |--------|---------|
 | `.opened` | The SDK UI is on the requested screen |
-| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` with the insights module disabled) — nothing was opened |
-| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) must be completed first. If the engine is cold, the SDK opens on that step; if it is warm and the SDK is hidden, it stays hidden |
+| `.screenDisabled` | The screen's module is in `disabledModules` (e.g. `.insights` or `.nutrition` with its module disabled) — nothing was opened |
+| `.blockedByGate` | A mandatory startup step (onboarding, consent, permissions, data-source connection) or the access lock screen is in front of the user. If the engine is cold, the SDK opens on that screen; if it is warm and the SDK is hidden, it stays hidden |
 | `.uiUnavailable` | The SDK UI could not be shown — the `from` view controller is not attached to a window, or the SDK never became ready to navigate |
 | `.superseded` | A newer `openScreen` request replaced this one while waiting for the UI — only the latest request is honored |
 | `.notInitialized` / `.unknownError` | Internal problems; neither is an expected runtime condition |
@@ -234,7 +237,7 @@ All sixteen methods have default empty implementations — implement only the on
 
 Twelve delegate methods push SDK events to your app, so you never have to poll. Two rules apply to all of them:
 
-- **Engine-scoped, engine-lifetime delivery.** Events are armed by any of `show(from:)`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
+- **Engine-scoped, engine-lifetime delivery, presenter-first.** Events are armed by any of `show(from:)`, `openScreen`, `warmUpEngine()`, or any headless call, and keep flowing after the SDK UI closes — an upload that completes moments after dismissal still reports. While the SDK UI is presented (or being opened) they stay with the `Rolla` instance that presented it: a headless call from another instance in that time does not take them over, so a throwaway instance without a delegate cannot swallow the open UI's events (if that open never presents, the turned-away caller takes them when it ends). With nothing presented, the instance that most recently called the SDK receives them. Delivery stops only at `destroyEngine()`. Nothing fires while the engine is cold, and nothing is delivered retroactively.
 - **Main thread.** Like all SDK callbacks, events arrive on the main thread.
 
 ### Sync Events
@@ -244,7 +247,9 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 | Headless&nbsp;sync&nbsp;completed | `rollaDidCompleteHealthDataSync(_:result:)` | A headless [`syncHealthData`](#synchealthdata) reaches a terminal outcome — with the same `RollaSyncResult` the completion handler receives |
 | UI&nbsp;sync&nbsp;completed | `rollaDidCompleteUISync(_:result:)` | A sync completes inside the SDK UI (auto-sync on open, return from background, manual refresh) |
 
-**`syncedData` on UI syncs.** On a successful band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+**`syncedData` on UI syncs.** On a successful or partial band / Apple Health / Health Connect UI sync, `RollaSyncResult.syncedData` carries the same per-stream summary as the headless result (samples never included). It is `nil` when there is nothing attributable to report — failures, Garmin/Oura content-only refreshes, syncs that recorded nothing, or overlapping syncs — never wrong or double-reported data.
+
+**Outcomes on UI syncs.** `outcome` and `streamResults` follow the same rules as the headless result, so a UI sync where a stream failed reports `partial` when new data still reached the server and `failure` when none did, even while the SDK UI itself shows the sync as complete.
 
 ### Activity Events
 
@@ -252,7 +257,9 @@ Twelve delegate methods push SDK events to your app, so you never have to poll. 
 |-------|--------|-----------|
 | Activity&nbsp;started | `rollaDidStartActivity(_:activity:)` | A live tracking session starts — `RollaStartedActivity.origin` distinguishes a fresh start from a crash-recovery resume |
 | Activity&nbsp;completed | `rollaDidCompleteActivity(_:activity:)` | An activity reaches a lifecycle phase: `finished` (saved in-SDK), then `uploaded` or `uploadFailed` |
-| Activity&nbsp;removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (crash-recovery discard) or `deleted` (user deleted it, backend-confirmed) |
+| Activity&nbsp;removed | `rollaDidRemoveActivity(_:activity:)` | An activity's record is removed without a kept result — `reason` is `canceled` (the user discarded it: the incomplete-activity dialog when stopping, or the crash-recovery prompt; also a session that recorded no data) or `deleted` (user deleted it, backend-confirmed) |
+
+An activity's `type` is `walk`, `run`, `cycling`, `cardio` or `other`: golf reports `walk`, and kayaking, skiing, snowboarding, horseback riding, roller skating and wheelchair workouts report `other` in `type` and `category`, where earlier versions reported `cycling`.
 
 **Lifecycle guarantees.** Every started activity terminates in a `finished` completion or a removal — possibly in a *different app session* if the app dies in between (crash recovery resolves on the next launch, re-firing `rollaDidStartActivity` with origin `crashRecovery`). Two exceptions are cleaned up silently, without an event: a session abandoned mid-tracking for over a day, and an interrupted session neither resumed nor discarded before the user starts their next activity. Dedupe on `activityId`, and treat `(activityId, phase)` as the idempotency key for completions — `uploaded`/`uploadFailed` can re-fire across retries. Manually logged activities enter the lifecycle at `finished` (no started event); pause/resume inside a session fires nothing.
 
@@ -297,12 +304,27 @@ Runs a full sync of the user's primary data source (band over BLE, or Apple Heal
 
 | Field | Meaning |
 |-------|---------|
-| `outcome` | `success`, `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error`) |
-| `hasNewData` | Whether anything new was uploaded (success only) |
+| `outcome` | `success`, `partial` (at least one stream failed, but new data still reached the server — see `streamResults`), `skipped` (expectedly did nothing — see `skipReason`), or `failure` (see `error` — also when streams failed and no new data reached the server) |
+| `didRun` | Whether the sync ran — `true` on `success` and `partial` |
+| `hasNewData` | Whether anything new was uploaded (`success`; always `true` on `partial`) |
 | `source` | `band`, `appleHealth`, `healthConnect`, `garmin`, `oura` |
-| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on success |
-| `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline` |
-| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays |
+| `startedAt` / `lastSyncAt` | When the sync started / completed on the device — together they give the sync duration. `startedAt` is `nil` for `skipped` (nothing ran) and on overlapping syncs; `lastSyncAt` is present only on `success` and `partial` |
+| `skipReason` | `noBandPaired` (no band on the account), `bandNotConnected` (a band is paired but couldn't be reached right now), `alreadyInProgress`, `serverSideSource` (Garmin/Oura sync server-side), `bluetoothPermissionRequired`, `bluetoothUnavailable`, `appleHealthPermissionRequired`, `healthConnectPermissionRequired`, `notInitialized`, `offline`, `accessRequired` (the user is locked out by access codes, an optional per-partner backend setting; your app never receives this value unless you asked Rolla to enable access codes for your users, so adding an empty `case` to an exhaustive `switch` or `when` statement is enough) |
+| `error` | Set on `failure` and `partial`. When streams failed, it is the first failed stream's error; each failed stream's own error is in `streamResults` |
+| `syncedData` | Per-stream summary of what was uploaded; pass `includeSamples: true` to also receive raw sample arrays. `nil` on `skipped` and `failure`, so a band sync where every stream failed reports no battery level — use [`getBandBatteryLevel`](#getbandbatterylevel) |
+| `streamResults` | One `RollaSyncStreamResult` per stream the sync attempted, in upload order. `stream`: `heartRate`, `hrv`, `steps`, `sleep`, then `weight`, `bloodPressure`, `workouts` for Apple Health. `status`: `uploaded` (new data reached the server), `noNewData` (nothing new to upload), `failed` (reading or uploading failed), `permissionRequired` (needs a permission your app has not granted). `error`, on `failed` and `permissionRequired`, says what failed or which permission is missing. Empty when no stream ran — `skipped`, a failure before any stream started, Garmin/Oura refreshes |
+
+**Reading `streamResults`.** A `permissionRequired` stream does not change the outcome: a sync whose other streams uploaded or had no new data is still `success`. The SDK cannot prompt during a sync, so request the permission from your app and the stream syncs from then on. HealthKit hides read denials, so a type whose read access is withheld reports `noNewData`, not `permissionRequired`. A `failed` stream is retried on every sync — one that fails for the same reason each time stays `failed` until the cause is fixed — and can still have uploaded part of its data: workouts upload one at a time, and the accepted part is in `syncedData`. `error` is diagnostic text, not stable — don't parse it. Later versions may add cases to `RollaSyncStream` and `RollaSyncStreamStatus`, so end a `switch` over them with `@unknown default`.
+
+```swift
+rolla.syncHealthData { result in
+    guard case .success(let sync) = result else { return }
+    if sync.didRun { print("Synced, new data: \(sync.hasNewData)") } // success or partial
+    for entry in sync.streamResults where entry.status == .failed {
+        print("\(entry.stream) failed: \(entry.error ?? "")")
+    }
+}
+```
 
 ### getBandBatteryLevel
 

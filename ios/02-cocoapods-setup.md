@@ -9,7 +9,7 @@ This section covers adding the Rolla SDK to your project via CocoaPods, configur
 Add the Rolla SDK specs repository and dependency to your Podfile:
 
 ```ruby
-platform :ios, '14.0'
+platform :ios, '15.0'
 
 # Add Rolla SDK specs repository
 source 'https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios.git'
@@ -19,9 +19,11 @@ target 'YourApp' do
   use_frameworks!
 
   # Add Rolla SDK
-  pod 'RollaSDK', '0.1.15'
+  pod 'RollaSDK', '0.2.0'
 end
 ```
+
+> **Xcode 27:** a pod that still declares a deployment target older than 15.0 fails the build — RollaSDK's `ZIPFoundation` dependency declares iOS 12.0. Add the `post_install` hook from [Deployment target errors after an Xcode update](11-troubleshooting.md#deployment-target-errors-after-an-xcode-update) to the end of your Podfile.
 
 > Check the [iOS release repo](https://github.com/Rolla-Health-Fitness/rolla-sdk-release-ios) for the latest version.
 
