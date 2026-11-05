@@ -8,7 +8,7 @@ Before integrating the Rolla SDK into your Flutter app, verify the following.
 |-------------|-------|
 | **Flutter / Dart** | Flutter `3.35.6` or newer, Dart `3.9.2` or newer — the package constrains `flutter: '>=3.35.6'`, so an older toolchain fails at `flutter pub get`. Check yours with `flutter --version` |
 | **iOS** | Deployment target `15.0`, CocoaPods. See [iOS Prerequisites](../ios/01-prerequisites.md) |
-| **Android** | `minSdk 26`, `compileSdk 36` (the Flutter 3.35 default), Kotlin `2.2.0` or newer, JDK 17 to build, core library desugaring. See [Android Prerequisites](../android/01-prerequisites.md) |
+| **Android** | `minSdk 26`, `compileSdk 36` (the Flutter 3.35 default), Kotlin `2.2.0` or newer, JDK 17 to build, core library desugaring, and a `MainActivity` that extends `FlutterFragmentActivity` (see [Host Activity](03-permissions.md#host-activity)). See [Android Prerequisites](../android/01-prerequisites.md) |
 | **Mapbox token** | A Mapbox **public** token (`pk.`), supplied by Rolla with your partner credentials. The SDK renders route maps with it; they stay blank without it. See [Permissions → Info.plist](03-permissions.md#infoplist) (iOS) and [Mapbox Token](03-permissions.md#mapbox-token) (Android) |
 | **Partner ID and sandbox credentials** | Issued with your Rolla SDK starter package during onboarding (contact [support@rolla.app](mailto:support@rolla.app)) |
 | **Devices** | Bluetooth band pairing and motion-sensor tracking need a physical device; simulators and emulators run everything else |
