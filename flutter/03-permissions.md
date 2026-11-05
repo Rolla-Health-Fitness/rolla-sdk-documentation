@@ -134,6 +134,18 @@ No Dart is involved. Follow the step-by-step procedure and copy the other Swift 
 
 ## Android
 
+### Host Activity
+
+Your `MainActivity` must extend `FlutterFragmentActivity`, not the `FlutterActivity` that `flutter create` generates:
+
+```kotlin
+import io.flutter.embedding.android.FlutterFragmentActivity
+
+class MainActivity : FlutterFragmentActivity()
+```
+
+The SDK's Health Connect permission flow registers an activity-result contract on your activity, which needs a `ComponentActivity`. With a plain `FlutterActivity` that registration fails while the plugins attach (the startup log shows a `ClassCastException` for the `health` plugin), the SDK otherwise runs, but Health Connect never becomes available: the Data Sources page cannot connect it and no permission sheet appears. Nothing else about the activity changes — `FlutterFragmentActivity` runs the same engine and keeps the default `singleTop` launch mode (see [Launch Mode](#launch-mode)).
+
 ### Mapbox Token
 
 Route maps need the Mapbox public token in `android/app/src/main/res/values/strings.xml` — the Android counterpart of `MBXAccessToken`:
@@ -150,7 +162,7 @@ The package's own Android manifest declares the Bluetooth (including `BLUETOOTH_
 
 **Internet.** Flutter's debug manifest adds `INTERNET` for hot reload; release builds need it declared explicitly.
 
-**Health Connect.** The package's manifest declares only part of the Health Connect read set. Declare the full set, the permissions-rationale intent-filter on your `MainActivity`, the `ViewPermissionUsageActivity` alias for Android 14, and the `<queries>` block that lets the SDK detect the Health Connect app.
+**Health Connect.** Your activity must be a `FlutterFragmentActivity` (see [Host Activity](#host-activity)). The package's manifest declares only part of the Health Connect read set. Declare the full set, the permissions-rationale intent-filter on your `MainActivity`, the `ViewPermissionUsageActivity` alias for Android 14, and the `<queries>` block that lets the SDK detect the Health Connect app.
 
 **Camera overrides.** The nutrition photo scan pulls in CameraX, whose manifest merges a `RECORD_AUDIO` permission the scan never uses (it shows as Microphone on your Play listing) and a **required** `android.hardware.camera.any` feature that hides your app from devices without a camera. Only your app manifest outranks a library's entries, so remove the first and mark the second optional yourself; both need the `tools` namespace on `<manifest>`. Apps that skip this still build and run. See [Android Permissions → Nutrition Photo Scan](../android/03-permissions.md#nutrition-photo-scan-camerax-manifest-overrides).
 

@@ -90,6 +90,18 @@ D8: Default interface methods are only supported starting with Android N (--min-
 
 **Fix:** set `org.jetbrains.kotlin.android` to `2.2.0` or newer and build with JDK 17. See [Installation → Android](02-installation.md#3-android--gradle) and [Android Troubleshooting → Build errors](../android/09-troubleshooting.md#build-errors).
 
+### Health Connect Never Connects on Android
+
+**Symptom:** on the SDK's Data Sources page Health Connect stays "Not connected" and no Health Connect permission sheet ever appears. The startup log shows the `health` plugin failing to register:
+
+```
+java.lang.ClassCastException: ...MainActivity cannot be cast to androidx.activity.ComponentActivity
+```
+
+**Cause:** `MainActivity` extends `FlutterActivity`. The SDK's Health Connect permission flow registers an activity-result contract, which needs a `ComponentActivity`.
+
+**Fix:** extend `FlutterFragmentActivity` instead — see [Permissions → Host Activity](03-permissions.md#host-activity).
+
 ### `flutter pub get` Fails with a Version-Solving Error
 
 **Symptom:**
